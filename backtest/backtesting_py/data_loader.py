@@ -1,7 +1,8 @@
-"""Load range bars from BigBlack ClickHouse into backtesting.py-compatible DataFrame.
+"""Load range bars from ClickHouse into backtesting.py-compatible DataFrame.
 
 ADR: docs/adr/2026-02-06-repository-creation.md
 
+Prefers local ClickHouse (synced via `mise run ch:sync`), falls back to BigBlack SSH tunnel.
 Returns DataFrame with DatetimeIndex + capitalized OHLCV + microstructure features.
 """
 
@@ -13,9 +14,12 @@ def load_range_bars(
     threshold: int = 250,
     start: str = "2020-01-01",
     end: str = "2026-01-01",
-    host: str = "bigblack",
+    ssh_alias: str = "bigblack",
 ):
     """Load range bars with microstructure features from ClickHouse.
+
+    Tries local ClickHouse first (localhost:8123). If local has no data for the
+    requested symbol/threshold, falls back to SSH tunnel to BigBlack.
 
     Returns DataFrame with DatetimeIndex + OHLCV + trade_intensity + kyle_lambda_proxy.
     Compatible with backtesting.py (requires capitalized OHLCV columns).
@@ -24,11 +28,12 @@ def load_range_bars(
     import pandas as pd
     import polars as pl
 
+    from backtest.backtesting_py.ssh_tunnel import SSHTunnel, _is_port_open
+
     start_ts = int(pd.Timestamp(start).timestamp() * 1000)
     end_ts = int(pd.Timestamp(end).timestamp() * 1000)
 
-    client = clickhouse_connect.get_client(host=host)
-    result = client.query_arrow(f"""
+    query = f"""
         SELECT timestamp_ms, open, high, low, close, volume,
                trade_intensity, kyle_lambda_proxy
         FROM rangebar_cache.range_bars
@@ -37,13 +42,32 @@ def load_range_bars(
           AND timestamp_ms >= {start_ts}
           AND timestamp_ms < {end_ts}
         ORDER BY timestamp_ms
-    """)
+    """
 
-    df = pl.from_arrow(result).to_pandas()
+    # Try local ClickHouse first
+    if _is_port_open("localhost", 8123, timeout=1.0):
+        client = clickhouse_connect.get_client(host="localhost", port=8123)
+        result = client.query_arrow(query)
+        if result.num_rows > 0:
+            print(f"  [local] {result.num_rows} rows from localhost:8123")
+            return _to_backtest_df(result, pl, pd)
+
+    # Fall back to SSH tunnel
+    print(f"  [tunnel] No local data, connecting via SSH tunnel to {ssh_alias}...")
+    tunnel = SSHTunnel(ssh_alias)
+    with tunnel as local_port:
+        client = clickhouse_connect.get_client(host="localhost", port=local_port)
+        result = client.query_arrow(query)
+        print(f"  [tunnel] {result.num_rows} rows via {ssh_alias}")
+
+    return _to_backtest_df(result, pl, pd)
+
+
+def _to_backtest_df(arrow_table, pl, pd):
+    """Convert Arrow table to backtesting.py-compatible DataFrame."""
+    df = pl.from_arrow(arrow_table).to_pandas()
     df.index = pd.to_datetime(df["timestamp_ms"], unit="ms")
     df.index.name = None
-
-    # backtesting.py requires capitalized OHLCV columns
     df = df.rename(columns={
         "open": "Open",
         "high": "High",

@@ -2,10 +2,11 @@
 # Range bar pattern discovery research
 #
 # Task files (spokes):
-#   .mise/tasks/dev.toml      - fmt, lint, test
-#   .mise/tasks/sql.toml      - SQL validation, execution on BigBlack
-#   .mise/tasks/backtest.toml - backtesting.py + NautilusTrader
-#   .mise/tasks/release.toml  - semantic-release workflow
+#   .mise/tasks/dev.toml        - fmt, lint, test
+#   .mise/tasks/sql.toml        - SQL validation, execution
+#   .mise/tasks/backtest.toml   - backtesting.py + NautilusTrader
+#   .mise/tasks/clickhouse.toml - local ClickHouse + BigBlack sync
+#   .mise/tasks/release.toml    - semantic-release workflow
 
 [tools]
 python = "3.13"
@@ -26,5 +27,6 @@ includes = [
     ".mise/tasks/dev.toml",
     ".mise/tasks/sql.toml",
     ".mise/tasks/backtest.toml",
+    ".mise/tasks/clickhouse.toml",
     ".mise/tasks/release.toml",
 ]

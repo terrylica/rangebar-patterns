@@ -20,7 +20,7 @@ def main() -> None:
     from backtest.backtesting_py.champion_strategy import ChampionMeanRevLong
     from backtest.backtesting_py.data_loader import load_range_bars
 
-    print("Loading SOL@250dbps range bars from BigBlack ClickHouse...")
+    print("Loading SOL@250dbps range bars from BigBlack ClickHouse (via SSH tunnel)...")
     df = load_range_bars(symbol="SOLUSDT", threshold=250)
     print(f"Loaded {len(df)} range bars ({df.index[0]} to {df.index[-1]})")
 
