@@ -1,0 +1,30 @@
+# rangebar-patterns mise configuration (Hub)
+# Range bar pattern discovery research
+#
+# Task files (spokes):
+#   .mise/tasks/dev.toml      - fmt, lint, test
+#   .mise/tasks/sql.toml      - SQL validation, execution on BigBlack
+#   .mise/tasks/backtest.toml - backtesting.py + NautilusTrader
+#   .mise/tasks/release.toml  - semantic-release workflow
+
+[tools]
+python = "3.13"
+
+[env]
+# GitHub Account
+GH_ACCOUNT = "terrylica"
+GH_TOKEN = "{{ read_file(path=env.HOME ~ '/.claude/.secrets/gh-token-terrylica') | trim }}"
+GITHUB_TOKEN = "{{ read_file(path=env.HOME ~ '/.claude/.secrets/gh-token-terrylica') | trim }}"
+
+# ClickHouse (BigBlack)
+RANGEBAR_CH_HOST = "bigblack"
+RANGEBAR_CH_DATABASE = "rangebar_cache"
+RANGEBAR_CH_TABLE = "range_bars"
+
+[task_config]
+includes = [
+    ".mise/tasks/dev.toml",
+    ".mise/tasks/sql.toml",
+    ".mise/tasks/backtest.toml",
+    ".mise/tasks/release.toml",
+]

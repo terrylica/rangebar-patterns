@@ -1,0 +1,16 @@
+[test]
+description = "Run validation tests"
+run = "uv run -p 3.13 pytest tests/ -v"
+sources = ["src/**/*.py", "tests/**/*.py"]
+
+[lint]
+description = "Run ruff linter"
+run = "uv run -p 3.13 ruff check src/ tests/"
+
+[fmt]
+description = "Format Python code"
+run = "uv run -p 3.13 ruff format src/ tests/"
+
+["check:all"]
+description = "Run all checks"
+depends = ["fmt", "lint", "test"]

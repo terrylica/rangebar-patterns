@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rangebar-patterns"
+version = "0.1.0"
+description = "Range bar pattern discovery: ClickHouse SQL brute-force analysis of microstructure features"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [{ name = "Terry Li" }]
+
+dependencies = [
+    "clickhouse-connect>=0.8",
+    "polars>=1.0",
+    "pyarrow>=14.0",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+backtesting = ["backtesting>=0.3"]
+nautilus = ["nautilus_trader>=1.200"]
+dev = ["pytest>=7.0", "ruff>=0.1"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

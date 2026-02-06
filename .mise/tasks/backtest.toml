@@ -1,0 +1,15 @@
+["backtest:run"]
+description = "Run backtesting.py champion strategy on SOL range bars"
+run = "uv run -p 3.13 python backtest/backtesting_py/run_backtest.py"
+
+["backtest:run-nautilus"]
+description = "Run NautilusTrader champion strategy"
+run = "uv run -p 3.13 python backtest/nautilus/run_backtest.py"
+
+["backtest:install"]
+description = "Install backtesting.py optional dependency"
+run = "uv pip install -p 3.13 'backtesting>=0.3'"
+
+["backtest:install-nautilus"]
+description = "Install NautilusTrader optional dependency"
+run = "uv pip install -p 3.13 'nautilus_trader>=1.200'"

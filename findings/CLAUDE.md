@@ -1,0 +1,19 @@
+# Research Findings - AI Context
+
+**Scope**: Chronological research analysis documents from brute-force pattern discovery.
+
+**Navigation**: [Root CLAUDE.md](/CLAUDE.md)
+
+---
+
+## Findings Index
+
+| Date       | File                            | Key Insight                                        |
+| ---------- | ------------------------------- | -------------------------------------------------- |
+| 2026-02-01 | parameter-free-methods.md       | E-values, ADWIN, TDA for parameter-free evaluation |
+| 2026-02-02 | brute-force-synthesis.md        | Pattern analysis across Gen1-Gen110                |
+| 2026-02-02 | artifact-synthesis.md           | NN feature engineering from brute-force results    |
+| 2026-02-02 | ood-deep-research.md            | OOD robustness methods                             |
+| 2026-02-05 | production-readiness-audit.md   | **CONDITIONAL GO**: lagInFrame fix, DSR=1.000      |
+| 2026-02-05 | microstructure-analysis.md      | VPIN, Kyle lambda, OFI implementation              |
+| 2026-02-05 | microstructure-deep-research.md | Regime detection, exhaustion patterns              |

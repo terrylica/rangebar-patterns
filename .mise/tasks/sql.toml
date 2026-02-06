@@ -1,0 +1,15 @@
+["sql:list"]
+description = "List all SQL generation files"
+run = "ls -1 sql/gen*.sql sql/verify*.sql"
+
+["sql:run"]
+description = "Run a SQL file on BigBlack ClickHouse"
+run = "cat {{arg(name='file')}} | ssh bigblack 'clickhouse-client --multiquery'"
+
+["sql:validate"]
+description = "Check all SQL files for syntax (dry run)"
+run = "uv run -p 3.13 python -m rangebar_patterns.validate --check-syntax"
+
+["sql:reproduce"]
+description = "Run Gen111 and verify champion pattern hit rate"
+run = "cat sql/gen111_true_nolookahead.sql | ssh bigblack 'clickhouse-client --multiquery'"

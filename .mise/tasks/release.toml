@@ -1,0 +1,7 @@
+["release:full"]
+description = "Run semantic-release (creates tag + GitHub release)"
+run = "/usr/bin/env bash -c 'GITHUB_TOKEN=$(cat ~/.claude/.secrets/gh-token-terrylica) npx semantic-release --no-ci'"
+
+["release:dry"]
+description = "Dry-run semantic-release (no publish)"
+run = "/usr/bin/env bash -c 'GITHUB_TOKEN=$(cat ~/.claude/.secrets/gh-token-terrylica) npx semantic-release --dry-run --no-ci'"
