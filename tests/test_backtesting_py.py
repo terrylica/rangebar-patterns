@@ -4,6 +4,11 @@ ADR: docs/adr/2026-02-06-repository-creation.md
 """
 
 import importlib
+import sys
+from pathlib import Path
+
+# Add repo root to path so 'backtest' package is importable
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 def test_champion_strategy_importable():
