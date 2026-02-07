@@ -1,0 +1,45 @@
+# Gen400: Multi-Feature Combination Sweep
+# Phase 1: 2-feature (1,008 configs), Phase 2: 3-feature (12,096), Phase 3: 4-feature (1,120)
+# Pueue parallel execution on BigBlack (4 slots in p1 group)
+# Scripts in scripts/gen400/ (standalone bash, avoids Tera template conflicts)
+
+["gen400:generate"]
+description = "Pre-generate all SQL files from templates into /tmp/gen400_sql/"
+run = "bash scripts/gen400/generate.sh"
+
+["gen400:upload"]
+description = "rsync generated SQL to BigBlack"
+run = "rsync -avz --delete /tmp/gen400_sql/ bigblack:/tmp/gen400_sql/"
+
+["gen400:submit-2f"]
+description = "Submit 2-feature jobs to BigBlack pueue (p1 group, 4 parallel)"
+run = "bash scripts/gen400/submit.sh 1 2 2f"
+
+["gen400:submit-3f"]
+description = "Submit 3-feature jobs to BigBlack pueue (p1 group, 4 parallel)"
+run = "bash scripts/gen400/submit.sh 2 3 3f"
+
+["gen400:submit-4f"]
+description = "Submit 4-feature jobs to BigBlack pueue (p1 group, 4 parallel)"
+run = "bash scripts/gen400/submit.sh 3 4 4f"
+
+["gen400:submit-all"]
+description = "Generate, upload, and submit all phases to BigBlack"
+depends = ["gen400:generate", "gen400:upload"]
+run = "bash scripts/gen400/submit.sh 1 2 2f && bash scripts/gen400/submit.sh 2 3 3f && bash scripts/gen400/submit.sh 3 4 4f"
+
+["gen400:status"]
+description = "Check pueue status and result counts on BigBlack"
+run = "bash scripts/gen400/status.sh"
+
+["gen400:collect"]
+description = "Download results from BigBlack to local logs/"
+run = "bash scripts/gen400/collect.sh"
+
+["gen400:report"]
+description = "Top results across all phases, sorted by Kelly"
+run = "bash scripts/gen400/report.sh"
+
+["gen400:poc"]
+description = "Fail-fast POC: run 10 configs to validate pipeline end-to-end"
+run = "bash scripts/gen400/poc.sh"

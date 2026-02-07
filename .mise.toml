@@ -30,4 +30,5 @@ includes = [
     ".mise/tasks/clickhouse.toml",
     ".mise/tasks/release.toml",
     ".mise/tasks/gen300.toml",
+    ".mise/tasks/gen400.toml",
 ]

@@ -12,6 +12,8 @@ Range bar pattern discovery via ClickHouse SQL brute-force analysis of microstru
 CLAUDE.md (this file)        <-- Hub: Navigation + Essentials
     |
     +-- sql/CLAUDE.md        <-- Spoke: SQL guide, generations, ClickHouse
+    +-- logs/CLAUDE.md       <-- Spoke: Telemetry archive conventions
+    +-- scripts/CLAUDE.md    <-- Spoke: Sweep script patterns + pueue
     +-- findings/CLAUDE.md   <-- Spoke: Research findings index
     +-- issues/CLAUDE.md     <-- Spoke: GitHub issue snapshots
     +-- backtest/CLAUDE.md   <-- Spoke: backtesting.py + NautilusTrader
@@ -23,6 +25,8 @@ CLAUDE.md (this file)        <-- Hub: Navigation + Essentials
 | Topic             | Document                                                                                  |
 | ----------------- | ----------------------------------------------------------------------------------------- |
 | SQL Patterns      | [sql/CLAUDE.md](/sql/CLAUDE.md)                                                           |
+| Telemetry Logs    | [logs/CLAUDE.md](/logs/CLAUDE.md)                                                         |
+| Sweep Scripts     | [scripts/CLAUDE.md](/scripts/CLAUDE.md)                                                   |
 | Research Findings | [findings/CLAUDE.md](/findings/CLAUDE.md)                                                 |
 | GitHub Issues     | [issues/CLAUDE.md](/issues/CLAUDE.md)                                                     |
 | Backtesting       | [backtest/CLAUDE.md](/backtest/CLAUDE.md)                                                 |

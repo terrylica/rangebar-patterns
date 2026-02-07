@@ -1,0 +1,59 @@
+=== Gen400: Multi-Feature Sweep Report ===
+
+Total configs: 14224 (14224 valid, 0 errors)
+
+--- Top 30 by Kelly (all phases, >=100 signals) ---
+CONFIG                                                                  N_F SIGNALS       PF    KELLY   WIN_RT
+---                                                                     ---     ---      ---      ---      ---
+turnover_imbalance_gt_p50__aggregation_density_gt_p50__duration_us_lt_p50    3     160   1.5936  0.16528   0.4437
+ofi_gt_p50__turnover_imbalance_gt_p50__aggregation_density_gt_p50__duration_us_lt_p50    4     160   1.5936  0.16528   0.4437
+ofi_gt_p50__aggregation_density_gt_p50__duration_us_lt_p50                3     160   1.5936  0.16528   0.4437
+ofi_gt_p50__price_impact_lt_p50__vwap_close_deviation_gt_p75              3     118   1.5753  0.16093   0.4407
+turnover_imbalance_gt_p50__price_impact_lt_p50__vwap_close_deviation_gt_p75    3     118   1.5753  0.16093   0.4407
+aggression_ratio_lt_p50__turnover_imbalance_gt_p50__volume_per_trade_lt_p25    3     109   1.5733  0.16046   0.4404
+ofi_gt_p50__aggression_ratio_lt_p50__volume_per_trade_lt_p25              3     109   1.5733  0.16046   0.4404
+ofi_gt_p50__aggression_ratio_lt_p50__price_impact_gt_p50__volume_per_trade_lt_p50    4     123   1.5648  0.15846   0.4390
+aggression_ratio_lt_p50__turnover_imbalance_gt_p50__price_impact_gt_p50__volume_per_trade_lt_p50    4     123   1.5648  0.15846   0.4390
+turnover_imbalance_gt_p75__vwap_close_deviation_gt_p50__aggregation_density_gt_p50    3     128   1.5882  0.15316   0.4375
+ofi_gt_p75__vwap_close_deviation_gt_p50__aggregation_density_gt_p50       3     128   1.5882  0.15316   0.4375
+aggression_ratio_lt_p50__turnover_imbalance_gt_p50__volume_per_trade_lt_p50__aggregation_density_gt_p50    4     117   1.4925  0.14103   0.4274
+ofi_gt_p50__aggression_ratio_lt_p50__volume_per_trade_lt_p50__aggregation_density_gt_p50    4     117   1.4925  0.14103   0.4274
+aggression_ratio_lt_p50__turnover_imbalance_gt_p50__price_impact_gt_p50__aggregation_density_gt_p50    4     110   1.4900  0.14051   0.4273
+ofi_gt_p50__aggression_ratio_lt_p50__price_impact_gt_p50__aggregation_density_gt_p50    4     110   1.4900  0.14051   0.4273
+ofi_gt_p50__aggression_ratio_gt_p50__price_impact_lt_p50__duration_us_lt_p50    4     143   1.4898  0.14025   0.4266
+aggression_ratio_gt_p50__turnover_imbalance_gt_p50__price_impact_lt_p50__duration_us_lt_p50    4     143   1.4898  0.14025   0.4266
+aggression_ratio_gt_p50__price_impact_lt_p50__aggregation_density_lt_p50__duration_us_lt_p50    4     127   1.4817  0.13824   0.4252
+ofi_gt_p50__aggression_ratio_lt_p50__turnover_imbalance_gt_p50__volume_per_trade_lt_p50    4     142   1.4631  0.13373   0.4225
+ofi_gt_p50__aggression_ratio_lt_p50__volume_per_trade_lt_p50              3     142   1.4631  0.13373   0.4225
+aggression_ratio_lt_p50__turnover_imbalance_gt_p50__volume_per_trade_lt_p50    3     142   1.4631  0.13373   0.4225
+ofi_gt_p50__price_impact_lt_p25__duration_us_lt_p50                       3     122   1.4387  0.12746   0.4180
+turnover_imbalance_gt_p50__price_impact_lt_p25__duration_us_lt_p50        3     122   1.4387  0.12746   0.4180
+ofi_gt_p50__aggression_ratio_lt_p50__turnover_imbalance_gt_p50__price_impact_gt_p50    4     137   1.4231  0.12370   0.4161
+aggression_ratio_lt_p50__turnover_imbalance_gt_p50__price_impact_gt_p50    3     137   1.4231  0.12370   0.4161
+ofi_gt_p50__aggression_ratio_lt_p50__price_impact_gt_p50                  3     137   1.4231  0.12370   0.4161
+ofi_gt_p50__price_impact_lt_p50__duration_us_lt_p50                       3     200   1.4199  0.12273   0.4150
+ofi_gt_p50__turnover_imbalance_gt_p50__price_impact_lt_p50__duration_us_lt_p50    4     200   1.4199  0.12273   0.4150
+turnover_imbalance_gt_p50__price_impact_lt_p50__duration_us_lt_p50        3     200   1.4199  0.12273   0.4150
+ofi_gt_p50__price_impact_lt_p50__vwap_close_deviation_gt_p50__volume_per_trade_lt_p50    4     157   1.4130  0.12102   0.4140
+
+--- Positive Kelly Summary (>=100 signals) ---
+Configs with Kelly > 0 (>=100 signals): 1288 / 4765
+
+--- Feature Frequency in Positive-Kelly Combos ---
+    560 volume_per_trade
+    536 price_impact
+    522 aggregation_density
+    508 vwap_close_deviation
+    485 aggression_ratio
+    484 turnover_imbalance
+    482 ofi
+    439 duration_us
+
+--- Bonferroni Check ---
+  2feature (1008 tests): best=ofi_gt_p75__price_impact_gt_p75 Kelly=0.11211 z=-1.930
+  3feature (12096 tests): best=turnover_imbalance_gt_p50__aggregation_density_gt_p50__duration_us_lt_p50 Kelly=0.16528 z=-1.423
+  4feature (1120 tests): best=ofi_gt_p50__turnover_imbalance_gt_p50__aggregation_density_gt_p50__duration_us_lt_p50 Kelly=0.16528 z=-1.423
+
+--- Decision ---
+Best Kelly across all (>=100 signals): 0.16528
+VERDICT: POTENTIAL WINNER. Run barrier grid + backtest alignment.
