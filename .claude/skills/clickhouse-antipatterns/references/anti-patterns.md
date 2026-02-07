@@ -1,0 +1,335 @@
+**Skill**: [ClickHouse Anti-Patterns](../SKILL.md)
+
+# Anti-Pattern Detailed Reference
+
+Each entry documents: symptom, root cause, resolution, regression risk, and file references.
+
+---
+
+## Array Functions
+
+### AP-01: groupArray Memory Explosion
+
+**Severity**: CRITICAL | **Regression Risk**: HIGH
+
+**Symptom**: Query killed after 15+ minutes. Intermediate memory consumption 2.36 GB on @250dbps (1.4M bars).
+
+**Root Cause**: Collecting `groupArray()` on ALL bars before filtering to signals. 1,448,766 bars x 4 arrays (high, low, open, close) x 51 elements x 8 bytes = 2.36 GB.
+
+**Resolution**: Filter to champion pattern signals FIRST (~1,000 rows), THEN collect forward arrays via self-join. Memory drops from 2.36 GB to ~1.6 MB.
+
+```sql
+-- CORRECT: Signals-only (1.6 MB)
+signals AS (SELECT * FROM signal_detection WHERE <champion_conditions>),
+forward_arrays AS (
+    SELECT s.timestamp_ms, s.entry_price, s.rn AS signal_rn,
+        groupArray(b.high) AS fwd_highs, ...
+    FROM signals s
+    INNER JOIN base_bars b ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
+    GROUP BY s.timestamp_ms, s.entry_price, s.rn
+)
+
+-- WRONG: All bars (2.36 GB)
+forward_arrays AS (
+    SELECT *, groupArray(high) OVER (ORDER BY timestamp_ms
+        ROWS BETWEEN 1 FOLLOWING AND 51 FOLLOWING) AS fwd_highs
+    FROM base_bars  -- 1.4M rows
+)
+```
+
+**Performance**: @250dbps with signals-only: ~3 min. Without: 15+ min (killed). @500dbps with signals-only: ~30s.
+
+**Files**: gen200 lines 155-170, gen201 lines 110-123, gen202 lines 104-118.
+
+---
+
+### AP-02: Lambda Closure Over Outer Columns
+
+**Severity**: HIGH | **Regression Risk**: HIGH
+
+**Symptom**: `arrayFirstIndex()` returns wrong barrier index. ClickHouse Bug [#45028](https://github.com/ClickHouse/ClickHouse/issues/45028).
+
+**Root Cause**: Lambda functions in ClickHouse don't reliably capture columns from enclosing CTEs. Expressions like `x -> x >= entry_price * (1 + tp_mult * 0.025)` may use stale or incorrect values.
+
+**Resolution**: Pre-compute barrier prices as columns in a separate CTE. Lambda references the column directly.
+
+```sql
+-- CORRECT: Pre-compute in CTE
+param_with_prices AS (
+    SELECT *,
+        entry_price * (1.0 + tp_mult * 0.025) AS tp_price,
+        entry_price * (1.0 - sl_mult * 0.025) AS sl_price
+    FROM param_expanded
+),
+barrier_scan AS (
+    SELECT arrayFirstIndex(x -> x >= tp_price, arraySlice(fwd_highs, 1, max_bars)) ...
+    FROM param_with_prices
+)
+
+-- WRONG: Expression in lambda closure
+SELECT arrayFirstIndex(x -> x >= entry_price * (1.0 + tp_mult * 0.025), fwd_highs) ...
+```
+
+**Files**: gen200 lines 189-196, gen201 lines 143-153, gen202 lines 137-157.
+
+---
+
+### AP-03: arrayFirstIndex Returns 0 for Not-Found
+
+**Severity**: HIGH | **Regression Risk**: HIGH
+
+**Symptom**: Exit type misclassified. When one barrier not hit (index=0), comparisons like `0 <= 5` evaluate TRUE, causing wrong exit classification.
+
+**Root Cause**: `arrayFirstIndex()` returns 1-based index. 0 means "not found". Without explicit guards, 0 participates in comparisons as if it were a valid (earliest) index.
+
+**Resolution**: Always check `> 0` before comparing indices.
+
+```sql
+-- CORRECT: Full guard logic
+CASE
+    WHEN raw_sl_bar > 0 AND raw_tp_bar > 0 AND raw_sl_bar <= raw_tp_bar THEN 'SL'
+    WHEN raw_sl_bar > 0 AND raw_tp_bar > 0 AND raw_tp_bar < raw_sl_bar THEN 'TP'
+    WHEN raw_sl_bar > 0 AND raw_tp_bar = 0 THEN 'SL'
+    WHEN raw_tp_bar > 0 AND raw_sl_bar = 0 THEN 'TP'
+    WHEN window_bars >= max_bars THEN 'TIME'
+    ELSE 'INCOMPLETE'
+END
+
+-- WRONG: No guard — 0 < 5 = TRUE, awards SL when TP was never hit
+CASE WHEN raw_sl_bar <= raw_tp_bar THEN 'SL' ELSE 'TP' END
+```
+
+**Files**: gen200 lines 231-239, gen201 lines 206-212, gen202 lines 193-200.
+
+---
+
+### AP-04: arrayMap + arrayReduce O(n^2) Complexity
+
+**Severity**: MEDIUM | **Regression Risk**: MEDIUM
+
+**Symptom**: Gen201/Gen202 trailing stop queries slow on large datasets. @250dbps with 9,000+ signals x 100 params x 51-element arrays = killed after 15+ min.
+
+**Root Cause**: Computing running max via `arrayMap(i -> arrayReduce('max', arraySlice(fwd_highs, 1, i)), arrayEnumerate(fwd_highs))`. For each position i, scans [1..i] = O(n^2) total.
+
+**Resolution**: Accept the O(n^2) cost — no better ClickHouse-native alternative exists. `arrayScan()` doesn't exist. `arrayFold()` returns only the final value.
+
+**Workaround**: Keep signal count manageable. @500dbps (~1,900 signals) completes in 30s. @250dbps (~9,000 signals) is infeasible with trailing stop.
+
+**Performance Budget**:
+
+| Threshold | Signals | Fixed SL (Gen200) | Trailing SL (Gen201/202) |
+| --------- | ------- | ----------------- | ------------------------ |
+| @500dbps  | ~1,900  | 8s                | 30s                      |
+| @250dbps  | ~9,000  | ~3 min            | 15+ min (killed)         |
+
+**Files**: gen201 lines 149-152, gen202 lines 143-146.
+
+---
+
+### AP-05: arrayScan Does Not Exist
+
+**Severity**: LOW | **Regression Risk**: NONE (function doesn't exist)
+
+**Symptom**: `Code 46: Function with name 'arrayScan' does not exist`.
+
+**Root Cause**: ClickHouse has no `arrayScan()` (Haskell-style scan that returns intermediate accumulation values). The function was assumed to exist during design.
+
+**Resolution**: Use `arrayMap()` + `arrayReduce()` + `arraySlice()` for running max.
+
+```sql
+-- Running max array (entry_price-seeded)
+arrayMap(
+    i -> greatest(entry_price, arrayReduce('max', arraySlice(fwd_highs, 1, i))),
+    arrayEnumerate(fwd_highs)
+) AS running_maxes
+```
+
+---
+
+### AP-06: arrayFold Returns Only Final Value
+
+**Severity**: LOW | **Regression Risk**: NONE (fundamental limitation)
+
+**Symptom**: `arrayFold()` returns a single accumulated value, not an array of intermediate states.
+
+**Root Cause**: `arrayFold()` is a fold/reduce operation. Trailing SL computation needs per-bar running max (an array), not the final running max (a scalar).
+
+**Resolution**: Use `arrayMap()` + `arrayReduce()` for intermediate values. Use `arrayFold()` only when final-value-only is acceptable.
+
+---
+
+## Window Functions
+
+### AP-07: leadInFrame Default Frame Excludes Next Row
+
+**Severity**: HIGH | **Regression Risk**: HIGH
+
+**Symptom**: `entry_price` is NULL for all rows. Signals filtered out by `WHERE entry_price > 0`.
+
+**Root Cause**: Default window frame for `leadInFrame()` is `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`. This frame does NOT include the next row, so `leadInFrame(open, 1)` returns NULL.
+
+**Resolution**: Explicitly extend frame to include future rows.
+
+```sql
+-- CORRECT: Explicit UNBOUNDED FOLLOWING
+leadInFrame(open, 1) OVER (
+    ORDER BY timestamp_ms
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+) AS entry_price
+
+-- WRONG: Default frame (returns NULL)
+leadInFrame(open, 1) OVER (ORDER BY timestamp_ms) AS entry_price
+
+-- WRONG: Named window (inherits default frame)
+leadInFrame(open, 1) OVER w AS entry_price
+WINDOW w AS (ORDER BY timestamp_ms)
+```
+
+**Files**: gen200 lines 134-137, gen201 lines 87-90, gen202 lines 84-87.
+
+---
+
+## Search Efficiency
+
+### AP-08: arraySlice Before arrayFirstIndex
+
+**Severity**: MEDIUM | **Regression Risk**: MEDIUM
+
+**Symptom**: Unnecessary computation. Searching 51-element arrays when `max_bars=5` only needs first 5.
+
+**Root Cause**: `arrayFirstIndex()` searches entire array. Without pre-slicing, it may find matches beyond `max_bars` window.
+
+**Resolution**: Always `arraySlice()` to `max_bars` before searching.
+
+```sql
+-- CORRECT: Search only within max_bars
+arrayFirstIndex(x -> x >= tp_price, arraySlice(fwd_highs, 1, max_bars)) AS raw_tp_bar
+
+-- WRONG: Search entire array, then clamp
+arrayFirstIndex(x -> x >= tp_price, fwd_highs) AS raw_tp_bar
+-- Requires post-check: CASE WHEN raw_tp_bar BETWEEN 1 AND max_bars ...
+```
+
+**Files**: gen200 lines 214-215, gen201 lines 184-189, gen202 lines 174-179.
+
+---
+
+## Parameter Grid
+
+### AP-09: Absolute Percentage Parameters Across Thresholds
+
+**Severity**: HIGH | **Regression Risk**: HIGH
+
+**Symptom**: Same TP/SL percentages produce wildly different risk-reward profiles at different bar resolutions. A 1% TP is 4 bars at @250dbps but <2 bars at @500dbps.
+
+**Root Cause**: Gen111 was calibrated at 1000dbps. Applying absolute percentages to 250/500dbps bars changes the economic meaning.
+
+**Resolution**: Express parameters as threshold-relative multipliers.
+
+```sql
+-- CORRECT: Threshold-relative
+entry_price * (1.0 + tp_mult * 0.025) AS tp_price  -- @250dbps: 0.025 = 250/10000
+entry_price * (1.0 + tp_mult * 0.05)  AS tp_price  -- @500dbps: 0.05  = 500/10000
+
+-- Grid: tp_mult in [0.5, 1.0, 1.5, 2.0, 3.0]
+-- @250dbps: TP absolute = [0.0125, 0.025, 0.0375, 0.05, 0.075]
+-- @500dbps: TP absolute = [0.025,  0.05,  0.075,  0.10, 0.15]
+
+-- WRONG: Same absolute % at all thresholds
+entry_price * 1.01 AS tp_price  -- 1% regardless of threshold
+```
+
+**Files**: gen200 lines 184-195, gen201 lines 135-147, gen202 lines 129-141.
+
+---
+
+## Signal Detection
+
+### AP-10: Expanding vs Rolling p95 Signal Divergence
+
+**Severity**: ARCHITECTURAL | **Regression Risk**: MEDIUM
+
+**Symptom**: SQL produces ~1,900 signals, backtesting.py produces ~1,800 signals on same @500dbps data. Only ~50 overlap.
+
+**Root Cause**: SQL uses `quantileExactExclusive(0.95) OVER (ROWS UNBOUNDED PRECEDING)` (expanding window including all prior data). Python uses `np.percentile` with fixed 1000-bar rolling window.
+
+**Resolution**: Accept divergence. Atomic validation measures barrier execution alignment on SHARED signals only. Both approaches are valid — expanding is more conservative, rolling adapts to regimes.
+
+**Implication**: Cannot directly compare SQL signal count to Python signal count. Always match by entry bar index, not by count or entry price.
+
+**Files**: test_barrier_alignment.py lines 76-78.
+
+---
+
+## Barrier Alignment (SQL <-> backtesting.py)
+
+### AP-11: TP/SL From Signal Close, Not Entry Price
+
+**Severity**: MEDIUM | **Regression Risk**: HIGH
+
+**Symptom**: Barrier prices diverge between SQL and backtesting.py. SQL computes TP/SL from `entry_price` (next bar's open), backtesting.py initially sets from signal close.
+
+**Root Cause**: Signal fires at bar N's close. Entry occurs at bar N+1's open. TP/SL must be computed from actual entry price, not signal close.
+
+**Resolution**: In SQL, use `entry_price` (from `leadInFrame(open, 1)`). In backtesting.py, use `_needs_barrier_setup` pattern to correct TP/SL after fill.
+
+```python
+# champion_strategy.py: Correct TP/SL to actual entry price
+if self._needs_barrier_setup and self.trades:
+    actual_entry = self.trades[-1].entry_price
+    if self.tp_mult > 0:
+        self.trades[-1].tp = actual_entry * (1.0 + self.tp_mult * self.threshold_pct)
+    if self.sl_mult > 0:
+        self.trades[-1].sl = actual_entry * (1.0 - self.sl_mult * self.threshold_pct)
+    self._needs_barrier_setup = False
+```
+
+**Files**: champion_strategy.py lines 65-74.
+
+---
+
+### AP-12: Same-Bar TP+SL Ambiguity
+
+**Severity**: MEDIUM | **Regression Risk**: MEDIUM
+
+**Symptom**: Both TP and SL hit on same bar. Who wins?
+
+**Root Cause**: backtesting.py inserts SL orders at position 0 in queue (line 828), TP at end. SL always processes first.
+
+**Resolution**: In SQL, SL wins ties: `raw_sl_bar <= raw_tp_bar THEN 'SL'` (note `<=`).
+
+```sql
+-- SL wins when both hit same bar
+WHEN raw_sl_bar > 0 AND raw_tp_bar > 0 AND raw_sl_bar <= raw_tp_bar THEN 'SL'
+WHEN raw_sl_bar > 0 AND raw_tp_bar > 0 AND raw_tp_bar < raw_sl_bar THEN 'TP'
+```
+
+**Files**: gen200 lines 233-234.
+
+---
+
+### AP-13: Gap-Down SL Execution Price
+
+**Severity**: MEDIUM | **Regression Risk**: HIGH
+
+**Symptom**: SL exit price doesn't match backtesting.py when bar gaps through SL level.
+
+**Root Cause**: backtesting.py uses `min(price, stop_price)` for sell-stop orders (line 917). If bar opens below SL, execution is at the (worse) open price, not the SL price.
+
+**Resolution**: In SQL, use `least(fwd_opens[exit_bar], sl_price)`.
+
+```sql
+-- SL exit: min(open, sl_price) for gap-down
+WHEN raw_sl_bar > 0 AND (raw_tp_bar = 0 OR raw_sl_bar <= raw_tp_bar)
+    THEN least(fwd_opens[raw_sl_bar], sl_price)
+
+-- TP exit: exact tp_price (limit fill, never better)
+WHEN raw_tp_bar > 0 AND (raw_sl_bar = 0 OR raw_tp_bar < raw_sl_bar)
+    THEN tp_price
+
+-- TIME exit: close at barrier
+WHEN window_bars >= max_bars
+    THEN fwd_closes[max_bars]
+```
+
+**Files**: gen200 lines 250-261, gen201 lines 224-235, gen202 lines 209-220.
