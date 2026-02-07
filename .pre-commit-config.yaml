@@ -1,0 +1,26 @@
+repos:
+  # Brotli auto-compression for large JSONL telemetry files
+  - repo: local
+    hooks:
+      - id: brotli-compress-jsonl
+        name: Brotli compress large JSONL files
+        entry: scripts/hooks/pre-commit-brotli.sh
+        language: script
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+      - id: check-large-files
+        name: Check for large files (>1MB)
+        entry: bash -c 'git diff --cached --name-only --diff-filter=ACM | while read f; do [ -f "$f" ] && size=$(wc -c < "$f" | tr -d " ") && [ "$size" -gt 1048576 ] && echo "❌ $f ($((size/1024))KB > 1MB)" && exit 1; done; true'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  # Ruff linting (matches global hook behavior)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.7
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]

@@ -1,1 +1,2 @@
-logs/**/*.jsonl filter=lfs diff=lfs merge=lfs -text
+# Brotli-compressed JSONL telemetry (binary, LFS-tracked)
+logs/**/*.jsonl.br filter=lfs diff=lfs merge=lfs -text
