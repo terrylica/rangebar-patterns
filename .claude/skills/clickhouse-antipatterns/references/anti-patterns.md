@@ -245,19 +245,43 @@ entry_price * 1.01 AS tp_price  -- 1% regardless of threshold
 
 ## Signal Detection
 
-### AP-10: Expanding vs Rolling p95 Signal Divergence
+### AP-10: NEVER Use Expanding Window — Always Rolling 1000-Bar
 
-**Severity**: ARCHITECTURAL | **Regression Risk**: MEDIUM
+**Severity**: CRITICAL | **Regression Risk**: CRITICAL
 
-**Symptom**: SQL produces ~1,900 signals, backtesting.py produces ~1,800 signals on same @500dbps data. Only ~50 overlap.
+**Symptom**: Expanding window quantiles inflate early-data signal quality, producing false-positive Kelly fractions. Gen300 `duration_us_gt_p75` appeared Kelly=+0.029 with expanding window but was actually Kelly=-0.046 with rolling — an artifact, not an edge.
 
-**Root Cause**: SQL uses `quantileExactExclusive(0.95) OVER (ROWS UNBOUNDED PRECEDING)` (expanding window including all prior data). Python uses `np.percentile` with fixed 1000-bar rolling window.
+**Root Cause**: `ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING` (expanding) includes ALL prior data. Early bars have tiny windows (10, 50, 200 bars), producing unstable quantiles that are easy to "beat". This creates an illusion of signal quality that vanishes with rolling windows.
 
-**Resolution**: Accept divergence. Atomic validation measures barrier execution alignment on SHARED signals only. Both approaches are valid — expanding is more conservative, rolling adapts to regimes.
+**Resolution**: ALWAYS use rolling 1000-bar (or 1000-signal) windows. NEVER use expanding windows.
 
-**Implication**: Cannot directly compare SQL signal count to Python signal count. Always match by entry bar index, not by count or entry price.
+```sql
+-- CORRECT: Rolling 1000-bar window
+quantileExactExclusive(0.95)(trade_intensity) OVER (
+    ORDER BY timestamp_ms
+    ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
+) AS ti_p95_rolling
 
-**Files**: test_barrier_alignment.py lines 76-78.
+-- CORRECT: Rolling 1000-signal window (within signal set)
+quantileExactExclusive(0.50)(feature_lag1) OVER (
+    ORDER BY timestamp_ms
+    ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
+) AS feature_p50_signal
+
+-- WRONG: Expanding window (inflates early-data quality)
+quantileExactExclusive(0.95)(trade_intensity) OVER (
+    ORDER BY timestamp_ms
+    ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+) AS ti_p95_expanding
+```
+
+**Warmup Guard**: Use `rn > 1000` to ensure the rolling window is fully populated before signals fire.
+
+**Applies To**: ALL quantile computations — trade_intensity p95, feature filters, signal-relative quantiles. No exceptions.
+
+**Validated**: Gen300 full 48-config sweep re-run confirmed expanding window was the sole cause of the false positive. Rolling window results align with backtesting.py.
+
+**Files**: gen300_template.sql CTE 2 + CTE 4b, gen300_barrier_grid.sql CTE 2 + CTE 4b.
 
 ---
 

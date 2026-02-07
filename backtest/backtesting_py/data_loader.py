@@ -35,7 +35,7 @@ def load_range_bars(
 
     query = f"""
         SELECT timestamp_ms, open, high, low, close, volume,
-               trade_intensity, kyle_lambda_proxy
+               trade_intensity, kyle_lambda_proxy, duration_us
         FROM rangebar_cache.range_bars
         WHERE symbol = '{symbol}'
           AND threshold_decimal_bps = {threshold}

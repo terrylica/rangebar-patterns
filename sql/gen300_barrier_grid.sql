@@ -1,61 +1,38 @@
 -- ============================================================================
--- Gen 300: Feature Filter Brute-Force Sweep — Parameterized Template
+-- Gen 300 Phase 3: Barrier Grid Validation on price_impact_lt_p50 Winner
 --
--- PURPOSE: Add a single microstructure feature filter on top of the champion
--- pattern, with fixed 2:1 R:R barriers (TP=0.5x, SL=0.25x, max_bars=50).
--- Measure whether the feature filter pushes Kelly fraction toward positive.
+-- ADR: docs/adr/2026-02-06-repository-creation.md
 --
--- PARAMETERS (substituted by mise task via sed):
---   __FEATURE_COL__    — Column name (e.g., ofi, aggression_ratio)
---   __QUANTILE_PCT__   — Quantile level (e.g., 0.50, 0.75, 0.90)
---   __DIRECTION__      — Filter direction: > or <
---   __CONFIG_ID__      — Config identifier (e.g., ofi_gt_p75)
---   __FEATURE_NAME__   — Human-readable name (e.g., OFI)
+-- PURPOSE: Sweep TP/SL/max_bars combos on the price_impact_lt_p50 filtered
+-- signal set to find if a different barrier configuration improves Kelly.
+-- Feature filter is FIXED (price_impact < rolling p50, signal-relative).
 --
--- BARRIERS (fixed for Phase 1):
---   TP = 0.5x threshold = entry + 2.5% at @500dbps (reward)
---   SL = 0.25x threshold = entry - 1.25% at @500dbps (risk)
---   R:R = 2:1 (TP > SL)
---   max_bars = 50
+-- BARRIER GRID (6 combos):
+--   TP_MULT: 0.25, 0.50, 0.75, 1.00
+--   SL_MULT: 0.125, 0.25, 0.50
+--   MAX_BARS: 20, 50, 100
+--   Total: 4 × 3 × 3 = 36 combos via arrayJoin
 --
--- QUANTILE APPROACH:
---   Rolling 1000-bar window for trade_intensity p95 (matches backtesting.py).
---   Rolling 1000-signal window for feature quantile within champion signal set.
---   Rolling window avoids early-data instability and matches production behavior.
---
--- ANTI-PATTERN COMPLIANCE (ALL 13 + 3):
---   AP-01: Signals-only forward arrays via self-join
---   AP-02: Pre-computed tp_price/sl_price + feature quantile as columns
---   AP-03: arrayFirstIndex 0-not-found guards in all CASE branches
---   AP-07: leadInFrame with ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
---   AP-08: arraySlice before arrayFirstIndex
---   AP-09: Threshold-relative multipliers (0.5x, 0.25x at @500dbps = 0.05)
---   AP-10: Rolling 1000-bar/signal window quantiles (no lookahead)
---   AP-11: TP/SL from entry_price (next bar's open), not signal close
---   AP-12: SL wins same-bar ties (raw_sl_bar <= raw_tp_bar)
---   AP-13: Gap-down SL = least(fwd_opens[exit_bar], sl_price)
---   NLA:   lagInFrame(feature, 1) for prior-bar values
---   NLA:   rn > 1000 warmup guard (rolling window needs 1000 bars)
---   BT:    Entry at next bar's open (leadInFrame pattern)
+-- QUANTILE: Rolling 1000-bar/signal windows (matches backtesting.py)
+-- ANTI-PATTERN COMPLIANCE: Same as gen300_template.sql (all 13 + 3)
 -- ============================================================================
 
 WITH
--- CTE 1: Base bars — OHLCV + microstructure features + row numbering
+-- CTE 1: Base bars
 base_bars AS (
     SELECT
         timestamp_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
-        __FEATURE_COL__,
+        price_impact,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
         row_number() OVER (ORDER BY timestamp_ms) AS rn
     FROM rangebar_cache.range_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 500
     ORDER BY timestamp_ms
 ),
--- CTE 2: Running stats — rolling 1000-bar p95 for trade_intensity (no-lookahead)
--- AP-10: Rolling 1000-bar window quantile (matches backtesting.py)
+-- CTE 2: Running stats — rolling 1000-bar p95 (matches backtesting.py)
 running_stats AS (
     SELECT
         *,
@@ -65,9 +42,7 @@ running_stats AS (
         ) AS ti_p95_rolling
     FROM base_bars
 ),
--- CTE 3: Signal detection — lag features + entry price
--- AP-07: leadInFrame MUST use UNBOUNDED FOLLOWING to access next bar's open
--- NLA: lagInFrame(feature, 1) reads PREVIOUS bar's value
+-- CTE 3: Signal detection
 signal_detection AS (
     SELECT
         timestamp_ms,
@@ -79,9 +54,7 @@ signal_detection AS (
         lagInFrame(direction, 1) OVER w AS dir_1,
         lagInFrame(direction, 2) OVER w AS dir_2,
         lagInFrame(ti_p95_rolling, 0) OVER w AS ti_p95_prior,
-        -- Feature filter: prior bar's value (no lookahead)
-        lagInFrame(__FEATURE_COL__, 1) OVER w AS feature_lag1,
-        -- AP-07: UNBOUNDED FOLLOWING for entry price
+        lagInFrame(price_impact, 1) OVER w AS feature_lag1,
         leadInFrame(open, 1) OVER (
             ORDER BY timestamp_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
@@ -89,42 +62,38 @@ signal_detection AS (
     FROM running_stats
     WINDOW w AS (ORDER BY timestamp_ms)
 ),
--- CTE 4: Champion signals (all ~1,895 before feature filter)
--- AP-01: Filter to signals FIRST, before forward array collection
+-- CTE 4: Champion signals
 champion_signals AS (
     SELECT *
     FROM signal_detection
-    WHERE dir_2 = 0 AND dir_1 = 0           -- 2 consecutive DOWN bars
-      AND ti_1 > ti_p95_prior               -- trade_intensity > rolling p95
-      AND kyle_1 > 0                        -- kyle_lambda > 0
-      AND rn > 1000                         -- Warmup guard (rolling window needs 1000 bars)
+    WHERE dir_2 = 0 AND dir_1 = 0
+      AND ti_1 > ti_p95_prior
+      AND kyle_1 > 0
+      AND rn > 1000
       AND ti_p95_prior IS NOT NULL
       AND ti_p95_prior > 0
       AND entry_price IS NOT NULL
       AND entry_price > 0
       AND feature_lag1 IS NOT NULL
 ),
--- CTE 4b: Rolling 1000-signal quantile of feature WITHIN signal set (no lookahead)
--- Quantile is relative to OTHER champion signals (not all bars),
--- using a rolling window of the prior 1000 signals.
+-- CTE 4b: Rolling 1000-signal p50 of price_impact within signal set
 signals_with_quantile AS (
     SELECT
         *,
-        quantileExactExclusive(__QUANTILE_PCT__)(feature_lag1) OVER (
+        quantileExactExclusive(0.50)(feature_lag1) OVER (
             ORDER BY timestamp_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
-        ) AS feature_quantile_signal
+        ) AS feature_p50_signal
     FROM champion_signals
 ),
--- CTE 5: Apply feature filter
+-- CTE 5: Apply price_impact filter (FIXED: price_impact < p50)
 signals AS (
     SELECT *
     FROM signals_with_quantile
-    WHERE feature_quantile_signal IS NOT NULL
-      AND feature_lag1 __DIRECTION__ feature_quantile_signal
+    WHERE feature_p50_signal IS NOT NULL
+      AND feature_lag1 < feature_p50_signal
 ),
--- CTE 6: Forward array collection via self-join (filtered signals only)
--- AP-01: Join signals (~few hundred) to base_bars, not all 225K bars
+-- CTE 6: Forward array collection (need max 101 bars for max_bars=100)
 forward_arrays AS (
     SELECT
         s.timestamp_ms,
@@ -136,25 +105,29 @@ forward_arrays AS (
         groupArray(b.close) AS fwd_closes
     FROM signals s
     INNER JOIN base_bars b
-        ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
+        ON b.rn BETWEEN s.rn + 1 AND s.rn + 101
     GROUP BY s.timestamp_ms, s.entry_price, s.rn
 ),
--- CTE 7: Fixed barrier parameters (no arrayJoin — single config)
+-- CTE 7: Barrier grid via arrayJoin
 -- AP-09: Threshold-relative multipliers. @500dbps: threshold_pct = 0.05
 -- AP-02: Pre-compute tp_price/sl_price as columns
-param_with_prices AS (
+param_grid AS (
     SELECT
-        *,
-        0.5 AS tp_mult,
-        0.25 AS sl_mult,
-        toUInt32(50) AS max_bars,
-        entry_price * (1.0 + 0.5 * 0.05) AS tp_price,
-        entry_price * (1.0 - 0.25 * 0.05) AS sl_price
-    FROM forward_arrays
+        fa.*,
+        tp_m AS tp_mult,
+        sl_m AS sl_mult,
+        mb AS max_bars,
+        fa.entry_price * (1.0 + tp_m * 0.05) AS tp_price,
+        fa.entry_price * (1.0 - sl_m * 0.05) AS sl_price
+    FROM forward_arrays fa
+    CROSS JOIN (
+        SELECT
+            arrayJoin([0.25, 0.50, 0.75, 1.00]) AS tp_m,
+            arrayJoin([0.125, 0.25, 0.50]) AS sl_m,
+            arrayJoin([toUInt32(20), toUInt32(50), toUInt32(100)]) AS mb
+    ) params
 ),
 -- CTE 8: Barrier scan
--- AP-08: arraySlice before arrayFirstIndex
--- AP-03: arrayFirstIndex returns 0 for not-found
 barrier_scan AS (
     SELECT
         timestamp_ms,
@@ -170,13 +143,9 @@ barrier_scan AS (
         arrayFirstIndex(x -> x >= tp_price, arraySlice(fwd_highs, 1, max_bars)) AS raw_tp_bar,
         arrayFirstIndex(x -> x <= sl_price, arraySlice(fwd_lows, 1, max_bars)) AS raw_sl_bar,
         length(arraySlice(fwd_highs, 1, max_bars)) AS window_bars
-    FROM param_with_prices
+    FROM param_grid
 ),
 -- CTE 9: Trade outcomes
--- AP-03: Full 0-not-found guards
--- AP-12: SL wins same-bar ties (<=)
--- AP-13: Gap-down SL = least(open, sl_price)
--- AP-11: TP/SL from entry_price (next bar's open)
 trade_outcomes AS (
     SELECT
         timestamp_ms,
@@ -216,19 +185,15 @@ trade_outcomes AS (
         window_bars
     FROM barrier_scan
 )
--- Final SELECT: Aggregate metrics for this config
--- Output as tab-separated for easy parsing by mise task
+-- Final: Aggregate metrics per barrier config
 SELECT
-    '__CONFIG_ID__' AS config_id,
-    '__FEATURE_NAME__' AS feature_name,
-    '__FEATURE_COL__' AS feature_column,
-    __QUANTILE_PCT__ AS quantile_level,
-    '__DIRECTION__' AS filter_direction,
-    0.5 AS tp_mult,
-    0.25 AS sl_mult,
-    50 AS max_bars,
-    0.025 AS tp_pct,
-    0.0125 AS sl_pct,
+    'price_impact_lt_p50' AS feature_filter,
+    tp_mult,
+    sl_mult,
+    max_bars,
+    tp_mult * 0.05 AS tp_pct,
+    sl_mult * 0.05 AS sl_pct,
+    tp_mult / sl_mult AS rr_ratio,
     toUInt32(count(*)) AS filtered_signals,
     toUInt32(countIf(exit_type = 'TP')) AS tp_count,
     toUInt32(countIf(exit_type = 'SL')) AS sl_count,
@@ -239,8 +204,6 @@ SELECT
         / nullIf(abs(sumIf((exit_price - entry_price) / entry_price, exit_type = 'SL' OR (exit_type = 'TIME' AND exit_price <= entry_price))), 0) AS profit_factor,
     avgIf((exit_price - entry_price) / entry_price, exit_type = 'TP' OR (exit_type = 'TIME' AND exit_price > entry_price)) AS avg_win_pct,
     avgIf((exit_price - entry_price) / entry_price, exit_type = 'SL' OR (exit_type = 'TIME' AND exit_price <= entry_price)) AS avg_loss_pct,
-    avgIf((exit_price - entry_price) / entry_price, exit_type = 'TP' OR (exit_type = 'TIME' AND exit_price > entry_price))
-        / nullIf(abs(avgIf((exit_price - entry_price) / entry_price, exit_type = 'SL' OR (exit_type = 'TIME' AND exit_price <= entry_price))), 0) AS risk_reward,
     avgIf((exit_price - entry_price) / entry_price, exit_type != 'INCOMPLETE') AS expected_value_pct,
     avgIf(exit_bar, exit_type != 'INCOMPLETE') AS avg_bars_held,
     countIf(exit_type = 'TP') / nullIf(countIf(exit_type IN ('TP', 'SL', 'TIME')), 0)
@@ -251,4 +214,6 @@ SELECT
             , 0) AS kelly_fraction
 FROM trade_outcomes
 WHERE exit_type != 'INCOMPLETE'
+GROUP BY tp_mult, sl_mult, max_bars
+ORDER BY kelly_fraction DESC
 FORMAT TabSeparatedWithNames;

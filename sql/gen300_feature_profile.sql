@@ -1,14 +1,14 @@
 -- ============================================================================
 -- Gen 300 Phase 0: Feature Profile on Champion Signal Set
 --
--- PURPOSE: Compute expanding-window quantiles (p10, p25, p50, p75, p90) for
--- all 8 candidate features on the champion signal set. Inspect distributions
+-- PURPOSE: Compute global quantiles (p10, p25, p50, p75, p90) for all 8
+-- candidate features on the champion signal set. Inspect distributions
 -- before running the full sweep.
 --
 -- ANTI-PATTERN COMPLIANCE:
 --   AP-07: leadInFrame with UNBOUNDED FOLLOWING
---   AP-10: Expanding window quantiles (no lookahead)
---   Gen111 heritage: lagInFrame for prior-bar values, bar_count > 1000 warmup
+--   AP-10: Rolling 1000-bar window for ti_p95 (NEVER expanding)
+--   Warmup: rn > 1000 guard for rolling window stability
 -- ============================================================================
 
 WITH
@@ -33,15 +33,14 @@ base_bars AS (
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 500
     ORDER BY timestamp_ms
 ),
--- CTE 2: Running stats — expanding p95 for trade_intensity (no-lookahead)
+-- CTE 2: Running stats — rolling 1000-bar p95 for trade_intensity (no-lookahead)
 running_stats AS (
     SELECT
         *,
-        count(*) OVER (ORDER BY timestamp_ms ROWS UNBOUNDED PRECEDING) AS bar_count,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
             ORDER BY timestamp_ms
-            ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
-        ) AS ti_p95_expanding
+            ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
+        ) AS ti_p95_rolling
     FROM base_bars
 ),
 -- CTE 3: Signal detection — lag features + entry price
@@ -49,13 +48,12 @@ signal_detection AS (
     SELECT
         timestamp_ms,
         rn,
-        bar_count,
         -- Champion pattern features (lagged)
         lagInFrame(trade_intensity, 1) OVER w AS ti_1,
         lagInFrame(kyle_lambda_proxy, 1) OVER w AS kyle_1,
         lagInFrame(direction, 1) OVER w AS dir_1,
         lagInFrame(direction, 2) OVER w AS dir_2,
-        lagInFrame(ti_p95_expanding, 0) OVER w AS ti_p95_prior,
+        lagInFrame(ti_p95_rolling, 0) OVER w AS ti_p95_prior,
         -- 8 candidate features (lagged by 1 — prior bar's value)
         lagInFrame(ofi, 1) OVER w AS ofi_lag1,
         lagInFrame(aggression_ratio, 1) OVER w AS aggression_ratio_lag1,
@@ -75,7 +73,7 @@ signals AS (
     WHERE dir_2 = 0 AND dir_1 = 0
       AND ti_1 > ti_p95_prior
       AND kyle_1 > 0
-      AND bar_count > 1000
+      AND rn > 1000
       AND ti_p95_prior IS NOT NULL
       AND ti_p95_prior > 0
 )

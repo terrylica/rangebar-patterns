@@ -11,21 +11,21 @@ Discovered during Gen200-202 Triple Barrier + Trailing Stop framework implementa
 
 ## Quick Lookup
 
-| ID    | Anti-Pattern                                  | Severity      | Section                                                                   |
-| ----- | --------------------------------------------- | ------------- | ------------------------------------------------------------------------- |
-| AP-01 | groupArray memory explosion (2.36 GB)         | CRITICAL      | [Array Functions](#ap-01-grouparray-memory-explosion)                     |
-| AP-02 | Lambda closure over outer columns (CH #45028) | HIGH          | [Array Functions](#ap-02-lambda-closure-over-outer-columns)               |
-| AP-03 | arrayFirstIndex returns 0 for not-found       | HIGH          | [Array Functions](#ap-03-arrayfirstindex-returns-0-for-not-found)         |
-| AP-04 | arrayMap + arrayReduce O(n^2) complexity      | MEDIUM        | [Array Functions](#ap-04-arraymap--arrayreduce-on2-complexity)            |
-| AP-05 | arrayScan does not exist in ClickHouse        | LOW           | [Array Functions](#ap-05-arrayscan-does-not-exist)                        |
-| AP-06 | arrayFold returns only final value            | LOW           | [Array Functions](#ap-06-arrayfold-returns-only-final-value)              |
-| AP-07 | leadInFrame default frame excludes next row   | HIGH          | [Window Functions](#ap-07-leadinframe-default-frame-excludes-next-row)    |
-| AP-08 | arraySlice before arrayFirstIndex             | MEDIUM        | [Search Efficiency](#ap-08-arrayslice-before-arrayfirstindex)             |
-| AP-09 | Absolute % params across thresholds           | HIGH          | [Parameter Grid](#ap-09-absolute-percentage-parameters-across-thresholds) |
-| AP-10 | Expanding vs rolling p95 divergence           | ARCHITECTURAL | [Signal Detection](#ap-10-expanding-vs-rolling-p95-signal-divergence)     |
-| AP-11 | TP/SL from signal close, not entry price      | MEDIUM        | [Barrier Alignment](#ap-11-tpsl-from-signal-close-not-entry-price)        |
-| AP-12 | Same-bar TP+SL ambiguity (SL wins)            | MEDIUM        | [Barrier Alignment](#ap-12-same-bar-tpsl-ambiguity)                       |
-| AP-13 | Gap-down SL execution price                   | MEDIUM        | [Barrier Alignment](#ap-13-gap-down-sl-execution-price)                   |
+| ID    | Anti-Pattern                                  | Severity | Section                                                                        |
+| ----- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
+| AP-01 | groupArray memory explosion (2.36 GB)         | CRITICAL | [Array Functions](#ap-01-grouparray-memory-explosion)                          |
+| AP-02 | Lambda closure over outer columns (CH #45028) | HIGH     | [Array Functions](#ap-02-lambda-closure-over-outer-columns)                    |
+| AP-03 | arrayFirstIndex returns 0 for not-found       | HIGH     | [Array Functions](#ap-03-arrayfirstindex-returns-0-for-not-found)              |
+| AP-04 | arrayMap + arrayReduce O(n^2) complexity      | MEDIUM   | [Array Functions](#ap-04-arraymap--arrayreduce-on2-complexity)                 |
+| AP-05 | arrayScan does not exist in ClickHouse        | LOW      | [Array Functions](#ap-05-arrayscan-does-not-exist)                             |
+| AP-06 | arrayFold returns only final value            | LOW      | [Array Functions](#ap-06-arrayfold-returns-only-final-value)                   |
+| AP-07 | leadInFrame default frame excludes next row   | HIGH     | [Window Functions](#ap-07-leadinframe-default-frame-excludes-next-row)         |
+| AP-08 | arraySlice before arrayFirstIndex             | MEDIUM   | [Search Efficiency](#ap-08-arrayslice-before-arrayfirstindex)                  |
+| AP-09 | Absolute % params across thresholds           | HIGH     | [Parameter Grid](#ap-09-absolute-percentage-parameters-across-thresholds)      |
+| AP-10 | NEVER expanding window, always rolling 1000   | CRITICAL | [Signal Detection](#ap-10-never-use-expanding-window--always-rolling-1000-bar) |
+| AP-11 | TP/SL from signal close, not entry price      | MEDIUM   | [Barrier Alignment](#ap-11-tpsl-from-signal-close-not-entry-price)             |
+| AP-12 | Same-bar TP+SL ambiguity (SL wins)            | MEDIUM   | [Barrier Alignment](#ap-12-same-bar-tpsl-ambiguity)                            |
+| AP-13 | Gap-down SL execution price                   | MEDIUM   | [Barrier Alignment](#ap-13-gap-down-sl-execution-price)                        |
 
 For detailed descriptions with code examples, see [references/anti-patterns.md](./references/anti-patterns.md).
 For infrastructure-specific issues, see [references/infrastructure.md](./references/infrastructure.md).
@@ -106,6 +106,22 @@ entry_price * (1.0 + tp_mult * 0.05)  AS tp_price  -- @500dbps
 entry_price * (1.0 + 0.01) AS tp_price  -- Same 1% regardless of threshold
 ```
 
+### 6. NEVER Expanding Window — Always Rolling 1000-Bar
+
+```sql
+-- CORRECT: Rolling 1000-bar window
+quantileExactExclusive(0.95)(trade_intensity) OVER (
+    ORDER BY timestamp_ms
+    ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
+) AS ti_p95_rolling
+
+-- WRONG: Expanding window (inflates early-data quality, produces false-positive Kelly)
+quantileExactExclusive(0.95)(trade_intensity) OVER (
+    ORDER BY timestamp_ms
+    ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+) AS ti_p95_expanding
+```
+
 ## Post-Change Checklist
 
 After modifying ANY Gen200+ SQL file:
@@ -115,6 +131,8 @@ After modifying ANY Gen200+ SQL file:
 - [ ] All arrayFirstIndex comparisons have `> 0` guards
 - [ ] leadInFrame uses `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`
 - [ ] Parameters use threshold-relative multipliers
+- [ ] **ALL quantiles use rolling 1000-bar window (`ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING`), NEVER expanding (`UNBOUNDED PRECEDING`)**
+- [ ] Warmup guard `rn > 1000` present for rolling window stability
 - [ ] SL exit price uses `least(open, sl_price)` for gap-down
 - [ ] TP exit price is exactly `tp_price` (limit fill)
 - [ ] Same-bar TP+SL: SL wins (raw_sl_bar <= raw_tp_bar)
