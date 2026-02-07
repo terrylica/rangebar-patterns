@@ -1,0 +1,23 @@
+["gen500:generate"]
+description = "Generate cross-asset 2F SQL files (12 assets × 1008 configs)"
+run = "bash scripts/gen500/generate.sh"
+
+["gen500:submit-all"]
+description = "Upload + submit all 12 assets to pueue"
+run = "bash scripts/gen500/submit_all.sh"
+
+["gen500:submit"]
+description = "Submit single asset: mise run gen500:submit DOGEUSDT 500"
+run = "bash scripts/gen500/submit.sh $@"
+
+["gen500:status"]
+description = "Check cross-asset sweep progress"
+run = "bash scripts/gen500/status.sh"
+
+["gen500:collect"]
+description = "Download cross-asset results from BigBlack"
+run = "bash scripts/gen500/collect.sh"
+
+["gen500:report"]
+description = "Analyze cross-asset sweep results"
+run = "bash scripts/gen500/report.sh"

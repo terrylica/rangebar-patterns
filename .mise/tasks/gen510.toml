@@ -1,0 +1,7 @@
+["gen510:generate"]
+description = "Generate barrier grid SQL for top 5 Gen400 2F winners"
+run = "bash scripts/gen510/generate.sh"
+
+["gen510:submit"]
+description = "Upload + submit barrier grid jobs to pueue"
+run = "bash scripts/gen510/submit.sh"

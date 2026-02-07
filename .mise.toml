@@ -31,4 +31,7 @@ includes = [
     ".mise/tasks/release.toml",
     ".mise/tasks/gen300.toml",
     ".mise/tasks/gen400.toml",
+    ".mise/tasks/gen500.toml",
+    ".mise/tasks/gen510.toml",
+    ".mise/tasks/gen520.toml",
 ]

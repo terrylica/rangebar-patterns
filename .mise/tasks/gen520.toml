@@ -1,0 +1,18 @@
+["gen520:generate"]
+description = "Generate multi-threshold 2F SQL files (SOLUSDT @250, @750, @1000)"
+run = "bash scripts/gen520/generate.sh"
+
+["gen520:submit"]
+description = "Submit single threshold: mise run gen520:submit 250"
+run = "bash scripts/gen520/submit.sh $@"
+
+["gen520:submit-all"]
+description = "Upload + submit all 3 thresholds"
+run = """
+bash -c '
+rsync -az /tmp/gen520_sql/ bigblack:/tmp/gen520_sql/
+for t in 250 750 1000; do
+    bash scripts/gen520/submit.sh "$t"
+done
+'
+"""
