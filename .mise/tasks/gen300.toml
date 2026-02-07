@@ -1,0 +1,188 @@
+# Gen300: Feature Filter Brute-Force Sweep
+# 8 features × 6 quantile/direction configs = 48 single-feature configurations
+# Fixed barriers: TP=0.5x, SL=0.25x, max_bars=50 (2:1 R:R at @500dbps)
+
+["gen300:profile"]
+description = "Phase 0: Profile feature distributions on champion signal set"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+echo "=== Gen300 Phase 0: Feature Profile ==="
+echo "Running on BigBlack @500dbps..."
+START=$(date +%s)
+cat sql/gen300_feature_profile.sql | ssh bigblack 'clickhouse-client --multiquery' | tee /tmp/gen300_profile_output.txt
+END=$(date +%s)
+DURATION=$((END - START))
+echo ""
+echo "Completed in ${DURATION}s"
+# Log to NDJSON
+mkdir -p logs
+echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"generation\":300,\"phase\":0,\"action\":\"feature_profile\",\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"query_duration_s\":${DURATION},\"clickhouse_host\":\"bigblack\"}" >> logs/gen300_feature_profile.jsonl
+"""
+
+["gen300:create-table"]
+description = "Create gen300_results table on BigBlack"
+run = "cat sql/gen300_results_table.sql | ssh bigblack 'clickhouse-client --multiquery'"
+
+["gen300:sweep"]
+description = "Phase 1: Run 48 single-feature configs on BigBlack with NDJSON telemetry"
+depends = ["gen300:create-table"]
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== Gen300 Phase 1: Single-Feature Sweep ==="
+echo "48 configs: 8 features × 6 quantile/direction combos"
+echo "Barriers: TP=0.5x (2.5%), SL=0.25x (1.25%), max_bars=50 @500dbps"
+echo ""
+
+mkdir -p logs
+
+# Feature definitions: name|column
+FEATURES=(
+    "OFI|ofi"
+    "Aggression_ratio|aggression_ratio"
+    "Turnover_imbalance|turnover_imbalance"
+    "Price_impact|price_impact"
+    "VWAP_deviation|vwap_close_deviation"
+    "Volume_per_trade|volume_per_trade"
+    "Aggregation_density|aggregation_density"
+    "Duration|duration_us"
+)
+
+# Quantile/direction grid: quantile|direction_symbol|direction_label|config_suffix
+GRID=(
+    "0.50|>|gt|gt_p50"
+    "0.50|<|lt|lt_p50"
+    "0.75|>|gt|gt_p75"
+    "0.25|<|lt|lt_p25"
+    "0.90|>|gt|gt_p90"
+    "0.10|<|lt|lt_p10"
+)
+
+TOTAL=0
+SWEEP_START=$(date +%s)
+
+for feat_spec in "${FEATURES[@]}"; do
+    IFS='|' read -r FEAT_NAME FEAT_COL <<< "$feat_spec"
+
+    for grid_spec in "${GRID[@]}"; do
+        IFS='|' read -r QUANTILE DIRECTION DIR_LABEL CONFIG_SUFFIX <<< "$grid_spec"
+        CONFIG_ID="${FEAT_COL}_${CONFIG_SUFFIX}"
+        TOTAL=$((TOTAL + 1))
+
+        echo "[$TOTAL/48] ${CONFIG_ID} ..."
+
+        # Substitute placeholders in template
+        QUERY=$(sed \
+            -e "s/__FEATURE_COL__/${FEAT_COL}/g" \
+            -e "s/__QUANTILE_PCT__/${QUANTILE}/g" \
+            -e "s/__DIRECTION__/${DIRECTION}/g" \
+            -e "s/__CONFIG_ID__/${CONFIG_ID}/g" \
+            -e "s/__FEATURE_NAME__/${FEAT_NAME}/g" \
+            sql/gen300_template.sql)
+
+        # Run on BigBlack and capture output
+        QUERY_START=$(date +%s)
+        OUTPUT=$(echo "$QUERY" | ssh bigblack 'clickhouse-client --multiquery' 2>&1) || {
+            echo "  ERROR: Query failed for ${CONFIG_ID}"
+            echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"generation\":300,\"phase\":1,\"config_id\":\"${CONFIG_ID}\",\"error\":true,\"message\":\"query failed\"}" >> logs/gen300_sweep.jsonl
+            continue
+        }
+        QUERY_END=$(date +%s)
+        QUERY_DURATION=$((QUERY_END - QUERY_START))
+
+        # Parse tab-separated output (skip header line)
+        # Columns: config_id, feature_name, feature_column, quantile_level, filter_direction,
+        #          tp_mult, sl_mult, max_bars, tp_pct, sl_pct,
+        #          filtered_signals, tp_count, sl_count, time_count, incomplete_count,
+        #          win_rate, profit_factor, avg_win_pct, avg_loss_pct, risk_reward,
+        #          expected_value_pct, avg_bars_held, kelly_fraction
+        DATA_LINE=$(echo "$OUTPUT" | tail -n 1)
+
+        # Extract fields by position (tab-separated)
+        FILTERED_SIGNALS=$(echo "$DATA_LINE" | cut -f11)
+        TP_COUNT=$(echo "$DATA_LINE" | cut -f12)
+        SL_COUNT=$(echo "$DATA_LINE" | cut -f13)
+        TIME_COUNT=$(echo "$DATA_LINE" | cut -f14)
+        WIN_RATE=$(echo "$DATA_LINE" | cut -f16)
+        PROFIT_FACTOR=$(echo "$DATA_LINE" | cut -f17)
+        AVG_WIN=$(echo "$DATA_LINE" | cut -f18)
+        AVG_LOSS=$(echo "$DATA_LINE" | cut -f19)
+        RISK_REWARD=$(echo "$DATA_LINE" | cut -f20)
+        EV_PCT=$(echo "$DATA_LINE" | cut -f21)
+        AVG_BARS=$(echo "$DATA_LINE" | cut -f22)
+        KELLY=$(echo "$DATA_LINE" | cut -f23)
+
+        echo "  signals=${FILTERED_SIGNALS} PF=${PROFIT_FACTOR} Kelly=${KELLY} (${QUERY_DURATION}s)"
+
+        # Append NDJSON telemetry line
+        cat >> logs/gen300_sweep.jsonl <<JSONEOF
+{"timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","generation":300,"phase":1,"config_id":"${CONFIG_ID}","feature_name":"${FEAT_NAME}","feature_column":"${FEAT_COL}","quantile_level":${QUANTILE},"filter_direction":"${DIR_LABEL}","quantile_method":"expanding_window_no_lookahead","symbol":"SOLUSDT","threshold_dbps":500,"barrier":{"tp_mult":0.5,"sl_mult":0.25,"max_bars":50,"tp_pct":0.025,"sl_pct":0.0125,"rr_ratio":2.0},"champion_base":{"pattern":"2DOWN_ti_gt_p95_kyle_gt_0","base_signals":1894,"base_kelly":-0.068},"results":{"filtered_signals":${FILTERED_SIGNALS:-0},"tp_count":${TP_COUNT:-0},"sl_count":${SL_COUNT:-0},"time_count":${TIME_COUNT:-0},"win_rate":${WIN_RATE:-0},"profit_factor":${PROFIT_FACTOR:-0},"avg_win_pct":${AVG_WIN:-0},"avg_loss_pct":${AVG_LOSS:-0},"risk_reward":${RISK_REWARD:-0},"expected_value_bps":${EV_PCT:-0},"kelly_fraction":${KELLY:-0},"avg_bars_held":${AVG_BARS:-0}},"sql_file":"sql/gen300_template.sql","query_duration_s":${QUERY_DURATION},"clickhouse_host":"bigblack"}
+JSONEOF
+    done
+done
+
+SWEEP_END=$(date +%s)
+SWEEP_DURATION=$((SWEEP_END - SWEEP_START))
+
+echo ""
+echo "=== Sweep Complete ==="
+echo "Total configs: ${TOTAL}"
+echo "Total time: ${SWEEP_DURATION}s"
+echo "Results: logs/gen300_sweep.jsonl"
+"""
+
+["gen300:report"]
+description = "Phase 1 report: Sort sweep results by Kelly fraction (best first)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ ! -f logs/gen300_sweep.jsonl ]; then
+    echo "No sweep results found. Run 'mise run gen300:sweep' first."
+    exit 1
+fi
+
+echo "=== Gen300 Sweep Results (sorted by Kelly, best first) ==="
+echo ""
+printf "%-35s %7s %8s %8s %8s\\n" "CONFIG" "SIGNALS" "PF" "KELLY" "WIN_RT"
+printf "%-35s %7s %8s %8s %8s\\n" "---" "---" "---" "---" "---"
+
+jq -r 'select(.phase == 1 and .error != true) | [.config_id, (.results.filtered_signals|tostring), (.results.profit_factor|tostring), (.results.kelly_fraction|tostring), (.results.win_rate|tostring)] | @tsv' \
+    logs/gen300_sweep.jsonl \
+    | sort -t$'\t' -k4 -rn \
+    | while IFS=$'\t' read -r cfg sig pf kelly wr; do
+        printf "%-35s %7s %8s %8s %8s\\n" "$cfg" "$sig" "$pf" "$kelly" "$wr"
+    done
+
+echo ""
+echo "--- Decision Framework ---"
+BEST_KELLY=$(jq -r 'select(.phase == 1 and .error != true) | .results.kelly_fraction' logs/gen300_sweep.jsonl | sort -rn | head -1)
+echo "Best Kelly: ${BEST_KELLY}"
+echo ""
+if (( $(echo "$BEST_KELLY > 0" | bc -l 2>/dev/null || echo 0) )); then
+    echo "VERDICT: WINNER FOUND. Validate with barrier grid + backtest alignment."
+elif (( $(echo "$BEST_KELLY > -0.03" | bc -l 2>/dev/null || echo 0) )); then
+    echo "VERDICT: PROMISING. Try multi-feature combos (Phase 2)."
+else
+    echo "VERDICT: Feature filters don't rescue pattern. Pattern is NN-only."
+fi
+"""
+
+["gen300:report-csv"]
+description = "Export sweep results as CSV for analysis"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ ! -f logs/gen300_sweep.jsonl ]; then
+    echo "No sweep results found."
+    exit 1
+fi
+
+echo "config_id,feature_name,quantile_level,filter_direction,filtered_signals,tp_count,sl_count,time_count,win_rate,profit_factor,risk_reward,kelly_fraction,avg_bars_held"
+jq -r 'select(.phase == 1 and .error != true) | [.config_id, .feature_name, (.quantile_level|tostring), .filter_direction, (.results.filtered_signals|tostring), (.results.tp_count|tostring), (.results.sl_count|tostring), (.results.time_count|tostring), (.results.win_rate|tostring), (.results.profit_factor|tostring), (.results.risk_reward|tostring), (.results.kelly_fraction|tostring), (.results.avg_bars_held|tostring)] | @csv' \
+    logs/gen300_sweep.jsonl \
+    | sort -t',' -k12 -rn
+"""
