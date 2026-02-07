@@ -18,10 +18,13 @@ Each generation is a self-contained experiment directory. One hypothesis per gen
 
 ## Generation Index
 
-| Gen | Directory | Hypothesis                             | Date       | Configs         | Verdict                         |
-| --- | --------- | -------------------------------------- | ---------- | --------------- | ------------------------------- |
-| 300 | `gen300/` | Single-feature filters on champion     | 2026-02-06 | 48 + 36 barrier | Marginal (best Kelly +0.011)    |
-| 400 | `gen400/` | Multi-feature combo filters (2F+3F+4F) | 2026-02-07 | 14,224          | Best Kelly +0.165 (160 signals) |
+| Gen | Directory | Hypothesis                              | Date       | Configs         | Verdict                               |
+| --- | --------- | --------------------------------------- | ---------- | --------------- | ------------------------------------- |
+| 300 | `gen300/` | Single-feature filters on champion      | 2026-02-06 | 48 + 36 barrier | Marginal (best Kelly +0.011)          |
+| 400 | `gen400/` | Multi-feature combo filters (2F+3F+4F)  | 2026-02-07 | 14,224          | Best Kelly +0.165 (160 signals)       |
+| 500 | `gen500/` | Cross-asset 2F sweep (12 assets)        | 2026-02-07 | 12,096          | 443 configs positive on 3+ assets     |
+| 510 | `gen510/` | Barrier grid on top 5 Gen400 winners    | 2026-02-07 | 180             | Best Kelly +0.157 (TP=0.25x SL=0.50x) |
+| 520 | `gen520/` | Multi-threshold SOLUSDT (@250,750,1000) | 2026-02-07 | 3,024           | Best Kelly +0.180 (@750 threshold)    |
 
 ---
 
