@@ -18,3 +18,4 @@
 | 2026-02-05 | microstructure-analysis.md           | VPIN, Kyle lambda, OFI implementation                                   |
 | 2026-02-05 | microstructure-deep-research.md      | Regime detection, exhaustion patterns                                   |
 | 2026-02-07 | overnight-sweep-forensic-analysis.md | **Gen500-520**: 15,300 configs, 0 survive Bonferroni, 56 dual-validated |
+| 2026-02-07 | beyond-kelly-metrics.md              | SOTA metrics: DSR, CSCV/PBO, MinBTL, e-values, Omega, Cornish-Fisher ES |
