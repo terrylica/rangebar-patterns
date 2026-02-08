@@ -20,46 +20,52 @@
 
 | Pair | Spearman r | Interpretation |
 |------|-----------|----------------|
-| dsr_vs_cf_es_adj | -0.0558 | COMPLEMENTARY |
-| dsr_vs_grow | -0.0556 | COMPLEMENTARY |
-| dsr_vs_omega | -0.0556 | COMPLEMENTARY |
-| grow_vs_cf_es_adj | 0.9813 | REDUNDANT |
-| kelly_vs_cf_es_adj | nan | COMPLEMENTARY |
-| kelly_vs_dsr | nan | COMPLEMENTARY |
-| kelly_vs_grow | nan | COMPLEMENTARY |
-| kelly_vs_omega | nan | COMPLEMENTARY |
-| kelly_vs_psr | nan | COMPLEMENTARY |
-| kelly_vs_sharpe | nan | COMPLEMENTARY |
-| omega_vs_cf_es_adj | 0.9940 | REDUNDANT |
-| omega_vs_grow | 0.9868 | REDUNDANT |
-| psr_vs_cf_es_adj | 0.9614 | REDUNDANT |
-| psr_vs_dsr | -0.0066 | COMPLEMENTARY |
-| psr_vs_grow | 0.9574 | REDUNDANT |
-| psr_vs_omega | 0.9672 | REDUNDANT |
+| dsr_vs_cf_es_adj | 0.0792 | COMPLEMENTARY |
+| dsr_vs_grow | 0.0792 | COMPLEMENTARY |
+| dsr_vs_omega | 0.0792 | COMPLEMENTARY |
+| grow_vs_cf_es_adj | 0.9871 | REDUNDANT |
+| kelly_vs_cf_es_adj | 0.6076 | COMPLEMENTARY |
+| kelly_vs_dsr | 0.0792 | COMPLEMENTARY |
+| kelly_vs_grow | 0.6683 | COMPLEMENTARY |
+| kelly_vs_omega | 0.6055 | COMPLEMENTARY |
+| kelly_vs_psr | 0.5974 | COMPLEMENTARY |
+| kelly_vs_sharpe | 0.6074 | COMPLEMENTARY |
+| omega_vs_cf_es_adj | 1.0000 | REDUNDANT |
+| omega_vs_grow | 0.9866 | REDUNDANT |
+| psr_vs_cf_es_adj | 0.9680 | REDUNDANT |
+| psr_vs_dsr | 0.0767 | COMPLEMENTARY |
+| psr_vs_grow | 0.9579 | REDUNDANT |
+| psr_vs_omega | 0.9678 | REDUNDANT |
 | sharpe_vs_cf_es_adj | 1.0000 | REDUNDANT |
-| sharpe_vs_dsr | -0.0558 | COMPLEMENTARY |
-| sharpe_vs_grow | 0.9813 | REDUNDANT |
-| sharpe_vs_omega | 0.9940 | REDUNDANT |
-| sharpe_vs_psr | 0.9619 | REDUNDANT |
+| sharpe_vs_dsr | 0.0792 | COMPLEMENTARY |
+| sharpe_vs_grow | 0.9870 | REDUNDANT |
+| sharpe_vs_omega | 1.0000 | REDUNDANT |
+| sharpe_vs_psr | 0.9685 | REDUNDANT |
 
 ### Redundant pairs (r > 0.95): 10
-- sharpe_vs_psr: 0.9619
-- sharpe_vs_omega: 0.994
-- sharpe_vs_grow: 0.9813
+- sharpe_vs_psr: 0.9685
+- sharpe_vs_omega: 1.0
+- sharpe_vs_grow: 0.987
 - sharpe_vs_cf_es_adj: 1.0
-- psr_vs_omega: 0.9672
-- psr_vs_grow: 0.9574
-- psr_vs_cf_es_adj: 0.9614
-- omega_vs_grow: 0.9868
-- omega_vs_cf_es_adj: 0.994
-- grow_vs_cf_es_adj: 0.9813
+- psr_vs_omega: 0.9678
+- psr_vs_grow: 0.9579
+- psr_vs_cf_es_adj: 0.968
+- omega_vs_grow: 0.9866
+- omega_vs_cf_es_adj: 1.0
+- grow_vs_cf_es_adj: 0.9871
 
-### Complementary pairs (r < 0.80): 5
-- sharpe_vs_dsr: -0.0558
-- psr_vs_dsr: -0.0066
-- dsr_vs_omega: -0.0556
-- dsr_vs_grow: -0.0556
-- dsr_vs_cf_es_adj: -0.0558
+### Complementary pairs (r < 0.80): 11
+- kelly_vs_sharpe: 0.6074
+- kelly_vs_psr: 0.5974
+- kelly_vs_dsr: 0.0792
+- kelly_vs_omega: 0.6055
+- kelly_vs_grow: 0.6683
+- kelly_vs_cf_es_adj: 0.6076
+- sharpe_vs_dsr: 0.0792
+- psr_vs_dsr: 0.0767
+- dsr_vs_omega: 0.0792
+- dsr_vs_grow: 0.0792
+- dsr_vs_cf_es_adj: 0.0792
 
 ## 4. Pathological Cases (Kelly > 0 but DSR < 0.5)
 

@@ -12,7 +12,6 @@ import json
 import math
 from pathlib import Path
 
-import numpy as np
 from scipy.stats import norm
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
@@ -64,20 +63,11 @@ def main():
 
     print(f"Loaded {len(records)} configs from {INPUT_FILE}")
 
-    # Compute SR variance across all configs (for expected_max_sr)
-    valid_srs = []
-    for r in records:
-        if r.get("error") or r.get("n_trades", 0) < 3:
-            continue
-        std = r.get("std_return")
-        mean = r.get("mean_return")
-        if std and std > 0 and mean is not None:
-            valid_srs.append(mean / std)
-
-    var_sr = float(np.var(valid_srs)) if valid_srs else 1.0
+    # Under the null (all true SR=0), the SR estimator has unit variance.
+    # Bailey & Lopez de Prado (2014) Section 2.2: var(SR) = 1 under H0.
+    var_sr = 1.0
     sr_max_null = expected_max_sr(N_TRIALS, var_sr)
     print(f"Expected max SR under null (N={N_TRIALS}): {sr_max_null:.4f}")
-    print(f"SR variance across configs: {var_sr:.6f}")
 
     results = []
     for r in records:

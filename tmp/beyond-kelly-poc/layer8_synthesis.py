@@ -10,6 +10,7 @@ GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -167,7 +168,10 @@ def cross_metric_comparison() -> dict:
         grow_val = e.get("grow_criterion")
         cf_es = c.get("mean_over_cf_es_05")
 
-        if all(v is not None for v in [kelly, sr, psr_val, dsr_val, omega_val, grow_val]):
+        def _is_finite(v):
+            return v is not None and (not isinstance(v, float) or math.isfinite(v))
+
+        if all(_is_finite(v) for v in [kelly, sr, psr_val, dsr_val, omega_val, grow_val]):
             for name, val in [
                 ("kelly", kelly), ("sharpe", sr), ("psr", psr_val),
                 ("dsr", dsr_val), ("omega", omega_val), ("grow", grow_val),
