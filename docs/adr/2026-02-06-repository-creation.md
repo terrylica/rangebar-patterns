@@ -33,7 +33,7 @@ Create a dedicated repository `terrylica/rangebar-patterns` to house:
 ### Negative
 
 - Research artifacts now split across two repos (alpha-forge retains ML experiment scripts)
-- Need to maintain ClickHouse connection to BigBlack for SQL reproduction
+- Need to maintain ClickHouse connection to remote host for SQL reproduction
 
 ### Not Migrated
 

@@ -16,15 +16,15 @@ LOG_FILE="/tmp/gen400_${N_FEATURES}feature.jsonl"
 TEMPLATE_FILE="sql/gen400_${N_FEATURES}feature_template.sql"
 
 # Read template SHA and git commit
-TEMPLATE_SHA=$(ssh bigblack "cat ${REMOTE_DIR}/template_shas.json" | python3 -c "import sys,json; print(json.load(sys.stdin)['${SUBFOLDER}'])")
-GIT_COMMIT=$(ssh bigblack "cat ${REMOTE_DIR}/git_commit.txt")
+TEMPLATE_SHA=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/template_shas.json" | python3 -c "import sys,json; print(json.load(sys.stdin)['${SUBFOLDER}'])")
+GIT_COMMIT=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/git_commit.txt")
 
 # Count total files
-TOTAL=$(ssh bigblack "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
+TOTAL=$(ssh "${RANGEBAR_CH_HOST}" "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
 echo "Total configs: ${TOTAL}"
 
 # Check for crash recovery
-DONE=$(ssh bigblack "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
+DONE=$(ssh "${RANGEBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
 echo "Already completed: ${DONE}"
 
 if [ "$DONE" -ge "$TOTAL" ]; then
@@ -32,8 +32,8 @@ if [ "$DONE" -ge "$TOTAL" ]; then
     exit 0
 fi
 
-# Create the wrapper script on BigBlack
-ssh bigblack 'cat > /tmp/gen400_run_job.sh' << 'WRAPPER'
+# Create the wrapper script on remote host
+ssh "${RANGEBAR_CH_HOST}" 'cat > /tmp/gen400_run_job.sh' << 'WRAPPER'
 #!/bin/bash
 set -euo pipefail
 CONFIG_ID="$1"
@@ -53,7 +53,7 @@ OUTPUT=$(clickhouse-client --multiquery < "$SQL_FILE" 2>&1) || {
     DURATION=$((END_S - START_S))
     QUERY_END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     ERROR_MSG=$(echo "$OUTPUT" | tr '"' "'" | tr '\n' ' ' | head -c 500)
-    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEATURES},\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"raw_output\":\"\",\"skipped\":false,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}"
+    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEATURES},\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"$(hostname)\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"raw_output\":\"\",\"skipped\":false,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}"
     flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
     exit 1
 }
@@ -106,20 +106,20 @@ if [ "$FILTERED_SIGNALS" -lt 100 ] 2>/dev/null; then
     SKIP_REASON="\"<100 signals (${FILTERED_SIGNALS})\""
 fi
 
-LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEATURES},\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":{\"filtered_signals\":${FILTERED_SIGNALS},\"tp_count\":${TP_COUNT},\"sl_count\":${SL_COUNT},\"time_count\":${TIME_COUNT},\"incomplete_count\":${INCOMPLETE_COUNT},\"win_rate\":${WIN_RATE},\"profit_factor\":${PROFIT_FACTOR},\"avg_win_pct\":${AVG_WIN},\"avg_loss_pct\":${AVG_LOSS},\"expected_value_pct\":${EV_PCT},\"avg_bars_held\":${AVG_BARS},\"kelly_fraction\":${KELLY}},\"raw_output\":\"${RAW_OUTPUT}\",\"skipped\":${SKIPPED},\"skip_reason\":${SKIP_REASON},\"error\":false,\"error_message\":null}"
+LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEATURES},\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"$(hostname)\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":{\"filtered_signals\":${FILTERED_SIGNALS},\"tp_count\":${TP_COUNT},\"sl_count\":${SL_COUNT},\"time_count\":${TIME_COUNT},\"incomplete_count\":${INCOMPLETE_COUNT},\"win_rate\":${WIN_RATE},\"profit_factor\":${PROFIT_FACTOR},\"avg_win_pct\":${AVG_WIN},\"avg_loss_pct\":${AVG_LOSS},\"expected_value_pct\":${EV_PCT},\"avg_bars_held\":${AVG_BARS},\"kelly_fraction\":${KELLY}},\"raw_output\":\"${RAW_OUTPUT}\",\"skipped\":${SKIPPED},\"skip_reason\":${SKIP_REASON},\"error\":false,\"error_message\":null}"
 
 flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
 WRAPPER
 
-ssh bigblack "chmod +x /tmp/gen400_run_job.sh"
+ssh "${RANGEBAR_CH_HOST}" "chmod +x /tmp/gen400_run_job.sh"
 
 # Ensure pueue group exists
-ssh bigblack "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
+ssh "${RANGEBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
 
 # Get list of already-completed config IDs for crash recovery
 DONE_IDS=""
 if [ "$DONE" -gt 0 ]; then
-    DONE_IDS=$(ssh bigblack "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
+    DONE_IDS=$(ssh "${RANGEBAR_CH_HOST}" "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
 fi
 
 # Submit jobs
@@ -132,9 +132,9 @@ while read -r SQL_PATH; do
         continue
     fi
 
-    ssh -n bigblack "pueue add -g p1 -- /tmp/gen400_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${PHASE}' '${N_FEATURES}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
+    ssh -n "${RANGEBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen400_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${PHASE}' '${N_FEATURES}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
     SUBMITTED=$((SUBMITTED + 1))
-done < <(ssh -n bigblack "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql")
+done < <(ssh -n "${RANGEBAR_CH_HOST}" "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql")
 
 echo "Submitted ${SUBMITTED} new jobs to pueue group p1"
-echo "Monitor: ssh bigblack 'pueue status -g p1'"
+echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"

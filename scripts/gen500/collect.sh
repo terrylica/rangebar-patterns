@@ -10,7 +10,7 @@ for SYMBOL in DOGEUSDT XRPUSDT LINKUSDT MATICUSDT NEARUSDT ADAUSDT AVAXUSDT LTCU
     LOG="/tmp/gen500_${SYMBOL}_500.jsonl"
     LOCAL="logs/gen500/${SYMBOL}_500.jsonl"
     echo -n "  ${SYMBOL}@500: "
-    scp "bigblack:${LOG}" "$LOCAL" 2>/dev/null && {
+    scp "${RANGEBAR_CH_HOST}:${LOG}" "$LOCAL" 2>/dev/null && {
         LINES=$(wc -l < "$LOCAL" | tr -d ' ')
         echo "${LINES} lines"
     } || echo "not found"
@@ -20,7 +20,7 @@ for SYMBOL in BTCUSDT ETHUSDT BNBUSDT; do
     LOG="/tmp/gen500_${SYMBOL}_250.jsonl"
     LOCAL="logs/gen500/${SYMBOL}_250.jsonl"
     echo -n "  ${SYMBOL}@250: "
-    scp "bigblack:${LOG}" "$LOCAL" 2>/dev/null && {
+    scp "${RANGEBAR_CH_HOST}:${LOG}" "$LOCAL" 2>/dev/null && {
         LINES=$(wc -l < "$LOCAL" | tr -d ' ')
         echo "${LINES} lines"
     } || echo "not found"

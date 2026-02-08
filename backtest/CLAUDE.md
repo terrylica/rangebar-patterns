@@ -57,10 +57,10 @@ See [Root CLAUDE.md](/CLAUDE.md) for full metric stack details.
 
 ## Data Loading
 
-Both frameworks load range bars from BigBlack ClickHouse:
+Both frameworks load range bars from ClickHouse (local or remote via SSH tunnel):
 
 ```
-ssh bigblack 'clickhouse-client'
+clickhouse-client
 SELECT * FROM rangebar_cache.range_bars
 WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 250
 ```

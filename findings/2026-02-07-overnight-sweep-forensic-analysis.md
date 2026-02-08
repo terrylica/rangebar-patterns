@@ -510,4 +510,4 @@ The 7-asset winners (`aggregation_density` configs) across ADA, BTC, ETH, DOT, L
 - **Quantile method**: Rolling 1000-signal window (`ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING`)
 - **Barrier model**: Triple barrier (TP/SL/max_bars) per [Gen200-202 framework](/sql/CLAUDE.md)
 - **Statistical test**: z = Kelly × sqrt(N), Bonferroni correction for multiple comparisons
-- **Data source**: BigBlack ClickHouse (`rangebar_cache.range_bars`)
+- **Data source**: Remote ClickHouse (`rangebar_cache.range_bars`)

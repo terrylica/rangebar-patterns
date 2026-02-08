@@ -10,7 +10,7 @@ run = "bash scripts/gen520/submit.sh $@"
 description = "Upload + submit all 3 thresholds"
 run = """
 bash -c '
-rsync -az /tmp/gen520_sql/ bigblack:/tmp/gen520_sql/
+rsync -az /tmp/gen520_sql/ ${RANGEBAR_CH_HOST}:/tmp/gen520_sql/
 for t in 250 750 1000; do
     bash scripts/gen520/submit.sh "$t"
 done

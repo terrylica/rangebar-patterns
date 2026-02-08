@@ -9,7 +9,8 @@
 ## ClickHouse Connection
 
 ```
-ssh bigblack 'clickhouse-client'
+clickhouse-client  # local
+# or: ssh $RANGEBAR_CH_HOST 'clickhouse-client'  # remote
 -- Database: rangebar_cache
 -- Table: range_bars
 -- Column: threshold_decimal_bps (NOT threshold_dbps)

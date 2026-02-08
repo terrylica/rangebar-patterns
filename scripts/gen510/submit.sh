@@ -9,16 +9,16 @@ LOG_FILE="/tmp/gen510_barrier_grid.jsonl"
 
 # Upload SQL files
 echo "--- Uploading SQL files ---"
-rsync -az /tmp/gen510_sql/ bigblack:${REMOTE_DIR}/
+rsync -az /tmp/gen510_sql/ "${RANGEBAR_CH_HOST}:${REMOTE_DIR}/"
 
 # Read metadata
-METADATA=$(ssh bigblack "cat ${REMOTE_DIR}/metadata.json")
+METADATA=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
 TEMPLATE_SHA=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_sha'])")
 GIT_COMMIT=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['git_commit'])")
 TEMPLATE_FILE=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_file'])")
 
 # Create wrapper script — parses 36-row barrier grid output
-ssh bigblack 'cat > /tmp/gen510_run_job.sh' << 'WRAPPER'
+ssh "${RANGEBAR_CH_HOST}" 'cat > /tmp/gen510_run_job.sh' << 'WRAPPER'
 #!/bin/bash
 set -euo pipefail
 CONFIG_ID="$1"
@@ -36,7 +36,7 @@ OUTPUT=$(clickhouse-client --multiquery < "$SQL_FILE" 2>&1) || {
     DURATION=$((END_S - START_S))
     QUERY_END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     ERROR_MSG=$(echo "$OUTPUT" | tr '"' "'" | tr '\n' ' ' | head -c 500)
-    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":510,\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}"
+    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":510,\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"$(hostname)\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}"
     flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
     exit 1
 }
@@ -56,24 +56,24 @@ echo "$OUTPUT" | tail -n +2 | while IFS=$'\t' read -r cfg tp_mult sl_mult max_ba
     done
 
     BARRIER_ID="tp${tp_mult}_sl${sl_mult}_mb${max_bars}"
-    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":510,\"config_id\":\"${CONFIG_ID}__${BARRIER_ID}\",\"feature_config\":\"${CONFIG_ID}\",\"barrier_config\":\"${BARRIER_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"barrier\":{\"tp_mult\":${tp_mult},\"sl_mult\":${sl_mult},\"max_bars\":${max_bars},\"tp_pct\":${tp_pct},\"sl_pct\":${sl_pct},\"rr_ratio\":${rr_ratio}},\"results\":{\"filtered_signals\":${filtered_signals},\"tp_count\":${tp_count},\"sl_count\":${sl_count},\"time_count\":${time_count},\"incomplete_count\":${incomplete_count},\"win_rate\":${win_rate},\"profit_factor\":${profit_factor},\"avg_win_pct\":${avg_win},\"avg_loss_pct\":${avg_loss},\"expected_value_pct\":${ev_pct},\"avg_bars_held\":${avg_bars},\"kelly_fraction\":${kelly}},\"error\":false}"
+    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":510,\"config_id\":\"${CONFIG_ID}__${BARRIER_ID}\",\"feature_config\":\"${CONFIG_ID}\",\"barrier_config\":\"${BARRIER_ID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"$(hostname)\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"barrier\":{\"tp_mult\":${tp_mult},\"sl_mult\":${sl_mult},\"max_bars\":${max_bars},\"tp_pct\":${tp_pct},\"sl_pct\":${sl_pct},\"rr_ratio\":${rr_ratio}},\"results\":{\"filtered_signals\":${filtered_signals},\"tp_count\":${tp_count},\"sl_count\":${sl_count},\"time_count\":${time_count},\"incomplete_count\":${incomplete_count},\"win_rate\":${win_rate},\"profit_factor\":${profit_factor},\"avg_win_pct\":${avg_win},\"avg_loss_pct\":${avg_loss},\"expected_value_pct\":${ev_pct},\"avg_bars_held\":${avg_bars},\"kelly_fraction\":${kelly}},\"error\":false}"
     flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
 done
 WRAPPER
 
-ssh bigblack "chmod +x /tmp/gen510_run_job.sh"
+ssh "${RANGEBAR_CH_HOST}" "chmod +x /tmp/gen510_run_job.sh"
 
 # Ensure pueue group exists
-ssh bigblack "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
+ssh "${RANGEBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
 
 # Submit all SQL files
 SUBMITTED=0
 while read -r SQL_PATH; do
     FILENAME=$(basename "$SQL_PATH" .sql)
-    ssh -n bigblack "pueue add -g p1 -- /tmp/gen510_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
+    ssh -n "${RANGEBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen510_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
     SUBMITTED=$((SUBMITTED + 1))
-done < <(ssh -n bigblack "ls ${REMOTE_DIR}/*.sql")
+done < <(ssh -n "${RANGEBAR_CH_HOST}" "ls ${REMOTE_DIR}/*.sql")
 
 echo "Submitted ${SUBMITTED} jobs (each produces 36 barrier combos)"
 echo "Expected: $((SUBMITTED * 36)) total result rows"
-echo "Monitor: ssh bigblack 'pueue status -g p1'"
+echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"

@@ -97,13 +97,13 @@ for (( idx=0; idx<TOTAL; idx++ )); do
 
     QUERY_START=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     START_S=$(date +%s)
-    OUTPUT=$(echo "$SQL" | ssh bigblack 'clickhouse-client --multiquery' 2>&1) || {
+    OUTPUT=$(echo "$SQL" | ssh "${RANGEBAR_CH_HOST}" 'clickhouse-client --multiquery' 2>&1) || {
         END_S=$(date +%s)
         DURATION=$((END_S - START_S))
         QUERY_END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
         echo "  ERROR: Query failed"
         ERROR_MSG=$(echo "$OUTPUT" | tr '"' "'" | tr '\n' ' ' | head -c 500)
-        echo "{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEAT},\"config_id\":\"${CID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TFILE}\",\"template_sha256\":\"${TSHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"raw_output\":\"\",\"skipped\":false,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}" >> "$LOG_FILE"
+        echo "{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEAT},\"config_id\":\"${CID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"${RANGEBAR_CH_HOST}\",\"template_file\":\"${TFILE}\",\"template_sha256\":\"${TSHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"raw_output\":\"\",\"skipped\":false,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}" >> "$LOG_FILE"
         FAILED=$((FAILED + 1))
         continue
     }
@@ -149,7 +149,7 @@ for (( idx=0; idx<TOTAL; idx++ )); do
 
     echo "  signals=${FILTERED_SIGNALS} Kelly=${KELLY} PF=${PROFIT_FACTOR} (${DURATION}s)"
 
-    echo "{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEAT},\"config_id\":\"${CID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TFILE}\",\"template_sha256\":\"${TSHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":{\"filtered_signals\":${FILTERED_SIGNALS},\"tp_count\":${TP_COUNT},\"sl_count\":${SL_COUNT},\"time_count\":${TIME_COUNT},\"incomplete_count\":${INCOMPLETE_COUNT},\"win_rate\":${WIN_RATE},\"profit_factor\":${PROFIT_FACTOR},\"avg_win_pct\":${AVG_WIN},\"avg_loss_pct\":${AVG_LOSS},\"expected_value_pct\":${EV_PCT},\"avg_bars_held\":${AVG_BARS},\"kelly_fraction\":${KELLY}},\"raw_output\":\"${RAW_OUTPUT}\",\"skipped\":${SKIPPED},\"skip_reason\":${SKIP_REASON},\"error\":false,\"error_message\":null}" >> "$LOG_FILE"
+    echo "{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_features\":${N_FEAT},\"config_id\":\"${CID}\",\"environment\":{\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"clickhouse_host\":\"${RANGEBAR_CH_HOST}\",\"template_file\":\"${TFILE}\",\"template_sha256\":\"${TSHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":{\"filtered_signals\":${FILTERED_SIGNALS},\"tp_count\":${TP_COUNT},\"sl_count\":${SL_COUNT},\"time_count\":${TIME_COUNT},\"incomplete_count\":${INCOMPLETE_COUNT},\"win_rate\":${WIN_RATE},\"profit_factor\":${PROFIT_FACTOR},\"avg_win_pct\":${AVG_WIN},\"avg_loss_pct\":${AVG_LOSS},\"expected_value_pct\":${EV_PCT},\"avg_bars_held\":${AVG_BARS},\"kelly_fraction\":${KELLY}},\"raw_output\":\"${RAW_OUTPUT}\",\"skipped\":${SKIPPED},\"skip_reason\":${SKIP_REASON},\"error\":false,\"error_message\":null}" >> "$LOG_FILE"
 
     SUCCESS=$((SUCCESS + 1))
 done

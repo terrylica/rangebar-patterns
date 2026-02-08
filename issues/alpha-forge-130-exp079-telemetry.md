@@ -10,6 +10,7 @@
 ## Summary
 
 exp079 implements rich per-bar telemetry for SOL trading simulation, enabling:
+
 - Bar-by-bar PnL reconstruction without lookahead bias
 - Streak detection (max consecutive losses/wins)
 - % Profit metric based on range bar threshold (2.5% per bar)
@@ -17,11 +18,11 @@ exp079 implements rich per-bar telemetry for SOL trading simulation, enabling:
 
 ## Experimental Arms
 
-| Arm | train_bars | Purpose |
-|-----|------------|---------|
-| T1 | 2000 | Shorter training window |
-| T2 | 2800 | Baseline (exp078 default) |
-| T3 | 4000 | Longer training window |
+| Arm | train_bars | Purpose                   |
+| --- | ---------- | ------------------------- |
+| T1  | 2000       | Shorter training window   |
+| T2  | 2800       | Baseline (exp078 default) |
+| T3  | 4000       | Longer training window    |
 
 ## Fixed Parameters (from exp078-SOL)
 
@@ -39,7 +40,7 @@ exp079 implements rich per-bar telemetry for SOL trading simulation, enabling:
 ## New Metrics
 
 - `max_loss_streak`: Longest consecutive losing bars
-- `max_win_streak`: Longest consecutive winning bars  
+- `max_win_streak`: Longest consecutive winning bars
 - `pct_profit`: (n_correct - n_wrong) x threshold%
 - Bayesian credible intervals via `scipy.stats.bayes_mvs`
 
@@ -54,9 +55,10 @@ exp079 implements rich per-bar telemetry for SOL trading simulation, enabling:
 
 ## Execution
 
-Run on BigBlack (RTX 4090):
+Run on remote GPU workstation (RTX 4090):
+
 ```bash
-ssh bigblack "cd ~/alpha-forge-research/examples/research && uv run python exp079_sol_rich_telemetry.py --arm all"
+ssh $RANGEBAR_CH_HOST "cd ~/alpha-forge-research/examples/research && uv run python exp079_sol_rich_telemetry.py --arm all"
 ```
 
 Estimated runtime: ~24 hours (3 arms x 8 origins x 10 seeds)

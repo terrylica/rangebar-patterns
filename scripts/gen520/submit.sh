@@ -14,15 +14,15 @@ ASSET_DIR="${REMOTE_DIR}/SOLUSDT_${THRESHOLD}"
 LOG_FILE="/tmp/gen520_SOLUSDT_${THRESHOLD}.jsonl"
 
 # Read metadata
-METADATA=$(ssh bigblack "cat ${REMOTE_DIR}/metadata.json")
+METADATA=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
 TEMPLATE_SHA=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_sha'])")
 GIT_COMMIT=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['git_commit'])")
 TEMPLATE_FILE=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_file'])")
 
-TOTAL=$(ssh bigblack "ls ${ASSET_DIR}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
+TOTAL=$(ssh "${RANGEBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
 echo "Total configs: ${TOTAL}"
 
-DONE=$(ssh bigblack "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
+DONE=$(ssh "${RANGEBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
 echo "Already completed: ${DONE}"
 
 if [ "$DONE" -ge "$TOTAL" ]; then
@@ -31,7 +31,7 @@ if [ "$DONE" -ge "$TOTAL" ]; then
 fi
 
 # Reuse Gen500 wrapper (same NDJSON schema, just different generation number)
-ssh bigblack 'cat > /tmp/gen520_run_job.sh' << 'WRAPPER'
+ssh "${RANGEBAR_CH_HOST}" 'cat > /tmp/gen520_run_job.sh' << 'WRAPPER'
 #!/bin/bash
 set -euo pipefail
 CONFIG_ID="$1"
@@ -51,7 +51,7 @@ OUTPUT=$(clickhouse-client --multiquery < "$SQL_FILE" 2>&1) || {
     DURATION=$((END_S - START_S))
     QUERY_END=$(date -u +%Y-%m-%dT%H:%M:%SZ)
     ERROR_MSG=$(echo "$OUTPUT" | tr '"' "'" | tr '\n' ' ' | head -c 500)
-    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":520,\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"${SYMBOL}\",\"threshold_dbps\":${THRESHOLD},\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"skipped\":false,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}"
+    LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":520,\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"${SYMBOL}\",\"threshold_dbps\":${THRESHOLD},\"clickhouse_host\":\"$(hostname)\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":null,\"skipped\":false,\"error\":true,\"error_message\":\"${ERROR_MSG}\"}"
     flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
     exit 1
 }
@@ -101,17 +101,17 @@ if [ "$FILTERED_SIGNALS" -lt 100 ] 2>/dev/null; then
     SKIP_REASON="\"<100 signals (${FILTERED_SIGNALS})\""
 fi
 
-LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":520,\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"${SYMBOL}\",\"threshold_dbps\":${THRESHOLD},\"clickhouse_host\":\"bigblack\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":{\"filtered_signals\":${FILTERED_SIGNALS},\"tp_count\":${TP_COUNT},\"sl_count\":${SL_COUNT},\"time_count\":${TIME_COUNT},\"incomplete_count\":${INCOMPLETE_COUNT},\"win_rate\":${WIN_RATE},\"profit_factor\":${PROFIT_FACTOR},\"avg_win_pct\":${AVG_WIN},\"avg_loss_pct\":${AVG_LOSS},\"expected_value_pct\":${EV_PCT},\"avg_bars_held\":${AVG_BARS},\"kelly_fraction\":${KELLY}},\"skipped\":${SKIPPED},\"skip_reason\":${SKIP_REASON},\"error\":false,\"error_message\":null}"
+LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":520,\"config_id\":\"${CONFIG_ID}\",\"environment\":{\"symbol\":\"${SYMBOL}\",\"threshold_dbps\":${THRESHOLD},\"clickhouse_host\":\"$(hostname)\",\"template_file\":\"${TEMPLATE_FILE}\",\"template_sha256\":\"${TEMPLATE_SHA}\",\"git_commit\":\"${GIT_COMMIT}\",\"quantile_method\":\"rolling_1000_signal\"},\"timing\":{\"query_start_utc\":\"${QUERY_START}\",\"query_end_utc\":\"${QUERY_END}\",\"query_duration_s\":${DURATION}},\"results\":{\"filtered_signals\":${FILTERED_SIGNALS},\"tp_count\":${TP_COUNT},\"sl_count\":${SL_COUNT},\"time_count\":${TIME_COUNT},\"incomplete_count\":${INCOMPLETE_COUNT},\"win_rate\":${WIN_RATE},\"profit_factor\":${PROFIT_FACTOR},\"avg_win_pct\":${AVG_WIN},\"avg_loss_pct\":${AVG_LOSS},\"expected_value_pct\":${EV_PCT},\"avg_bars_held\":${AVG_BARS},\"kelly_fraction\":${KELLY}},\"skipped\":${SKIPPED},\"skip_reason\":${SKIP_REASON},\"error\":false,\"error_message\":null}"
 
 flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
 WRAPPER
 
-ssh bigblack "chmod +x /tmp/gen520_run_job.sh"
-ssh bigblack "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
+ssh "${RANGEBAR_CH_HOST}" "chmod +x /tmp/gen520_run_job.sh"
+ssh "${RANGEBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
 
 DONE_IDS=""
 if [ "$DONE" -gt 0 ]; then
-    DONE_IDS=$(ssh bigblack "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
+    DONE_IDS=$(ssh "${RANGEBAR_CH_HOST}" "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
 fi
 
 SUBMITTED=0
@@ -120,9 +120,9 @@ while read -r SQL_PATH; do
     if [ -n "$DONE_IDS" ] && echo "$DONE_IDS" | grep -q "^${FILENAME}$" 2>/dev/null; then
         continue
     fi
-    ssh -n bigblack "pueue add -g p1 -- /tmp/gen520_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' 'SOLUSDT' '${THRESHOLD}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
+    ssh -n "${RANGEBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen520_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' 'SOLUSDT' '${THRESHOLD}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
     SUBMITTED=$((SUBMITTED + 1))
-done < <(ssh -n bigblack "ls ${ASSET_DIR}/*.sql")
+done < <(ssh -n "${RANGEBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql")
 
 echo "Submitted ${SUBMITTED} jobs for SOLUSDT@${THRESHOLD}"
-echo "Monitor: ssh bigblack 'pueue status -g p1'"
+echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"

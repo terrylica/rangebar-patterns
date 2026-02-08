@@ -8,24 +8,24 @@ run = """
 #!/usr/bin/env bash
 set -euo pipefail
 echo "=== Gen300 Phase 0: Feature Profile ==="
-echo "Running on BigBlack @500dbps..."
+echo "Running on ${RANGEBAR_CH_HOST} @500dbps..."
 START=$(date +%s)
-cat sql/gen300_feature_profile.sql | ssh bigblack 'clickhouse-client --multiquery' | tee /tmp/gen300_profile_output.txt
+cat sql/gen300_feature_profile.sql | ssh ${RANGEBAR_CH_HOST} 'clickhouse-client --multiquery' | tee /tmp/gen300_profile_output.txt
 END=$(date +%s)
 DURATION=$((END - START))
 echo ""
 echo "Completed in ${DURATION}s"
 # Log to NDJSON
 mkdir -p logs
-echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"generation\":300,\"phase\":0,\"action\":\"feature_profile\",\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"query_duration_s\":${DURATION},\"clickhouse_host\":\"bigblack\"}" >> logs/gen300_feature_profile.jsonl
+echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"generation\":300,\"phase\":0,\"action\":\"feature_profile\",\"symbol\":\"SOLUSDT\",\"threshold_dbps\":500,\"query_duration_s\":${DURATION},\"clickhouse_host\":\"${RANGEBAR_CH_HOST}\"}" >> logs/gen300_feature_profile.jsonl
 """
 
 ["gen300:create-table"]
-description = "Create gen300_results table on BigBlack"
-run = "cat sql/gen300_results_table.sql | ssh bigblack 'clickhouse-client --multiquery'"
+description = "Create gen300_results table on remote ClickHouse"
+run = "cat sql/gen300_results_table.sql | ssh ${RANGEBAR_CH_HOST} 'clickhouse-client --multiquery'"
 
 ["gen300:sweep"]
-description = "Phase 1: Run 48 single-feature configs on BigBlack with NDJSON telemetry"
+description = "Phase 1: Run 48 single-feature configs on remote ClickHouse with NDJSON telemetry"
 depends = ["gen300:create-table"]
 run = """
 #!/usr/bin/env bash
@@ -82,9 +82,9 @@ for feat_spec in "${FEATURES[@]}"; do
             -e "s/__FEATURE_NAME__/${FEAT_NAME}/g" \
             sql/gen300_template.sql)
 
-        # Run on BigBlack and capture output
+        # Run on remote ClickHouse and capture output
         QUERY_START=$(date +%s)
-        OUTPUT=$(echo "$QUERY" | ssh bigblack 'clickhouse-client --multiquery' 2>&1) || {
+        OUTPUT=$(echo "$QUERY" | ssh ${RANGEBAR_CH_HOST} 'clickhouse-client --multiquery' 2>&1) || {
             echo "  ERROR: Query failed for ${CONFIG_ID}"
             echo "{\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"generation\":300,\"phase\":1,\"config_id\":\"${CONFIG_ID}\",\"error\":true,\"message\":\"query failed\"}" >> logs/gen300_sweep.jsonl
             continue
@@ -118,7 +118,7 @@ for feat_spec in "${FEATURES[@]}"; do
 
         # Append NDJSON telemetry line
         cat >> logs/gen300_sweep.jsonl <<JSONEOF
-{"timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","generation":300,"phase":1,"config_id":"${CONFIG_ID}","feature_name":"${FEAT_NAME}","feature_column":"${FEAT_COL}","quantile_level":${QUANTILE},"filter_direction":"${DIR_LABEL}","quantile_method":"expanding_window_no_lookahead","symbol":"SOLUSDT","threshold_dbps":500,"barrier":{"tp_mult":0.5,"sl_mult":0.25,"max_bars":50,"tp_pct":0.025,"sl_pct":0.0125,"rr_ratio":2.0},"champion_base":{"pattern":"2DOWN_ti_gt_p95_kyle_gt_0","base_signals":1894,"base_kelly":-0.068},"results":{"filtered_signals":${FILTERED_SIGNALS:-0},"tp_count":${TP_COUNT:-0},"sl_count":${SL_COUNT:-0},"time_count":${TIME_COUNT:-0},"win_rate":${WIN_RATE:-0},"profit_factor":${PROFIT_FACTOR:-0},"avg_win_pct":${AVG_WIN:-0},"avg_loss_pct":${AVG_LOSS:-0},"risk_reward":${RISK_REWARD:-0},"expected_value_bps":${EV_PCT:-0},"kelly_fraction":${KELLY:-0},"avg_bars_held":${AVG_BARS:-0}},"sql_file":"sql/gen300_template.sql","query_duration_s":${QUERY_DURATION},"clickhouse_host":"bigblack"}
+{"timestamp":"$(date -u +%Y-%m-%dT%H:%M:%SZ)","generation":300,"phase":1,"config_id":"${CONFIG_ID}","feature_name":"${FEAT_NAME}","feature_column":"${FEAT_COL}","quantile_level":${QUANTILE},"filter_direction":"${DIR_LABEL}","quantile_method":"expanding_window_no_lookahead","symbol":"SOLUSDT","threshold_dbps":500,"barrier":{"tp_mult":0.5,"sl_mult":0.25,"max_bars":50,"tp_pct":0.025,"sl_pct":0.0125,"rr_ratio":2.0},"champion_base":{"pattern":"2DOWN_ti_gt_p95_kyle_gt_0","base_signals":1894,"base_kelly":-0.068},"results":{"filtered_signals":${FILTERED_SIGNALS:-0},"tp_count":${TP_COUNT:-0},"sl_count":${SL_COUNT:-0},"time_count":${TIME_COUNT:-0},"win_rate":${WIN_RATE:-0},"profit_factor":${PROFIT_FACTOR:-0},"avg_win_pct":${AVG_WIN:-0},"avg_loss_pct":${AVG_LOSS:-0},"risk_reward":${RISK_REWARD:-0},"expected_value_bps":${EV_PCT:-0},"kelly_fraction":${KELLY:-0},"avg_bars_held":${AVG_BARS:-0}},"sql_file":"sql/gen300_template.sql","query_duration_s":${QUERY_DURATION},"clickhouse_host":"${RANGEBAR_CH_HOST}"}
 JSONEOF
     done
 done

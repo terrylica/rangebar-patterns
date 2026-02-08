@@ -15,7 +15,7 @@ description = "Check cross-asset sweep progress"
 run = "bash scripts/gen500/status.sh"
 
 ["gen500:collect"]
-description = "Download cross-asset results from BigBlack"
+description = "Download cross-asset results from remote host"
 run = "bash scripts/gen500/collect.sh"
 
 ["gen500:report"]

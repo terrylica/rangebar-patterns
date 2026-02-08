@@ -3,7 +3,7 @@
 ADR: docs/adr/2026-02-06-repository-creation.md
 
 Copied from rangebar-py/python/rangebar/clickhouse/tunnel.py (canonical implementation).
-ClickHouse on BigBlack only listens on localhost:8123 — SSH tunnel is required.
+Remote ClickHouse only listens on localhost:8123 — SSH tunnel is required.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ class SSHTunnel:
 
     Examples
     --------
-    >>> with SSHTunnel("bigblack") as local_port:
+    >>> with SSHTunnel("my-server") as local_port:
     ...     client = clickhouse_connect.get_client("localhost", local_port)
     """
 

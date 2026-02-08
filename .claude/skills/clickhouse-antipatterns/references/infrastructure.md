@@ -10,14 +10,14 @@ Environment and toolchain issues that can cause silent failures or misleading re
 
 **Severity**: MEDIUM | **Regression Risk**: MEDIUM
 
-**Symptom**: `data_loader.py` connects to wrong ClickHouse server. Queries return unexpected results or timeout. Local queries unexpectedly route to BigBlack.
+**Symptom**: `data_loader.py` connects to wrong ClickHouse server. Queries return unexpected results or timeout. Local queries unexpectedly route to remote ClickHouse.
 
-**Root Cause**: SSH tunnel `-N -L 8123:localhost:8123 bigblack` from a previous session remains open. New session connects to stale tunnel instead of local ClickHouse.
+**Root Cause**: SSH tunnel `-N -L 8123:localhost:8123 $RANGEBAR_CH_HOST` from a previous session remains open. New session connects to stale tunnel instead of local ClickHouse.
 
 **Resolution**:
 
 1. Kill stale tunnels before querying: `pkill -f "ssh.*8123"`
-2. Use dedicated tunnel port for BigBlack: `ssh -N -L 19000:localhost:9000 bigblack`
+2. Use dedicated tunnel port for remote ClickHouse: `ssh -N -L 19000:localhost:9000 $RANGEBAR_CH_HOST`
 3. Check `_is_port_open(localhost:8123)` before assuming local server
 4. Verify with: `clickhouse client --query "SELECT hostName()"`
 
@@ -39,15 +39,15 @@ Environment and toolchain issues that can cause silent failures or misleading re
 
 ---
 
-### INF-03: Schema Mismatch Between BigBlack and Local
+### INF-03: Schema Mismatch Between remote ClickHouse and Local
 
 **Severity**: MEDIUM | **Regression Risk**: MEDIUM
 
-**Symptom**: `INSERT INTO ... SELECT FROM remote()` fails or inserts wrong columns. Column order differs between BigBlack and local ClickHouse.
+**Symptom**: `INSERT INTO ... SELECT FROM remote()` fails or inserts wrong columns. Column order differs between remote ClickHouse and local ClickHouse.
 
-**Root Cause**: BigBlack's `range_bars` table was created with different column ordering than `schema.sql`. ClickHouse INSERT depends on column order, not names, when using `SELECT *`.
+**Root Cause**: remote ClickHouse's `range_bars` table was created with different column ordering than `schema.sql`. ClickHouse INSERT depends on column order, not names, when using `SELECT *`.
 
-**Resolution**: Always use explicit column lists. Before syncing, run `SHOW CREATE TABLE` on BigBlack to verify order.
+**Resolution**: Always use explicit column lists. Before syncing, run `SHOW CREATE TABLE` on remote ClickHouse to verify order.
 
 ```sql
 -- CORRECT: Explicit column list

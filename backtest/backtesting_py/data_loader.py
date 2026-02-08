@@ -2,7 +2,7 @@
 
 ADR: docs/adr/2026-02-06-repository-creation.md
 
-Prefers local ClickHouse (synced via `mise run ch:sync`), falls back to BigBlack SSH tunnel.
+Prefers local ClickHouse (synced via `mise run ch:sync`), falls back to remote SSH tunnel.
 Returns DataFrame with DatetimeIndex + capitalized OHLCV + microstructure features.
 """
 
@@ -14,12 +14,12 @@ def load_range_bars(
     threshold: int = 250,
     start: str = "2020-01-01",
     end: str = "2026-01-01",
-    ssh_alias: str = "bigblack",
+    ssh_alias: str | None = None,
 ):
     """Load range bars with microstructure features from ClickHouse.
 
     Tries local ClickHouse first (localhost:8123). If local has no data for the
-    requested symbol/threshold, falls back to SSH tunnel to BigBlack.
+    requested symbol/threshold, falls back to SSH tunnel (set RANGEBAR_CH_HOST).
 
     Returns DataFrame with DatetimeIndex + OHLCV + trade_intensity + kyle_lambda_proxy.
     Compatible with backtesting.py (requires capitalized OHLCV columns).
@@ -53,6 +53,9 @@ def load_range_bars(
             return _to_backtest_df(result, pl, pd)
 
     # Fall back to SSH tunnel
+    import os
+    if ssh_alias is None:
+        ssh_alias = os.environ.get("RANGEBAR_CH_HOST", "localhost")
     print(f"  [tunnel] No local data, connecting via SSH tunnel to {ssh_alias}...")
     tunnel = SSHTunnel(ssh_alias)
     with tunnel as local_port:

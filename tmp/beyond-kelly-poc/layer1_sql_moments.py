@@ -2,7 +2,7 @@
 
 Extends gen500's trade_outcomes CTE to compute stddevSamp, skewSamp,
 kurtSamp, and tail quantiles per config. Runs all 1,008 SOLUSDT@500
-configs via SSH tunnel to BigBlack.
+configs via SSH tunnel to remote ClickHouse (set RANGEBAR_CH_HOST).
 
 Copies SSH tunnel pattern from backtest/backtesting_py/ssh_tunnel.py.
 Copies config iteration from scripts/gen500/generate.sh.
@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -276,7 +277,8 @@ def main():
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     t0 = time.time()
-    with SSHTunnel("bigblack") as local_port:
+    ssh_host = os.environ.get("RANGEBAR_CH_HOST", "localhost")
+    with SSHTunnel(ssh_host) as local_port:
         client = clickhouse_connect.get_client(host="localhost", port=local_port)
         print(f"Connected via SSH tunnel on port {local_port}")
 

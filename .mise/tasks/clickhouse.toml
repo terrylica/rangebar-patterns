@@ -1,4 +1,4 @@
-# ClickHouse local server management + BigBlack sync
+# ClickHouse local server management + remote sync
 
 ["ch:status"]
 description = "Check local ClickHouse status and data counts"
@@ -27,13 +27,14 @@ fi
 """
 
 ["ch:sync"]
-description = "Sync @250dbps data from BigBlack via SSH tunnel + remote() function"
+description = "Sync @250dbps data from remote ClickHouse via SSH tunnel + remote() function"
 run = """
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Opening SSH tunnel to BigBlack (port 19000 -> 9000)..."
-ssh -N -L 19000:localhost:9000 bigblack &
+CH_HOST="${RANGEBAR_CH_HOST:-localhost}"
+echo "Opening SSH tunnel to ${CH_HOST} (port 19000 -> 9000)..."
+ssh -N -L 19000:localhost:9000 "$CH_HOST" &
 TUNNEL_PID=$!
 trap "kill $TUNNEL_PID 2>/dev/null" EXIT
 sleep 2
@@ -41,7 +42,7 @@ sleep 2
 # Verify tunnel
 echo "Verifying tunnel..."
 REMOTE_COUNT=$(clickhouse client --query "SELECT count() FROM remote('localhost:19000', 'rangebar_cache', 'range_bars', 'default', '') WHERE threshold_decimal_bps = 250")
-echo "BigBlack has $REMOTE_COUNT rows at @250dbps"
+echo "${CH_HOST} has $REMOTE_COUNT rows at @250dbps"
 
 LOCAL_COUNT=$(clickhouse client --query "SELECT count() FROM rangebar_cache.range_bars WHERE threshold_decimal_bps = 250" 2>/dev/null || echo "0")
 echo "Local has $LOCAL_COUNT rows at @250dbps"

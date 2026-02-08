@@ -5,7 +5,7 @@
 #   .mise/tasks/dev.toml        - fmt, lint, test
 #   .mise/tasks/sql.toml        - SQL validation, execution
 #   .mise/tasks/backtest.toml   - backtesting.py + NautilusTrader
-#   .mise/tasks/clickhouse.toml - local ClickHouse + BigBlack sync
+#   .mise/tasks/clickhouse.toml - local ClickHouse + remote sync
 #   .mise/tasks/release.toml    - semantic-release workflow
 
 [tools]
@@ -14,11 +14,10 @@ python = "3.13"
 [env]
 # GitHub Account
 GH_ACCOUNT = "terrylica"
-GH_TOKEN = "{{ read_file(path=env.HOME ~ '/.claude/.secrets/gh-token-terrylica') | trim }}"
-GITHUB_TOKEN = "{{ read_file(path=env.HOME ~ '/.claude/.secrets/gh-token-terrylica') | trim }}"
+# GH_TOKEN / GITHUB_TOKEN: set in .mise.local.toml (gitignored)
 
-# ClickHouse (BigBlack)
-RANGEBAR_CH_HOST = "bigblack"
+# ClickHouse — override RANGEBAR_CH_HOST in .mise.local.toml for remote access
+RANGEBAR_CH_HOST = "localhost"
 RANGEBAR_CH_DATABASE = "rangebar_cache"
 RANGEBAR_CH_TABLE = "range_bars"
 

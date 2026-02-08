@@ -85,25 +85,25 @@ Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) 
 
 ## Essential Commands
 
-| Task                | Command                                                 |
-| ------------------- | ------------------------------------------------------- |
-| Run tests           | `mise run test`                                         |
-| List SQL files      | `mise run sql:list`                                     |
-| Run SQL on BigBlack | `mise run sql:run file=sql/gen111_true_nolookahead.sql` |
-| Reproduce champion  | `mise run sql:reproduce`                                |
-| Backtest champion   | `mise run backtest:run`                                 |
-| Release             | `mise run release:full`                                 |
+| Task               | Command                                                 |
+| ------------------ | ------------------------------------------------------- |
+| Run tests          | `mise run test`                                         |
+| List SQL files     | `mise run sql:list`                                     |
+| Run SQL (local)    | `mise run sql:run file=sql/gen111_true_nolookahead.sql` |
+| Reproduce champion | `mise run sql:reproduce`                                |
+| Backtest champion  | `mise run backtest:run`                                 |
+| Release            | `mise run release:full`                                 |
 
 ---
 
 ## Infrastructure
 
-Queries run against **BigBlack** ClickHouse:
+Queries run against ClickHouse (local or remote via SSH tunnel):
 
 - Database: `rangebar_cache`
 - Table: `range_bars`
 - Column: `threshold_decimal_bps` (NOT threshold_dbps)
-- Connection: `ssh bigblack 'clickhouse-client'`
+- Remote host: Set `RANGEBAR_CH_HOST` in `.mise.local.toml`
 
 ---
 

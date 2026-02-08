@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import itertools
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -259,7 +260,8 @@ def main():
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     t0 = time.time()
-    with SSHTunnel("bigblack") as local_port:
+    ssh_host = os.environ.get("RANGEBAR_CH_HOST", "localhost")
+    with SSHTunnel(ssh_host) as local_port:
         client = clickhouse_connect.get_client(host="localhost", port=local_port)
         print(f"Connected via SSH tunnel on port {local_port}")
 

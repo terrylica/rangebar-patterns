@@ -234,7 +234,7 @@ Based on exp078 findings (val_bars=1200 optimal for SOL):
 2. **Add feature computation** for direction lookback and rolling percentiles
 3. **Implement LongOnlySelectiveTradingLoss** in models/
 4. **Add arm configurations** for A0-A3
-5. **Dry run** on BigBlack with 1 seed
+5. **Dry run** on remote GPU workstation with 1 seed
 6. **Full run** all arms
 
 ---

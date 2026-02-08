@@ -8,7 +8,7 @@ for phase in 2feature 3feature 4feature; do
     REMOTE="/tmp/gen400_${phase}.jsonl"
     LOCAL="logs/gen400/${phase}.jsonl"
     echo "  Downloading ${phase}..."
-    scp "bigblack:${REMOTE}" "${LOCAL}" 2>/dev/null || echo "  (not found: ${phase})"
+    scp "${RANGEBAR_CH_HOST}:${REMOTE}" "${LOCAL}" 2>/dev/null || echo "  (not found: ${phase})"
 done
 
 echo ""

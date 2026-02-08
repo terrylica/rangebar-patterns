@@ -1,6 +1,6 @@
 # Sweep Scripts - AI Context
 
-**Scope**: Bash scripts for brute-force SQL sweep execution on BigBlack via pueue.
+**Scope**: Bash scripts for brute-force SQL sweep execution on remote ClickHouse via pueue.
 
 **Navigation**: [Root CLAUDE.md](/CLAUDE.md)
 
@@ -12,9 +12,9 @@
 scripts/gen{NNN}/
 ├── generate.sh     # Pre-generate SQL files from templates (runs locally)
 ├── poc.sh          # Fail-fast POC (10 configs, validates pipeline end-to-end)
-├── submit.sh       # rsync SQL to BigBlack + submit to pueue (p1 group, 4 parallel)
-├── status.sh       # Check pueue status + result counts on BigBlack
-├── collect.sh      # scp results from BigBlack to logs/gen{NNN}/
+├── submit.sh       # rsync SQL to remote ClickHouse + submit to pueue (p1 group, 4 parallel)
+├── status.sh       # Check pueue status + result counts on remote ClickHouse
+├── collect.sh      # scp results from remote ClickHouse to logs/gen{NNN}/
 └── report.sh       # Analyze results: top Kelly, Bonferroni, feature frequency
 ```
 
@@ -47,10 +47,10 @@ includes = [
 
 ---
 
-## Execution Pipeline (BigBlack)
+## Execution Pipeline (remote ClickHouse)
 
 ```
-Local (macOS)                    BigBlack (ClickHouse + pueue)
+Local (macOS)                    remote ClickHouse (ClickHouse + pueue)
 ┌─────────────────┐              ┌──────────────────────────┐
 │ 1. generate.sh  │              │                          │
 │    Creates SQL   │   rsync →   │ /tmp/gen{NNN}_sql/       │
@@ -75,22 +75,22 @@ Local (macOS)                    BigBlack (ClickHouse + pueue)
 
 ## Pueue Job Management
 
-All jobs use **pueue group `p1`** with 4 parallel slots on BigBlack.
+All jobs use **pueue group `p1`** with 4 parallel slots on remote ClickHouse.
 
 ```bash
 # Check status
-ssh bigblack 'pueue status -g p1'
+ssh $RANGEBAR_CH_HOST 'pueue status -g p1'
 
 # Clean completed jobs before new submission
-ssh bigblack 'pueue clean -g p1'
+ssh $RANGEBAR_CH_HOST 'pueue clean -g p1'
 
 # Reset failed/stuck jobs
-ssh bigblack 'pueue reset -g p1'
+ssh $RANGEBAR_CH_HOST 'pueue reset -g p1'
 ```
 
 ### Job Wrapper Pattern
 
-Each pueue task runs a wrapper script on BigBlack that:
+Each pueue task runs a wrapper script on remote ClickHouse that:
 
 1. Executes SQL via `clickhouse-client --multiquery`
 2. Parses tab-separated output

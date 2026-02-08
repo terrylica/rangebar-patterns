@@ -7,8 +7,8 @@ description = "Run a SQL file on local ClickHouse"
 run = "clickhouse client --multiquery < {{arg(name='file')}}"
 
 ["sql:run-remote"]
-description = "Run a SQL file on BigBlack ClickHouse (via SSH)"
-run = "cat {{arg(name='file')}} | ssh bigblack 'clickhouse-client --multiquery'"
+description = "Run a SQL file on remote ClickHouse (via SSH)"
+run = "cat {{arg(name='file')}} | ssh ${RANGEBAR_CH_HOST:-localhost} 'clickhouse-client --multiquery'"
 
 ["sql:validate"]
 description = "Check all SQL files for syntax (dry run)"

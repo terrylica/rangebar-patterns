@@ -7,13 +7,13 @@ echo "=== Gen500: Submit All Cross-Asset 2-Feature Jobs ==="
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REMOTE_DIR="/tmp/gen500_sql"
 
-# Upload SQL files to BigBlack
+# Upload SQL files to remote host
 echo "--- Uploading SQL files ---"
-rsync -az --info=progress2 /tmp/gen500_sql/ bigblack:${REMOTE_DIR}/
+rsync -az --info=progress2 /tmp/gen500_sql/ "${RANGEBAR_CH_HOST}:${REMOTE_DIR}/"
 
 # Clean pueue before starting
 echo "--- Cleaning pueue group p1 ---"
-ssh bigblack "pueue clean -g p1 2>/dev/null || true"
+ssh "${RANGEBAR_CH_HOST}" "pueue clean -g p1 2>/dev/null || true"
 
 # Submit all assets sequentially (each queues 1008 jobs)
 # @500dbps altcoins
@@ -29,5 +29,5 @@ done
 echo ""
 echo "=== All assets submitted ==="
 echo "Total: 12 assets × 1,008 configs = 12,096 jobs"
-echo "Monitor: ssh bigblack 'pueue status -g p1'"
+echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"
 echo "ETA: ~50 min at 4 parallel × 2s/query"

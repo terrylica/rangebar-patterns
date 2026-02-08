@@ -15,7 +15,7 @@ Range bar pattern discovery via ClickHouse SQL brute-force analysis of microstru
 | DSR (N=111) | 1.000                         |
 | 2024-2025   | NOT significant (z=0.87-1.24) |
 
-**Verdict**: Use as NN FEATURE, not standalone signal.
+**Verdict**: DEAD as standalone strategy. Use as ML/NN feature input only. Zero configs survive any multiple testing framework (Bonferroni, e-BH, Romano-Wolf, DSR).
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ Range bar pattern discovery via ClickHouse SQL brute-force analysis of microstru
 # List all SQL pattern files
 mise run sql:list
 
-# Reproduce champion pattern on BigBlack ClickHouse
+# Reproduce champion pattern on local ClickHouse
 mise run sql:reproduce
 
 # Run backtest
@@ -36,27 +36,40 @@ mise run test
 ## Structure
 
 ```
-sql/          ClickHouse SQL pattern discovery (15 files, 8 generations + NLA corrections)
+sql/          ClickHouse SQL pattern discovery (22 generations)
 findings/     Research analysis documents (chronological)
 issues/       GitHub issue snapshots (durable local records)
 backtest/     backtesting.py + NautilusTrader integration
 designs/      NN experiment designs
+tmp/          Beyond-Kelly evaluation metrics POC
 src/          Python validation package
 tests/        Validation tests
 ```
 
-## Infrastructure
+## Setup
 
-Queries run against **BigBlack** ClickHouse:
+1. Install [mise](https://mise.jdx.dev/) and run `mise install`
+2. Set up ClickHouse access:
+   - **Local**: Install ClickHouse and sync data with `mise run ch:sync`
+   - **Remote**: Create `.mise.local.toml` (gitignored) with your SSH host:
 
-- Database: `rangebar_cache`
-- Table: `range_bars`
-- Column: `threshold_decimal_bps` (NOT threshold_dbps)
+     ```toml
+     [env]
+     RANGEBAR_CH_HOST = "your-clickhouse-host"
+     ```
+
+3. For GitHub releases, add tokens to `.mise.local.toml`:
+
+   ```toml
+   [env]
+   GH_TOKEN = "your-token"
+   GITHUB_TOKEN = "your-token"
+   ```
 
 ## Requirements
 
 - Python 3.13+
-- ClickHouse access (BigBlack via SSH)
+- ClickHouse (local or remote via SSH tunnel)
 - [mise](https://mise.jdx.dev/) for task management
 
 ## License

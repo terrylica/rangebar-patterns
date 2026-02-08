@@ -79,7 +79,7 @@ DSR is near-zero correlation with everything — functions as binary gate.
 ## How to Re-Run
 
 ```bash
-# Layer 1 requires SSH tunnel to BigBlack ClickHouse
+# Layer 1 requires SSH tunnel to remote ClickHouse (set RANGEBAR_CH_HOST)
 .venv/bin/python tmp/beyond-kelly-poc/layer1_trade_returns.py
 .venv/bin/python tmp/beyond-kelly-poc/layer1_sql_moments.py
 

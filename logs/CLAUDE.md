@@ -1,6 +1,6 @@
 # Telemetry Logs - AI Context
 
-**Scope**: NDJSON telemetry archives from brute-force sweep experiments on BigBlack ClickHouse.
+**Scope**: NDJSON telemetry archives from brute-force sweep experiments on remote ClickHouse.
 
 **Navigation**: [Root CLAUDE.md](/CLAUDE.md)
 
@@ -40,7 +40,7 @@ Every JSONL line contains these fields:
   "environment": {
     "symbol": "SOLUSDT",
     "threshold_dbps": 500,
-    "clickhouse_host": "bigblack",
+    "clickhouse_host": "remote",
     "template_file": "sql/gen400_2feature_template.sql",
     "template_sha256": "...",
     "git_commit": "b6d84af",
@@ -133,7 +133,7 @@ done
 
 ## Data Provenance
 
-- **Source**: BigBlack ClickHouse (`rangebar_cache.range_bars`)
-- **Collection**: `scp bigblack:/tmp/gen{NNN}_*.jsonl logs/gen{NNN}/`
+- **Source**: Remote ClickHouse (`rangebar_cache.range_bars`)
+- **Collection**: `scp $RANGEBAR_CH_HOST:/tmp/gen{NNN}_*.jsonl logs/gen{NNN}/`
 - **Validation**: All lines must pass `json.loads()` before commit
 - **Fixes applied**: `nan` → `null`, `\N` → `NULL` (ClickHouse NULL representation)
