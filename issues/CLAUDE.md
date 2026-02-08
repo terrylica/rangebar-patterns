@@ -11,7 +11,24 @@
 GitHub Issues are the insight repository during active research. These snapshots preserve
 findings even if issues are edited, closed, or repos restructured.
 
-## Issue Index
+## rangebar-patterns Issues
+
+| #   | Title                                                         | State  | Key Content                                             |
+| --- | ------------------------------------------------------------- | ------ | ------------------------------------------------------- |
+| 12  | Beyond-Kelly POC: 5-metric stack (Kelly+Omega+DSR+MinBTL+PBO) | Open   | 0 survive multiple testing, 5-metric decision           |
+| 11  | Forensic Analysis: Gen500-520 Overnight Sweep                 | Open   | 15,300 configs, 0 survive Bonferroni, 56 dual-validated |
+| 10  | Gen300: Feature filter sweep                                  | Closed | Expanding window false positive, no edge                |
+| 9   | Research Consolidation: 17 SQL generations                    | Open   | Champion 62.93% HR, PF=1.27 with barriers               |
+| 8   | Anti-Pattern Registry: 13 ClickHouse SQL constraints          | Open   | SQL + infra constraints from Gen200-202                 |
+| 7   | Update champion_strategy.py: Triple Barrier + Trailing Stop   | Closed | Backtesting framework exit logic                        |
+| 6   | Atomic Validation: 96% exit price match                       | Closed | SQL vs backtesting.py alignment verified                |
+| 5   | Gen202: Combined barrier = Gen201 (identical)                 | Closed | Fixed SL champion: PF=1.27                              |
+| 4   | Gen201: Trailing stop DOES NOT improve fixed SL               | Closed | PF 1.26 vs 1.27, edge is short-lived                    |
+| 3   | Gen200: Triple barrier SQL — PF=1.27 @500dbps                 | Closed | Tight TP + wide SL + long patience dominates            |
+| 2   | SQL Hit Rate vs Backtesting.py Win Rate Mismatch              | Closed | Structural mismatch diagnosis                           |
+| 1   | Gen200-202 Triple Barrier Framework COMPLETE                  | Closed | Fixed SL champion, pattern is ML feature                |
+
+## Cross-Repo Issue Snapshots
 
 | File                                | Source                           | Key Content                                                 |
 | ----------------------------------- | -------------------------------- | ----------------------------------------------------------- |

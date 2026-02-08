@@ -30,6 +30,31 @@ ELSE -> FLAT (no position)
 
 No SHORT signals (they lose on SOL).
 
+**Verdict**: DEAD as standalone strategy. Use as ML/NN feature input only. No configs survive multiple testing (Bonferroni, e-BH, Romano-Wolf, DSR). See [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12).
+
+## Triple Barrier Framework (Gen200-202)
+
+Exit logic uses triple barrier method:
+
+| Barrier     | Best Config (Gen510) | Description             |
+| ----------- | -------------------- | ----------------------- |
+| Take Profit | 0.25x threshold      | Tight TP captures edge  |
+| Stop Loss   | 0.50x threshold      | Wide SL avoids whipsaws |
+| Max Bars    | 100                  | Time-based expiry       |
+
+- **Gen200**: PF=1.27 @500dbps (97/100 combos > 1.0)
+- **Gen201**: Trailing stop adds no value (PF=1.26 vs 1.27)
+- **Gen510**: Barrier optimization: Kelly +0.157 (3.8x improvement over default barriers)
+
+**Key insight**: Asymmetric barriers (tight TP, wide SL) suit mean-reversion patterns.
+
+## Evaluation Metrics (5-Metric Stack)
+
+All backtesting results should be evaluated with:
+Kelly > 0, Omega > 1.0, DSR > 0.95, n >= MinBTL, PBO < 0.50
+
+See [Root CLAUDE.md](/CLAUDE.md) for full metric stack details.
+
 ## Data Loading
 
 Both frameworks load range bars from BigBlack ClickHouse:
