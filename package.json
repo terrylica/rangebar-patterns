@@ -1,0 +1,35 @@
+{
+  "name": "rangebar-patterns",
+  "version": "1.0.0",
+  "description": "Range bar pattern discovery via ClickHouse SQL brute-force analysis of microstructure features.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "semantic-release --no-ci",
+    "release:dry": "semantic-release --dry-run --no-ci",
+    "postrelease": "git fetch origin main:refs/remotes/origin/main --no-tags || true"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/terrylica/rangebar-patterns.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/terrylica/rangebar-patterns/issues"
+  },
+  "homepage": "https://github.com/terrylica/rangebar-patterns#readme",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^12.0.5",
+    "semantic-release": "^25.0.3"
+  }
+}

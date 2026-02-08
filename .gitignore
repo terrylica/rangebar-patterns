@@ -11,3 +11,6 @@ outputs/
 
 # Large result files (decompressed from .br)
 results/eval/trade_returns.jsonl
+
+# Node.js (semantic-release only)
+node_modules/

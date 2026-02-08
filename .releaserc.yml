@@ -9,4 +9,6 @@ plugins:
   - - "@semantic-release/git"
     - assets: ["CHANGELOG.md", "pyproject.toml"]
       message: "chore(release): ${nextRelease.version} [skip ci]"
+  - - "@semantic-release/exec"
+    - successCmd: "/usr/bin/env bash -c 'git push --follow-tags origin main'"
   - "@semantic-release/github"

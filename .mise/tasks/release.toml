@@ -1,7 +1,7 @@
 ["release:full"]
 description = "Run semantic-release (creates tag + GitHub release)"
-run = "npx semantic-release --no-ci"
+run = "npm run release"
 
 ["release:dry"]
 description = "Dry-run semantic-release (no publish)"
-run = "npx semantic-release --dry-run --no-ci"
+run = "npm run release:dry"
