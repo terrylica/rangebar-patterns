@@ -1,11 +1,10 @@
-"""Agent 1: Extract distribution moment statistics from ClickHouse.
+"""Extract distribution moments and per-trade returns from ClickHouse.
 
-Extends gen500's trade_outcomes CTE to compute stddevSamp, skewSamp,
-kurtSamp, and tail quantiles per config. Runs all 1,008 SOLUSDT@500
-configs via SSH tunnel to remote ClickHouse (set RANGEBAR_CH_HOST).
+Merges layer1_sql_moments.py and layer1_trade_returns.py into a single module.
+The CTE chain (base_bars through trade_outcomes) is shared; only the final
+SELECT differs between moments extraction and trade-return extraction.
 
-Copies SSH tunnel pattern from backtest/backtesting_py/ssh_tunnel.py.
-Copies config iteration from scripts/gen500/generate.sh.
+Requires SSH tunnel to remote ClickHouse (set RANGEBAR_CH_HOST).
 
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
 """
@@ -17,14 +16,15 @@ import json
 import os
 import sys
 import time
-from pathlib import Path
 
-# Add repo root to sys.path for imports
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(REPO_ROOT))
-
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
-OUTPUT_FILE = RESULTS_DIR / "moments.jsonl"
+from rangebar_patterns.config import (
+    MAX_BARS,
+    SL_MULT,
+    SYMBOL,
+    THRESHOLD_DBPS,
+    TP_MULT,
+)
+from rangebar_patterns.eval._io import results_dir
 
 # Same config space as gen500 (scripts/gen500/generate.sh)
 FEATURES = [
@@ -41,11 +41,9 @@ GRID = [
     ("0.10", "<", "lt_p10"),
 ]
 
-SYMBOL = "SOLUSDT"
-THRESHOLD_DBPS = 500
-
-# SQL template: gen500 CTE chain with moment statistics in final SELECT
-SQL_TEMPLATE = """
+# Shared CTE chain: base_bars through trade_outcomes.
+# The {final_select} placeholder is substituted with mode-specific SQL.
+_CTE_TEMPLATE = """
 WITH
 base_bars AS (
     SELECT
@@ -141,17 +139,17 @@ forward_arrays AS (
         groupArray(b.close) AS fwd_closes
     FROM signals s
     INNER JOIN base_bars b
-        ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
+        ON b.rn BETWEEN s.rn + 1 AND s.rn + {max_bars_plus1}
     GROUP BY s.timestamp_ms, s.entry_price, s.rn
 ),
 param_with_prices AS (
     SELECT
         *,
-        0.5 AS tp_mult,
-        0.25 AS sl_mult,
-        toUInt32(50) AS max_bars,
-        entry_price * (1.0 + 0.5 * ({threshold} / 10000.0)) AS tp_price,
-        entry_price * (1.0 - 0.25 * ({threshold} / 10000.0)) AS sl_price
+        {tp_mult} AS tp_mult,
+        {sl_mult} AS sl_mult,
+        toUInt32({max_bars}) AS max_bars,
+        entry_price * (1.0 + {tp_mult} * ({threshold} / 10000.0)) AS tp_price,
+        entry_price * (1.0 - {sl_mult} * ({threshold} / 10000.0)) AS sl_price
     FROM forward_arrays
 ),
 barrier_scan AS (
@@ -194,6 +192,11 @@ trade_outcomes AS (
         END AS exit_price
     FROM barrier_scan
 )
+{final_select}
+"""
+
+# Final SELECT for moment statistics (mean, std, skew, kurtosis, quantiles, Kelly)
+_MOMENTS_SELECT = """
 SELECT
     '{config_id}' AS config_id,
     toUInt32(count(*)) AS n_trades,
@@ -224,10 +227,21 @@ SELECT
             , 0) AS kelly_fraction
 FROM trade_outcomes
 WHERE exit_type != 'INCOMPLETE'
-"""
+""".strip()
+
+# Final SELECT for per-trade return arrays (ordered by timestamp)
+_RETURNS_SELECT = """
+SELECT
+    '{config_id}' AS config_id,
+    toUInt32(count(*)) AS n_trades,
+    groupArray((exit_price - entry_price) / entry_price) AS returns,
+    groupArray(timestamp_ms) AS timestamps_ms
+FROM trade_outcomes
+WHERE exit_type != 'INCOMPLETE'
+""".strip()
 
 
-def generate_configs():
+def generate_configs() -> list[dict]:
     """Generate all 1,008 2-feature configs (same as scripts/gen500/generate.sh)."""
     configs = []
     for i, j in itertools.combinations(range(len(FEATURES)), 2):
@@ -247,34 +261,83 @@ def generate_configs():
     return configs
 
 
-def run_query(client, config: dict) -> dict | None:
-    """Execute moment-extended SQL for one config, return result dict."""
-    sql = SQL_TEMPLATE.format(
+def build_sql(config: dict, mode: str) -> str:
+    """Build the full SQL query for a config.
+
+    Args:
+        config: Dict with feature_col_1/2, quantile_pct_1/2, direction_1/2, config_id.
+        mode: Either "moments" or "returns".
+    """
+    final_select = _MOMENTS_SELECT if mode == "moments" else _RETURNS_SELECT
+    return _CTE_TEMPLATE.format(
         symbol=SYMBOL,
         threshold=THRESHOLD_DBPS,
+        tp_mult=TP_MULT,
+        sl_mult=SL_MULT,
+        max_bars=MAX_BARS,
+        max_bars_plus1=MAX_BARS + 1,
+        final_select=final_select.format(config_id=config["config_id"]),
         **config,
     )
+
+
+def run_query_moments(client, config: dict) -> dict | None:
+    """Execute moment-extended SQL for one config, return result dict."""
+    sql = build_sql(config, "moments")
     try:
         result = client.query(sql)
         if not result.result_rows:
             return None
         row = result.result_rows[0]
         cols = result.column_names
-        return dict(zip(cols, row, strict=True))
+        data = dict(zip(cols, row, strict=True))
+        return {
+            k: (float(v) if v is not None and not isinstance(v, (str, int, bool)) else v)
+            for k, v in data.items()
+        }
     except (OSError, RuntimeError, ValueError) as e:
         print(f"  ERROR {config['config_id']}: {e}", file=sys.stderr)
         return None
 
 
-def main():
+def run_query_returns(client, config: dict) -> dict | None:
+    """Execute trade-return SQL for one config, return result dict with arrays."""
+    sql = build_sql(config, "returns")
+    try:
+        result = client.query(sql)
+        if not result.result_rows:
+            return None
+        row = result.result_rows[0]
+        cols = result.column_names
+        data = dict(zip(cols, row, strict=True))
+        if "returns" in data and data["returns"] is not None:
+            data["returns"] = [float(x) for x in data["returns"]]
+        if "timestamps_ms" in data and data["timestamps_ms"] is not None:
+            data["timestamps_ms"] = [int(x) for x in data["timestamps_ms"]]
+        return data
+    except (OSError, RuntimeError, ValueError) as e:
+        print(f"  ERROR {config['config_id']}: {e}", file=sys.stderr)
+        return None
+
+
+def _run_extraction(mode: str) -> None:
+    """Common extraction loop for both modes."""
     import clickhouse_connect
 
     from backtest.backtesting_py.ssh_tunnel import SSHTunnel
 
+    rd = results_dir()
+    output_file = rd / ("moments.jsonl" if mode == "moments" else "trade_returns.jsonl")
+
     configs = generate_configs()
     print(f"Generated {len(configs)} configs for {SYMBOL}@{THRESHOLD_DBPS}")
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    query_fn = run_query_moments if mode == "moments" else run_query_returns
+    null_result_fn = (
+        (lambda cid: {"config_id": cid, "n_trades": 0, "error": True})
+        if mode == "moments"
+        else (lambda cid: {"config_id": cid, "n_trades": 0, "returns": [], "timestamps_ms": [], "error": True})
+    )
 
     t0 = time.time()
     ssh_host = os.environ.get("RANGEBAR_CH_HOST", "localhost")
@@ -282,19 +345,15 @@ def main():
         client = clickhouse_connect.get_client(host="localhost", port=local_port)
         print(f"Connected via SSH tunnel on port {local_port}")
 
-        with open(OUTPUT_FILE, "w") as f:
+        with open(output_file, "w") as f:
             for idx, config in enumerate(configs):
-                result = run_query(client, config)
+                result = query_fn(client, config)
                 if result is None:
-                    result = {"config_id": config["config_id"], "n_trades": 0, "error": True}
+                    result = null_result_fn(config["config_id"])
                 else:
-                    # Convert numpy/Decimal types to native Python
-                    result = {
-                        k: (float(v) if v is not None
-                            and not isinstance(v, (str, int, bool)) else v)
-                        for k, v in result.items()
-                    }
                     result["error"] = False
+                    if mode == "returns":
+                        result["n_trades"] = int(result["n_trades"])
                 f.write(json.dumps(result) + "\n")
 
                 if (idx + 1) % 50 == 0:
@@ -305,7 +364,25 @@ def main():
 
     elapsed = time.time() - t0
     print(f"\nDone: {len(configs)} configs in {elapsed:.1f}s ({len(configs)/elapsed:.1f} q/s)")
-    print(f"Output: {OUTPUT_FILE}")
+    print(f"Output: {output_file}")
+
+
+def main_moments():
+    """Extract distribution moment statistics from ClickHouse."""
+    _run_extraction("moments")
+
+
+def main_trade_returns():
+    """Extract per-trade return arrays from ClickHouse."""
+    _run_extraction("returns")
+
+
+def main():
+    """Run both extractions (moments first, then trade returns)."""
+    print("=== Extraction: Moments ===\n")
+    main_moments()
+    print("\n=== Extraction: Trade Returns ===\n")
+    main_trade_returns()
 
 
 if __name__ == "__main__":

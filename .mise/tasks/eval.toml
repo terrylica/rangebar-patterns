@@ -1,0 +1,47 @@
+# Eval: Beyond-Kelly evaluation pipeline
+# Modules in src/rangebar_patterns/eval/
+# Config from mise [env]: RBP_* variables
+
+["eval:extract"]
+description = "Extract moments + trade returns from ClickHouse (requires SSH)"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.extraction"
+
+["eval:dsr"]
+description = "Compute DSR and PSR rankings"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.dsr"
+
+["eval:minbtl"]
+description = "Compute MinBTL data sufficiency gate"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.minbtl"
+
+["eval:cornish-fisher"]
+description = "Compute Cornish-Fisher Expected Shortfall"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.cornish_fisher"
+
+["eval:omega"]
+description = "Compute Omega Ratio from trade returns"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.omega"
+
+["eval:cscv"]
+description = "Compute CSCV/PBO overfitting detection"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.cscv"
+
+["eval:evalues"]
+description = "Compute E-values and GROW criterion"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.evalues"
+
+["eval:synthesize"]
+description = "Cross-metric synthesis: e-BH, Romano-Wolf, verdict"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.synthesis"
+
+["eval:screen"]
+description = "Multi-tier lenient screening"
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.screening"
+
+["eval:compute"]
+description = "Run all local compute stages (no ClickHouse needed)"
+depends = ["eval:dsr", "eval:minbtl", "eval:cornish-fisher", "eval:omega", "eval:cscv", "eval:evalues"]
+
+["eval:full"]
+description = "Full pipeline: extract + compute + synthesize + screen"
+depends = ["eval:extract", "eval:compute", "eval:synthesize", "eval:screen"]

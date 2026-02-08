@@ -144,18 +144,18 @@ forward_arrays AS (
         groupArray(b.close) AS fwd_closes
     FROM signals s
     INNER JOIN base_bars b
-        ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
+        ON b.rn BETWEEN s.rn + 1 AND s.rn + __MAX_BARS_PLUS1__
     GROUP BY s.timestamp_ms, s.entry_price, s.rn
 ),
 -- CTE 7: Fixed barrier parameters
 param_with_prices AS (
     SELECT
         *,
-        0.5 AS tp_mult,
-        0.25 AS sl_mult,
-        toUInt32(50) AS max_bars,
-        entry_price * (1.0 + 0.5 * 0.05) AS tp_price,
-        entry_price * (1.0 - 0.25 * 0.05) AS sl_price
+        __TP_MULT__ AS tp_mult,
+        __SL_MULT__ AS sl_mult,
+        toUInt32(__MAX_BARS__) AS max_bars,
+        entry_price * (1.0 + __TP_MULT__ * 0.05) AS tp_price,
+        entry_price * (1.0 - __SL_MULT__ * 0.05) AS sl_price
     FROM forward_arrays
 ),
 -- CTE 8: Barrier scan

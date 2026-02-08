@@ -9,31 +9,31 @@ Range bar pattern discovery via ClickHouse SQL brute-force analysis of microstru
 ## Documentation Hierarchy
 
 ```
-CLAUDE.md (this file)            <-- Hub: Navigation + Essentials
+CLAUDE.md (this file)                       <-- Hub: Navigation + Essentials
     |
-    +-- sql/CLAUDE.md            <-- Spoke: SQL guide, generations, ClickHouse
-    +-- logs/CLAUDE.md           <-- Spoke: Telemetry archive conventions
-    +-- scripts/CLAUDE.md        <-- Spoke: Sweep script patterns + pueue
-    +-- findings/CLAUDE.md       <-- Spoke: Research findings index
-    +-- issues/CLAUDE.md         <-- Spoke: GitHub issue snapshots
-    +-- backtest/CLAUDE.md       <-- Spoke: backtesting.py + NautilusTrader
-    +-- designs/CLAUDE.md        <-- Spoke: NN experiment designs
-    +-- tmp/beyond-kelly-poc/CLAUDE.md  <-- Spoke: Evaluation metrics POC
+    +-- src/rangebar_patterns/eval/CLAUDE.md <-- Spoke: Eval metrics subpackage
+    +-- sql/CLAUDE.md                        <-- Spoke: SQL guide, generations, ClickHouse
+    +-- logs/CLAUDE.md                       <-- Spoke: Telemetry archive conventions
+    +-- scripts/CLAUDE.md                    <-- Spoke: Sweep script patterns + pueue
+    +-- findings/CLAUDE.md                   <-- Spoke: Research findings index
+    +-- issues/CLAUDE.md                     <-- Spoke: GitHub issue snapshots
+    +-- backtest/CLAUDE.md                   <-- Spoke: backtesting.py + NautilusTrader
+    +-- designs/CLAUDE.md                    <-- Spoke: NN experiment designs
 ```
 
 ## Navigation
 
-| Topic              | Document                                                                                  |
-| ------------------ | ----------------------------------------------------------------------------------------- |
-| SQL Patterns       | [sql/CLAUDE.md](/sql/CLAUDE.md)                                                           |
-| Telemetry Logs     | [logs/CLAUDE.md](/logs/CLAUDE.md)                                                         |
-| Sweep Scripts      | [scripts/CLAUDE.md](/scripts/CLAUDE.md)                                                   |
-| Research Findings  | [findings/CLAUDE.md](/findings/CLAUDE.md)                                                 |
-| GitHub Issues      | [issues/CLAUDE.md](/issues/CLAUDE.md)                                                     |
-| Backtesting        | [backtest/CLAUDE.md](/backtest/CLAUDE.md)                                                 |
-| NN Designs         | [designs/CLAUDE.md](/designs/CLAUDE.md)                                                   |
-| Evaluation Metrics | [tmp/beyond-kelly-poc/CLAUDE.md](/tmp/beyond-kelly-poc/CLAUDE.md)                         |
-| Repository ADR     | [docs/adr/2026-02-06-repository-creation.md](/docs/adr/2026-02-06-repository-creation.md) |
+| Topic             | Document                                                                                  |
+| ----------------- | ----------------------------------------------------------------------------------------- |
+| Eval Metrics      | [src/rangebar_patterns/eval/CLAUDE.md](/src/rangebar_patterns/eval/CLAUDE.md)             |
+| SQL Patterns      | [sql/CLAUDE.md](/sql/CLAUDE.md)                                                           |
+| Telemetry Logs    | [logs/CLAUDE.md](/logs/CLAUDE.md)                                                         |
+| Sweep Scripts     | [scripts/CLAUDE.md](/scripts/CLAUDE.md)                                                   |
+| Research Findings | [findings/CLAUDE.md](/findings/CLAUDE.md)                                                 |
+| GitHub Issues     | [issues/CLAUDE.md](/issues/CLAUDE.md)                                                     |
+| Backtesting       | [backtest/CLAUDE.md](/backtest/CLAUDE.md)                                                 |
+| NN Designs        | [designs/CLAUDE.md](/designs/CLAUDE.md)                                                   |
+| Repository ADR    | [docs/adr/2026-02-06-repository-creation.md](/docs/adr/2026-02-06-repository-creation.md) |
 
 ---
 
@@ -68,7 +68,7 @@ CLAUDE.md (this file)            <-- Hub: Navigation + Essentials
 
 **Dropped** (insufficient evidence): E-values (max=1.04, need >= 20)
 
-Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) | POC: `tmp/beyond-kelly-poc/`
+Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) | Code: `src/rangebar_patterns/eval/`
 
 ---
 
@@ -88,6 +88,8 @@ Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) 
 | Task               | Command                                                 |
 | ------------------ | ------------------------------------------------------- |
 | Run tests          | `mise run test`                                         |
+| Eval full pipeline | `mise run eval:full`                                    |
+| Eval compute only  | `mise run eval:compute`                                 |
 | List SQL files     | `mise run sql:list`                                     |
 | Run SQL (local)    | `mise run sql:run file=sql/gen111_true_nolookahead.sql` |
 | Reproduce champion | `mise run sql:reproduce`                                |
@@ -109,12 +111,14 @@ Queries run against ClickHouse (local or remote via SSH tunnel):
 
 ## Key Files
 
-| File                                                   | Purpose                                 |
-| ------------------------------------------------------ | --------------------------------------- |
-| `src/rangebar_patterns/champion.py`                    | Champion pattern constants (SSoT)       |
-| `sql/gen111_true_nolookahead.sql`                      | Production-ready pattern query          |
-| `sql/verify_atomic_nolookahead.sql`                    | Forensic audit (expanding window proof) |
-| `findings/2026-02-05-production-readiness-audit.md`    | Audit verdict: CONDITIONAL GO           |
-| `designs/exp082-long-only-meanrev-nn.md`               | NN design using champion features       |
-| `tmp/beyond-kelly-poc/results/verdict.md`              | Beyond-Kelly POC final verdict          |
-| `tmp/beyond-kelly-poc/results/rank_correlations.jsonl` | Metric redundancy evidence (Spearman r) |
+| File                                                | Purpose                                 |
+| --------------------------------------------------- | --------------------------------------- |
+| `src/rangebar_patterns/champion.py`                 | Champion pattern constants (SSoT)       |
+| `sql/gen111_true_nolookahead.sql`                   | Production-ready pattern query          |
+| `sql/verify_atomic_nolookahead.sql`                 | Forensic audit (expanding window proof) |
+| `findings/2026-02-05-production-readiness-audit.md` | Audit verdict: CONDITIONAL GO           |
+| `designs/exp082-long-only-meanrev-nn.md`            | NN design using champion features       |
+| `src/rangebar_patterns/config.py`                   | Typed env reader for RBP\_\* vars       |
+| `src/rangebar_patterns/eval/`                       | Beyond-Kelly eval subpackage            |
+| `results/eval/verdict.md`                           | Eval pipeline final verdict             |
+| `results/eval/rank_correlations.jsonl`              | Metric redundancy evidence (Spearman r) |

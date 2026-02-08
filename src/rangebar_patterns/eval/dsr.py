@@ -1,7 +1,7 @@
-"""Agent 3: Deflated Sharpe Ratio (DSR) and Probabilistic Sharpe Ratio (PSR).
+"""Deflated Sharpe Ratio (DSR) and Probabilistic Sharpe Ratio (PSR).
 
-Implements Bailey & López de Prado (2014) formulas for multiple-testing
-correction of Sharpe Ratios. Uses moment statistics from layer1_sql_moments.
+Implements Bailey & Lopez de Prado (2014) formulas for multiple-testing
+correction of Sharpe Ratios. Uses moment statistics from extraction module.
 
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
 """
@@ -10,22 +10,19 @@ from __future__ import annotations
 
 import json
 import math
-from pathlib import Path
 
 from scipy.stats import norm
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
-INPUT_FILE = RESULTS_DIR / "moments.jsonl"
-OUTPUT_FILE = RESULTS_DIR / "dsr_rankings.jsonl"
+from rangebar_patterns.config import DSR_THRESHOLD, N_TRIALS
+from rangebar_patterns.eval._io import load_jsonl, results_dir
 
-N_TRIALS = 1008  # Number of configs tested (gen500 2-feature grid)
 EULER_GAMMA = 0.5772156649  # Euler-Mascheroni constant
 
 
 def expected_max_sr(n_trials: int, var_sr: float) -> float:
     """Expected maximum Sharpe Ratio under null (all strategies have SR=0).
 
-    From False Strategy Theorem (Bailey & López de Prado 2014).
+    From False Strategy Theorem (Bailey & Lopez de Prado 2014).
     """
     if n_trials <= 1:
         return 0.0
@@ -42,7 +39,7 @@ def sr_standard_error(sr: float, n: int, skew: float, kurt: float) -> float:
     if n <= 1:
         return float("inf")
     inner = 1.0 + 0.5 * sr**2 - skew * sr + ((kurt - 3.0) / 4.0) * sr**2
-    inner = max(inner, 1e-10)  # Guard against negative (extreme kurtosis)
+    inner = max(inner, 1e-10)
     return math.sqrt(inner / n)
 
 
@@ -55,16 +52,13 @@ def compute_psr(sr: float, sr_star: float, se: float) -> float:
 
 
 def main():
-    # Load moments from Agent 1
-    records = []
-    with open(INPUT_FILE) as f:
-        for line in f:
-            records.append(json.loads(line))
+    rd = results_dir()
+    input_file = rd / "moments.jsonl"
+    output_file = rd / "dsr_rankings.jsonl"
 
-    print(f"Loaded {len(records)} configs from {INPUT_FILE}")
+    records = load_jsonl(input_file)
+    print(f"Loaded {len(records)} configs from {input_file}")
 
-    # Under the null (all true SR=0), the SR estimator has unit variance.
-    # Bailey & Lopez de Prado (2014) Section 2.2: var(SR) = 1 under H0.
     var_sr = 1.0
     sr_max_null = expected_max_sr(N_TRIALS, var_sr)
     print(f"Expected max SR under null (N={N_TRIALS}): {sr_max_null:.4f}")
@@ -76,12 +70,9 @@ def main():
 
         if r.get("error") or n_trades < 3:
             results.append({
-                "config_id": config_id,
-                "n_trades": n_trades,
-                "sharpe_ratio": None,
-                "psr_vs_zero": None,
-                "dsr": None,
-                "dsr_passes": False,
+                "config_id": config_id, "n_trades": n_trades,
+                "sharpe_ratio": None, "psr_vs_zero": None,
+                "dsr": None, "dsr_passes": False,
                 "expected_max_sr_null": sr_max_null,
                 "kelly_fraction": r.get("kelly_fraction"),
                 "insufficient_data": True,
@@ -95,22 +86,16 @@ def main():
         kelly = r.get("kelly_fraction")
 
         sr = 0.0 if std is None or std <= 0 else mean / std
-
         se = sr_standard_error(sr, n_trades, skew, kurt)
-
-        # PSR: test against SR* = 0
         psr_zero = compute_psr(sr, 0.0, se)
-
-        # DSR: test against SR* = expected_max_sr under null
         dsr = compute_psr(sr, sr_max_null, se)
 
         results.append({
-            "config_id": config_id,
-            "n_trades": n_trades,
+            "config_id": config_id, "n_trades": n_trades,
             "sharpe_ratio": round(sr, 6),
             "psr_vs_zero": round(psr_zero, 6),
             "dsr": round(dsr, 6),
-            "dsr_passes": dsr > 0.95,
+            "dsr_passes": dsr > DSR_THRESHOLD,
             "expected_max_sr_null": round(sr_max_null, 6),
             "kelly_fraction": kelly,
             "skew": round(skew, 4),
@@ -118,18 +103,16 @@ def main():
             "insufficient_data": False,
         })
 
-    # Write results
-    with open(OUTPUT_FILE, "w") as f:
+    with open(output_file, "w") as f:
         for r in results:
             f.write(json.dumps(r) + "\n")
 
-    # Summary
     passing = sum(1 for r in results if r.get("dsr_passes"))
     pos_kelly = sum(1 for r in results if r.get("kelly_fraction") is not None and r["kelly_fraction"] > 0)
     print(f"\nResults: {len(results)} configs")
-    print(f"  DSR > 0.95 (pass): {passing}")
+    print(f"  DSR > {DSR_THRESHOLD} (pass): {passing}")
     print(f"  Kelly > 0: {pos_kelly}")
-    print(f"Output: {OUTPUT_FILE}")
+    print(f"Output: {output_file}")
 
 
 if __name__ == "__main__":

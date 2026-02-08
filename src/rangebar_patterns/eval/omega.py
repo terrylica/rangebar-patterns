@@ -1,4 +1,4 @@
-"""Agent 6: Omega Ratio.
+"""Omega Ratio computation.
 
 Computes Omega(L=0) = sum(max(r-L,0)) / sum(max(L-r,0)) for each config
 using full per-trade return arrays. Omega considers the entire return
@@ -10,14 +10,10 @@ GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import numpy as np
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
-INPUT_FILE = RESULTS_DIR / "trade_returns.jsonl"
-MOMENTS_FILE = RESULTS_DIR / "moments.jsonl"
-OUTPUT_FILE = RESULTS_DIR / "omega_rankings.jsonl"
+from rangebar_patterns.eval._io import load_jsonl, results_dir
 
 
 def compute_omega(returns: list[float], threshold: float = 0.0) -> float:
@@ -31,21 +27,15 @@ def compute_omega(returns: list[float], threshold: float = 0.0) -> float:
 
 
 def main():
-    # Load trade returns from Agent 2
-    trade_data = {}
-    with open(INPUT_FILE) as f:
-        for line in f:
-            r = json.loads(line)
-            trade_data[r["config_id"]] = r
+    rd = results_dir()
+    input_file = rd / "trade_returns.jsonl"
+    moments_file = rd / "moments.jsonl"
+    output_file = rd / "omega_rankings.jsonl"
 
-    # Load moments for kelly_fraction cross-reference
-    kelly_map = {}
-    with open(MOMENTS_FILE) as f:
-        for line in f:
-            r = json.loads(line)
-            kelly_map[r["config_id"]] = r.get("kelly_fraction")
+    trade_data = {r["config_id"]: r for r in load_jsonl(input_file)}
+    kelly_map = {r["config_id"]: r.get("kelly_fraction") for r in load_jsonl(moments_file)}
 
-    print(f"Loaded {len(trade_data)} configs from {INPUT_FILE}")
+    print(f"Loaded {len(trade_data)} configs from {input_file}")
 
     results = []
     for config_id, data in trade_data.items():
@@ -64,7 +54,6 @@ def main():
 
         omega = compute_omega(returns, threshold=0.0)
 
-        # Gain-to-loss ratio (sum of positive / |sum of negative|)
         arr = np.array(returns)
         total_gains = arr[arr > 0].sum()
         total_losses = abs(arr[arr < 0].sum())
@@ -104,7 +93,7 @@ def main():
     else:
         spearman = None
 
-    with open(OUTPUT_FILE, "w") as f:
+    with open(output_file, "w") as f:
         for r in results:
             f.write(json.dumps(r) + "\n")
 
@@ -112,7 +101,7 @@ def main():
     print(f"\nResults: {len(results)} configs")
     print(f"  Omega > 1.0 (positive EV): {omega_gt1}")
     print(f"  Spearman(Omega, Kelly): {spearman:.4f}" if spearman else "  Spearman: N/A")
-    print(f"Output: {OUTPUT_FILE}")
+    print(f"Output: {output_file}")
 
 
 if __name__ == "__main__":

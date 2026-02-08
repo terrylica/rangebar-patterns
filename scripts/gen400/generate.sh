@@ -30,6 +30,12 @@ TEMPLATE_2F="sql/gen400_2feature_template.sql"
 TEMPLATE_3F="sql/gen400_3feature_template.sql"
 TEMPLATE_4F="sql/gen400_4feature_template.sql"
 
+# Barrier parameters from mise [env]
+TP_MULT="${RBP_TP_MULT:-0.5}"
+SL_MULT="${RBP_SL_MULT:-0.25}"
+MAX_BARS="${RBP_MAX_BARS:-50}"
+MAX_BARS_PLUS1=$((MAX_BARS + 1))
+
 SHA_2F=$(shasum -a 256 "$TEMPLATE_2F" | cut -d' ' -f1)
 SHA_3F=$(shasum -a 256 "$TEMPLATE_3F" | cut -d' ' -f1)
 SHA_4F=$(shasum -a 256 "$TEMPLATE_4F" | cut -d' ' -f1)
@@ -69,6 +75,10 @@ for (( i=0; i<NUM_FEAT; i++ )); do
                     -e "s/__DIRECTION_1__/${D1}/g" \
                     -e "s/__DIRECTION_2__/${D2}/g" \
                     -e "s/__CONFIG_ID__/${CONFIG_ID}/g" \
+                    -e "s/__TP_MULT__/${TP_MULT}/g" \
+                    -e "s/__SL_MULT__/${SL_MULT}/g" \
+                    -e "s/__MAX_BARS__/${MAX_BARS}/g" \
+                    -e "s/__MAX_BARS_PLUS1__/${MAX_BARS_PLUS1}/g" \
                     "$TEMPLATE_2F" > "$OUTDIR/2f/${CONFIG_ID}.sql"
             done
         done
@@ -104,6 +114,10 @@ for (( i=0; i<NUM_FEAT; i++ )); do
                             -e "s/__DIRECTION_2__/${D2}/g" \
                             -e "s/__DIRECTION_3__/${D3}/g" \
                             -e "s/__CONFIG_ID__/${CONFIG_ID}/g" \
+                            -e "s/__TP_MULT__/${TP_MULT}/g" \
+                            -e "s/__SL_MULT__/${SL_MULT}/g" \
+                            -e "s/__MAX_BARS__/${MAX_BARS}/g" \
+                            -e "s/__MAX_BARS_PLUS1__/${MAX_BARS_PLUS1}/g" \
                             "$TEMPLATE_3F" > "$OUTDIR/3f/${CONFIG_ID}.sql"
                     done
                 done
@@ -148,6 +162,10 @@ for (( i=0; i<NUM_FEAT; i++ )); do
                                     -e "s/__DIRECTION_3__/${D3}/g" \
                                     -e "s/__DIRECTION_4__/${D4}/g" \
                                     -e "s/__CONFIG_ID__/${CONFIG_ID}/g" \
+                                    -e "s/__TP_MULT__/${TP_MULT}/g" \
+                                    -e "s/__SL_MULT__/${SL_MULT}/g" \
+                                    -e "s/__MAX_BARS__/${MAX_BARS}/g" \
+                                    -e "s/__MAX_BARS_PLUS1__/${MAX_BARS_PLUS1}/g" \
                                     "$TEMPLATE_4F" > "$OUTDIR/4f/${CONFIG_ID}.sql"
                             done
                         done

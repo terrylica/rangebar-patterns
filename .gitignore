@@ -8,3 +8,6 @@ build/
 outputs/
 *.log
 .ruff_cache/
+
+# Large result files (decompressed from .br)
+results/eval/trade_returns.jsonl

@@ -21,6 +21,28 @@ RANGEBAR_CH_HOST = "localhost"
 RANGEBAR_CH_DATABASE = "rangebar_cache"
 RANGEBAR_CH_TABLE = "range_bars"
 
+# ---- Research: Data Selection ----
+# Default symbol and threshold for single-asset experiments.
+# Multi-asset sweeps (gen500) override these per-config in generate.sh.
+RBP_SYMBOL = "SOLUSDT"
+RBP_THRESHOLD_DBPS = "500"
+
+# ---- Research: Default Barrier Configuration ----
+# Used by eval.extraction and gen300/gen400 fixed-barrier queries.
+# Gen510 barrier grid sweeps override these via arrayJoin.
+RBP_TP_MULT = "0.5"
+RBP_SL_MULT = "0.25"
+RBP_MAX_BARS = "50"
+
+# ---- Research: Evaluation Parameters ----
+# N_TRIALS = number of configs tested (for DSR/MinBTL multiple-testing correction)
+# Adjust when changing sweep size: gen500 2F=1008, gen400 all=14224
+RBP_N_TRIALS = "1008"
+# Significance level for hypothesis tests (e-BH, Romano-Wolf)
+RBP_ALPHA = "0.05"
+# DSR pass threshold (Bailey & Lopez de Prado). 0.95 = strict, -1 = disabled
+RBP_DSR_THRESHOLD = "0.95"
+
 [task_config]
 includes = [
     ".mise/tasks/dev.toml",
@@ -33,4 +55,5 @@ includes = [
     ".mise/tasks/gen500.toml",
     ".mise/tasks/gen510.toml",
     ".mise/tasks/gen520.toml",
+    ".mise/tasks/eval.toml",
 ]

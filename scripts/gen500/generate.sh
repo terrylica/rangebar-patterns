@@ -45,6 +45,12 @@ GRID_FULL=(
 
 TEMPLATE="sql/gen500_2feature_template.sql"
 TEMPLATE_SHA=$(shasum -a 256 "$TEMPLATE" | cut -d' ' -f1)
+
+# Barrier parameters from mise [env]
+TP_MULT="${RBP_TP_MULT:-0.5}"
+SL_MULT="${RBP_SL_MULT:-0.25}"
+MAX_BARS="${RBP_MAX_BARS:-50}"
+MAX_BARS_PLUS1=$((MAX_BARS + 1))
 GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 TOTAL_COUNT=0
@@ -80,6 +86,10 @@ for asset_entry in "${ALL_ASSETS[@]}"; do
                         -e "s/__DIRECTION_1__/${D1}/g" \
                         -e "s/__DIRECTION_2__/${D2}/g" \
                         -e "s/__CONFIG_ID__/${CONFIG_ID}/g" \
+                        -e "s/__TP_MULT__/${TP_MULT}/g" \
+                        -e "s/__SL_MULT__/${SL_MULT}/g" \
+                        -e "s/__MAX_BARS__/${MAX_BARS}/g" \
+                        -e "s/__MAX_BARS_PLUS1__/${MAX_BARS_PLUS1}/g" \
                         "$TEMPLATE" > "${ASSET_DIR}/${CONFIG_ID}.sql"
                 done
             done

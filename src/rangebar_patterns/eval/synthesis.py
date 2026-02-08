@@ -1,4 +1,4 @@
-"""Agent 9: Synthesis -- e-BH FDR + Romano-Wolf + cross-metric verdict.
+"""Cross-metric synthesis: e-BH FDR + Romano-Wolf + verdict.
 
 (a) e-BH procedure (Wang & Ramdas 2022) for FDR control using E-values
 (b) Romano-Wolf step-down (bootstrap FWER control)
@@ -11,27 +11,14 @@ from __future__ import annotations
 
 import json
 import math
-from pathlib import Path
 
 import numpy as np
 from scipy.stats import spearmanr
 
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
-OUTPUT_EBH = RESULTS_DIR / "ebh_fdr.jsonl"
-OUTPUT_RW = RESULTS_DIR / "romano_wolf.jsonl"
-OUTPUT_CORR = RESULTS_DIR / "rank_correlations.jsonl"
-OUTPUT_VERDICT = RESULTS_DIR / "verdict.md"
+from rangebar_patterns.config import ALPHA
+from rangebar_patterns.eval._io import load_jsonl, results_dir
 
-ALPHA = 0.05
-
-
-def load_jsonl(path: Path) -> list[dict]:
-    """Load NDJSON file into list of dicts."""
-    records = []
-    with open(path) as f:
-        for line in f:
-            records.append(json.loads(line))
-    return records
+N_BOOTSTRAP = 1000  # Standard bootstrap size
 
 
 def ebh_procedure(evalues: list[dict]) -> dict:
@@ -69,15 +56,10 @@ def ebh_procedure(evalues: list[dict]) -> dict:
     }
 
 
-def romano_wolf_stepdown(trade_returns: list[dict], n_bootstrap: int = 1000) -> dict:
-    """Romano-Wolf step-down for FWER control using bootstrap.
-
-    Simplified for POC: bootstrap resample trade returns, compute test
-    statistics (mean return / se), step-down using max-t distribution.
-    """
+def romano_wolf_stepdown(trade_returns: list[dict], n_bootstrap: int = N_BOOTSTRAP) -> dict:
+    """Romano-Wolf step-down for FWER control using bootstrap."""
     rng = np.random.default_rng(42)
 
-    # Build matrix: configs x trades (sparse - different configs have different trades)
     configs_with_data = [
         d for d in trade_returns
         if not d.get("error") and d.get("n_trades", 0) >= 10
@@ -86,7 +68,6 @@ def romano_wolf_stepdown(trade_returns: list[dict], n_bootstrap: int = 1000) -> 
     if not configs_with_data:
         return {"n_rejections": 0, "discoveries": [], "n_bootstrap": n_bootstrap}
 
-    # Compute observed test statistics: t = mean / (std / sqrt(n))
     observed_t = []
     config_ids = []
     config_returns = []
@@ -104,20 +85,17 @@ def romano_wolf_stepdown(trade_returns: list[dict], n_bootstrap: int = 1000) -> 
     observed_t = np.array(observed_t)
     n_configs = len(observed_t)
 
-    # Bootstrap: resample and compute max-t for step-down
     boot_max_t = np.zeros(n_bootstrap)
     for b in range(n_bootstrap):
         boot_t = np.zeros(n_configs)
         for i, rets in enumerate(config_returns):
             n = len(rets)
-            # Resample under null: center returns at 0
             centered = rets - rets.mean()
             boot_sample = rng.choice(centered, size=n, replace=True)
             se = boot_sample.std(ddof=1) / np.sqrt(n) if n > 1 else float("inf")
             boot_t[i] = boot_sample.mean() / se if se > 0 else 0.0
         boot_max_t[b] = boot_t.max()
 
-    # Step-down: reject if observed_t > critical value from bootstrap max-t
     critical = np.percentile(boot_max_t, 100 * (1 - ALPHA))
 
     discoveries = [
@@ -138,20 +116,18 @@ def romano_wolf_stepdown(trade_returns: list[dict], n_bootstrap: int = 1000) -> 
 
 def cross_metric_comparison() -> dict:
     """Compute Spearman rank correlations between all metric rankings."""
-    # Load all metric files
-    moments = {r["config_id"]: r for r in load_jsonl(RESULTS_DIR / "moments.jsonl")}
-    dsr = {r["config_id"]: r for r in load_jsonl(RESULTS_DIR / "dsr_rankings.jsonl")}
-    minbtl = {r["config_id"]: r for r in load_jsonl(RESULTS_DIR / "minbtl_gate.jsonl")}
-    cf = {r["config_id"]: r for r in load_jsonl(RESULTS_DIR / "cornish_fisher.jsonl")}
-    omega = {r["config_id"]: r for r in load_jsonl(RESULTS_DIR / "omega_rankings.jsonl")}
-    evalues = {r["config_id"]: r for r in load_jsonl(RESULTS_DIR / "evalues.jsonl")}
+    rd = results_dir()
+    moments = {r["config_id"]: r for r in load_jsonl(rd / "moments.jsonl")}
+    dsr = {r["config_id"]: r for r in load_jsonl(rd / "dsr_rankings.jsonl")}
+    minbtl = {r["config_id"]: r for r in load_jsonl(rd / "minbtl_gate.jsonl")}
+    cf = {r["config_id"]: r for r in load_jsonl(rd / "cornish_fisher.jsonl")}
+    omega = {r["config_id"]: r for r in load_jsonl(rd / "omega_rankings.jsonl")}
+    evalues = {r["config_id"]: r for r in load_jsonl(rd / "evalues.jsonl")}
 
-    # Common config set (all must have data)
     common_ids = sorted(
         set(moments.keys()) & set(dsr.keys()) & set(omega.keys()) & set(evalues.keys())
     )
 
-    # Extract ranking vectors
     vectors = {}
     for cid in common_ids:
         m = moments.get(cid, {})
@@ -177,13 +153,11 @@ def cross_metric_comparison() -> dict:
                 ("dsr", dsr_val), ("omega", omega_val), ("grow", grow_val),
             ]:
                 vectors.setdefault(name, []).append(val)
-            # CF ES may be None for some
             vectors.setdefault("cf_es_adj", []).append(cf_es if cf_es is not None else 0.0)
 
     if not vectors or len(vectors.get("kelly", [])) < 10:
         return {"error": "Insufficient common configs for correlation"}
 
-    # Compute pairwise Spearman correlations
     metric_names = ["kelly", "sharpe", "psr", "dsr", "omega", "grow", "cf_es_adj"]
     n_metrics = len(metric_names)
     corr_matrix = np.zeros((n_metrics, n_metrics))
@@ -207,11 +181,9 @@ def cross_metric_comparison() -> dict:
             key = f"{metric_names[i]}_vs_{metric_names[j]}"
             corr_dict[key] = round(float(corr_matrix[i][j]), 4)
 
-    # Identify redundant (r > 0.95) and complementary (r < 0.80)
     redundant = {k: v for k, v in corr_dict.items() if v > 0.95}
     complementary = {k: v for k, v in corr_dict.items() if abs(v) < 0.80}
 
-    # Pathological cases: Kelly > 0 but DSR < 0.5
     patho_kelly_dsr = []
     for cid in common_ids:
         m = moments.get(cid, {})
@@ -233,13 +205,16 @@ def cross_metric_comparison() -> dict:
         "correlations": corr_dict,
         "redundant_pairs": redundant,
         "complementary_pairs": complementary,
-        "pathological_kelly_dsr": patho_kelly_dsr[:20],  # Top 20
+        "pathological_kelly_dsr": patho_kelly_dsr[:20],
         "n_pathological": len(patho_kelly_dsr),
     }
 
 
 def write_verdict(ebh: dict, rw: dict, corr: dict, cscv: dict) -> None:
     """Write human-readable verdict to verdict.md."""
+    rd = results_dir()
+    output_verdict = rd / "verdict.md"
+
     lines = [
         "# Beyond-Kelly POC Verdict",
         "",
@@ -353,52 +328,43 @@ def write_verdict(ebh: dict, rw: dict, corr: dict, cscv: dict) -> None:
             "best in-sample config is worse than median out-of-sample."
         )
 
-    with open(OUTPUT_VERDICT, "w") as f:
+    with open(output_verdict, "w") as f:
         f.write("\n".join(lines) + "\n")
 
-    print(f"Verdict written to {OUTPUT_VERDICT}")
+    print(f"Verdict written to {output_verdict}")
 
 
 def main():
-    print("=== Phase 3: Synthesis ===\n")
+    rd = results_dir()
+    print("=== Synthesis ===\n")
 
-    # Load E-values for e-BH
-    evalues = load_jsonl(RESULTS_DIR / "evalues.jsonl")
+    evalues = load_jsonl(rd / "evalues.jsonl")
     print(f"Loaded {len(evalues)} E-value records")
 
-    # (a) e-BH FDR procedure
     ebh = ebh_procedure(evalues)
-    with open(OUTPUT_EBH, "w") as f:
+    with open(rd / "ebh_fdr.jsonl", "w") as f:
         f.write(json.dumps(ebh) + "\n")
     print(f"e-BH: {ebh['k_star']} discoveries (FDR={ALPHA})")
 
-    # (b) Romano-Wolf step-down
-    trade_returns = load_jsonl(RESULTS_DIR / "trade_returns.jsonl")
-    print("Running Romano-Wolf bootstrap (B=1000)...")
-    rw = romano_wolf_stepdown(trade_returns, n_bootstrap=1000)
-    with open(OUTPUT_RW, "w") as f:
+    trade_returns = load_jsonl(rd / "trade_returns.jsonl")
+    print(f"Running Romano-Wolf bootstrap (B={N_BOOTSTRAP})...")
+    rw = romano_wolf_stepdown(trade_returns, n_bootstrap=N_BOOTSTRAP)
+    with open(rd / "romano_wolf.jsonl", "w") as f:
         f.write(json.dumps(rw) + "\n")
     print(f"Romano-Wolf: {rw['n_rejections']} rejections (FWER={ALPHA})")
 
-    # (c) Cross-metric comparison
     print("Computing cross-metric correlations...")
     corr = cross_metric_comparison()
-    with open(OUTPUT_CORR, "w") as f:
+    with open(rd / "rank_correlations.jsonl", "w") as f:
         f.write(json.dumps(corr) + "\n")
     print(f"Correlations computed for {corr.get('n_common_configs', 0)} common configs")
 
-    # Load CSCV results
-    cscv_path = RESULTS_DIR / "cscv_pbo.jsonl"
+    cscv_path = rd / "cscv_pbo.jsonl"
     cscv = load_jsonl(cscv_path)[0] if cscv_path.exists() else {}
 
-    # Write verdict
     write_verdict(ebh, rw, corr, cscv)
 
     print("\n=== Synthesis Complete ===")
-    print(f"  e-BH: {OUTPUT_EBH}")
-    print(f"  Romano-Wolf: {OUTPUT_RW}")
-    print(f"  Correlations: {OUTPUT_CORR}")
-    print(f"  Verdict: {OUTPUT_VERDICT}")
 
 
 if __name__ == "__main__":
