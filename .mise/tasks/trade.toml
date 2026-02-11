@@ -1,0 +1,8 @@
+# Trade inspection: atomic bar-by-bar trade reconstruction
+# Module: src/rangebar_patterns/introspect.py
+# Config: RBP_INSPECT_CONFIG_ID, RBP_INSPECT_TRADE_N
+# GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/13
+
+["trade:inspect"]
+description = "Inspect a single trade bar-by-bar (requires ClickHouse SSH)"
+run = "uv run -p 3.13 python -m rangebar_patterns.introspect"

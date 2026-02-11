@@ -9,16 +9,17 @@ Range bar pattern discovery via ClickHouse SQL brute-force analysis of microstru
 ## Documentation Hierarchy
 
 ```
-CLAUDE.md (this file)                       <-- Hub: Navigation + Essentials
+CLAUDE.md (this file)                                    <-- Hub: Navigation + Essentials
     |
-    +-- src/rangebar_patterns/eval/CLAUDE.md <-- Spoke: Eval metrics subpackage
-    +-- sql/CLAUDE.md                        <-- Spoke: SQL guide, generations, ClickHouse
-    +-- logs/CLAUDE.md                       <-- Spoke: Telemetry archive conventions
-    +-- scripts/CLAUDE.md                    <-- Spoke: Sweep script patterns + pueue
-    +-- findings/CLAUDE.md                   <-- Spoke: Research findings index
-    +-- issues/CLAUDE.md                     <-- Spoke: GitHub issue snapshots
-    +-- backtest/CLAUDE.md                   <-- Spoke: backtesting.py + NautilusTrader
-    +-- designs/CLAUDE.md                    <-- Spoke: NN experiment designs
+    +-- src/rangebar_patterns/eval/CLAUDE.md              <-- Spoke: Eval metrics subpackage
+    +-- src/rangebar_patterns/introspect.CLAUDE.md        <-- Spoke: Trade reconstruction tool
+    +-- sql/CLAUDE.md                                     <-- Spoke: SQL guide, generations, ClickHouse
+    +-- logs/CLAUDE.md                                    <-- Spoke: Telemetry archive conventions
+    +-- scripts/CLAUDE.md                                 <-- Spoke: Sweep script patterns + pueue
+    +-- findings/CLAUDE.md                                <-- Spoke: Research findings index
+    +-- issues/CLAUDE.md                                  <-- Spoke: GitHub issue snapshots
+    +-- backtest/CLAUDE.md                                <-- Spoke: backtesting.py + NautilusTrader
+    +-- designs/CLAUDE.md                                 <-- Spoke: NN experiment designs
 ```
 
 ## Navigation
@@ -26,6 +27,7 @@ CLAUDE.md (this file)                       <-- Hub: Navigation + Essentials
 | Topic             | Document                                                                                  |
 | ----------------- | ----------------------------------------------------------------------------------------- |
 | Eval Metrics      | [src/rangebar_patterns/eval/CLAUDE.md](/src/rangebar_patterns/eval/CLAUDE.md)             |
+| Trade Inspection  | [src/rangebar_patterns/introspect.CLAUDE.md](/src/rangebar_patterns/introspect.CLAUDE.md) |
 | SQL Patterns      | [sql/CLAUDE.md](/sql/CLAUDE.md)                                                           |
 | Telemetry Logs    | [logs/CLAUDE.md](/logs/CLAUDE.md)                                                         |
 | Sweep Scripts     | [scripts/CLAUDE.md](/scripts/CLAUDE.md)                                                   |
@@ -93,6 +95,7 @@ Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) 
 | List SQL files     | `mise run sql:list`                                     |
 | Run SQL (local)    | `mise run sql:run file=sql/gen111_true_nolookahead.sql` |
 | Reproduce champion | `mise run sql:reproduce`                                |
+| Inspect trade      | `RBP_INSPECT_CONFIG_ID=... mise run trade:inspect`      |
 | Backtest champion  | `mise run backtest:run`                                 |
 | Release            | `mise run release:full`                                 |
 
@@ -119,6 +122,7 @@ Queries run against ClickHouse (local or remote via SSH tunnel):
 | `findings/2026-02-05-production-readiness-audit.md` | Audit verdict: CONDITIONAL GO           |
 | `designs/exp082-long-only-meanrev-nn.md`            | NN design using champion features       |
 | `src/rangebar_patterns/config.py`                   | Typed env reader for RBP\_\* vars       |
+| `src/rangebar_patterns/introspect.py`               | Atomic trade reconstruction (Issue #13) |
 | `src/rangebar_patterns/eval/`                       | Beyond-Kelly eval subpackage            |
 | `results/eval/verdict.md`                           | Eval pipeline final verdict             |
 | `results/eval/rank_correlations.jsonl`              | Metric redundancy evidence (Spearman r) |

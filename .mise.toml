@@ -7,6 +7,7 @@
 #   .mise/tasks/backtest.toml   - backtesting.py + NautilusTrader
 #   .mise/tasks/clickhouse.toml - local ClickHouse + remote sync
 #   .mise/tasks/release.toml    - semantic-release workflow
+#   .mise/tasks/trade.toml      - atomic trade inspection
 
 [tools]
 python = "3.13"
@@ -56,4 +57,5 @@ includes = [
     ".mise/tasks/gen510.toml",
     ".mise/tasks/gen520.toml",
     ".mise/tasks/eval.toml",
+    ".mise/tasks/trade.toml",
 ]
