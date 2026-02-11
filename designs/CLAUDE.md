@@ -8,9 +8,10 @@
 
 ## Designs
 
-| File                           | Experiment                       | Status          |
-| ------------------------------ | -------------------------------- | --------------- |
-| exp082-long-only-meanrev-nn.md | Long-only BiLSTM with 8 features | DESIGN COMPLETE |
+| File                           | Experiment                                                | Status          |
+| ------------------------------ | --------------------------------------------------------- | --------------- |
+| exp082-long-only-meanrev-nn.md | Long-only BiLSTM with 8 features                          | DESIGN COMPLETE |
+| gen600-plan.md                 | Gen600 hybrid sweep: 22 patterns x 342 pairs x 3 barriers | PLAN APPROVED   |
 
 ## Beyond-Kelly Evaluation POC
 
