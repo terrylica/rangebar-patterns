@@ -1,0 +1,27 @@
+["gen600:generate"]
+description = "Generate 301K SQL files (22 patterns x 342 pairs x 4 combos x 10 assets)"
+run = "bash scripts/gen600/generate.sh"
+
+["gen600:poc"]
+description = "Fail-fast POC validation (22 configs on BigBlack)"
+run = "bash scripts/gen600/poc.sh"
+
+["gen600:submit"]
+description = "Submit one pattern/asset/threshold: mise run gen600:submit 2down SOLUSDT 750"
+run = "bash scripts/gen600/submit.sh $@"
+
+["gen600:submit-all"]
+description = "Upload + submit all 220 units to pueue"
+run = "bash scripts/gen600/submit_all.sh"
+
+["gen600:status"]
+description = "Check sweep progress across 220 units"
+run = "bash scripts/gen600/status.sh"
+
+["gen600:collect"]
+description = "Download results from remote host + validate JSONL"
+run = "bash scripts/gen600/collect.sh"
+
+["gen600:report"]
+description = "Cross-dimensional analysis of sweep results"
+run = "bash scripts/gen600/report.sh"
