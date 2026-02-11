@@ -8,7 +8,7 @@ Each entry documents: symptom, root cause, resolution, regression risk, and file
 
 ## Array Functions
 
-### AP-01: groupArray Memory Explosion
+### AP-01: groupArray Memory Explosion (SUPERSEDED by AP-14)
 
 **Severity**: CRITICAL | **Regression Risk**: HIGH
 
@@ -16,10 +16,14 @@ Each entry documents: symptom, root cause, resolution, regression risk, and file
 
 **Root Cause**: Collecting `groupArray()` on ALL bars before filtering to signals. 1,448,766 bars x 4 arrays (high, low, open, close) x 51 elements x 8 bytes = 2.36 GB.
 
-**Resolution**: Filter to champion pattern signals FIRST (~1,000 rows), THEN collect forward arrays via self-join. Memory drops from 2.36 GB to ~1.6 MB.
+**Original Resolution (Gen200-Gen500)**: Filter to champion pattern signals FIRST (~1,000 rows), THEN collect forward arrays via self-join. Memory drops from 2.36 GB to ~1.6 MB.
+
+**SUPERSEDED**: AP-14 discovered that the self-join itself becomes a bottleneck for dense patterns. The correct approach since Gen600 is **window-based forward arrays** with `arraySlice()`. See [AP-14](#ap-14-self-join-forward-arrays-onm-bottleneck) for the current best practice.
+
+**Historical code** (for reference only — DO NOT use in new templates):
 
 ```sql
--- CORRECT: Signals-only (1.6 MB)
+-- HISTORICAL: Self-join approach (Gen200-Gen500, superseded by AP-14 window approach)
 signals AS (SELECT * FROM signal_detection WHERE <champion_conditions>),
 forward_arrays AS (
     SELECT s.timestamp_ms, s.entry_price, s.rn AS signal_rn,
@@ -29,15 +33,13 @@ forward_arrays AS (
     GROUP BY s.timestamp_ms, s.entry_price, s.rn
 )
 
--- WRONG: All bars (2.36 GB)
+-- WRONG (Gen200 original bug): Window over ALL bars with incorrect frame
 forward_arrays AS (
     SELECT *, groupArray(high) OVER (ORDER BY timestamp_ms
         ROWS BETWEEN 1 FOLLOWING AND 51 FOLLOWING) AS fwd_highs
     FROM base_bars  -- 1.4M rows
 )
 ```
-
-**Performance**: @250dbps with signals-only: ~3 min. Without: 15+ min (killed). @500dbps with signals-only: ~30s.
 
 **Files**: gen200 lines 155-170, gen201 lines 110-123, gen202 lines 104-118.
 
@@ -357,3 +359,71 @@ WHEN window_bars >= max_bars
 ```
 
 **Files**: gen200 lines 250-261, gen201 lines 224-235, gen202 lines 209-220.
+
+---
+
+## Forward Arrays
+
+### AP-14: Self-Join Forward Arrays O(N×M) Bottleneck
+
+**Severity**: CRITICAL | **Regression Risk**: HIGH
+
+**Symptom**: Dense patterns (>5% signal coverage, 8K+ signals) take 130+ seconds per query. Profiling reveals `forward_arrays` CTE consumes 93% of total query time. The self-join `INNER JOIN base_bars b ON b.rn BETWEEN s.rn + 1 AND s.rn + 101` is the bottleneck.
+
+**Root Cause**: ClickHouse cannot index into a CTE. The range join `ON b.rn BETWEEN s.rn + 1 AND s.rn + 101` does a nested loop scan: for each of N signals, it scans M = ~155K base_bars rows to find the 101 matching forward bars. Total comparisons = O(N × M). For dense patterns (N = 8,618 signals, M = 155K bars): 1.3 billion comparisons.
+
+**Discovered During**: Gen600 sweep — sparse gated patterns (2down, 3down) ran at 1-3s/query via self-join. Dense no-gate patterns (2down_ng, exh_l_ng) at 130+ seconds. CTE-by-CTE profiling isolated the self-join as the sole bottleneck.
+
+**Resolution**: Pre-compute forward arrays as window functions in `base_bars` CTE, then carry them through all downstream CTEs. No self-join needed.
+
+```sql
+-- CORRECT: Window-based forward arrays (11s, 1.5 GB for 155K bars)
+base_bars AS (
+    SELECT *,
+        arraySlice(groupArray(high) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_highs,
+        arraySlice(groupArray(low) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_lows,
+        arraySlice(groupArray(open) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_opens,
+        arraySlice(groupArray(close) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_closes
+    FROM range_bars WHERE ...
+)
+-- Forward arrays flow through: running_stats → signal_detection → champion_signals
+-- → feature quantiles → signals → barrier_params → barrier_scan → trade_outcomes
+-- No self-join CTE at any stage.
+
+-- WRONG: Self-join approach (133s, 165 MB — 11x slower)
+forward_arrays AS (
+    SELECT s.*, groupArray(b.high) AS fwd_highs, ...
+    FROM signals s
+    INNER JOIN base_bars b ON b.rn BETWEEN s.rn + 1 AND s.rn + 101
+    GROUP BY s.timestamp_ms, s.entry_price, s.rn, ...
+)
+```
+
+**Key detail**: `arraySlice(..., 2, 101)` starts at position 2 (skipping the current row) and takes 101 elements (the next 101 bars). The window frame `ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING` must include the current row because ClickHouse's `groupArray() OVER` includes the frame endpoints. The `arraySlice` then removes the current row's value.
+
+**Memory tradeoff**: Window approach computes arrays for ALL bars (155K × 4 arrays × 101 × 8 bytes ≈ 1.5 GB) versus self-join computing only for signals (8K × 4 × 101 × 8 ≈ 165 MB). At 16 parallel queries: 1.5 GB × 16 = 24 GB — safe on 61 GB hosts.
+
+**When self-join is acceptable**: For very sparse patterns (<2% signal coverage, <3K signals on 155K bars), the self-join is fast enough (1-3s) and uses 10x less memory. The window approach wins decisively for medium-to-dense patterns.
+
+**Benchmarks** (SOLUSDT @750, 155K bars):
+
+| Pattern                 | Signals | Self-Join | Window | Speedup                 |
+| ----------------------- | ------- | --------- | ------ | ----------------------- |
+| 2down (gated, 1.2%)     | 1,797   | 3.5s      | 11.7s  | 0.3x (self-join faster) |
+| 2down_ng (no gate, 24%) | 36,575  | 133s      | 11.7s  | **11.4x**               |
+| hvd (medium, 5%)        | 7,959   | 13.2s     | 11.7s  | **1.1x**                |
+| exh_l_ng (dense, 49%)   | 76,350  | ~160s     | ~12s   | **~13x**                |
+
+**Note**: Window approach has a fixed cost (~11s) regardless of signal count because it processes ALL bars. The crossover point where window beats self-join is roughly at ~5% signal coverage (~7K signals on 155K bars).
+
+**Historical context**: AP-01 originally recommended the self-join to avoid computing arrays on all bars. That was correct for Gen200 (1.4M @250dbps bars with a WRONG window frame that caused 2.36 GB OOM). Gen600 discovered the CORRECT window frame (`CURRENT ROW AND 101 FOLLOWING` + `arraySlice(..., 2, 101)`) which keeps memory at 1.5 GB — safely within budget.
+
+**Files**: All Gen600 templates (`sql/gen600_*_template.sql`). The `forward_arrays` CTE was removed; `fwd_highs/lows/opens/closes` computed in `base_bars` and carried through all CTEs.

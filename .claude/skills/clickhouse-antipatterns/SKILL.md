@@ -1,11 +1,11 @@
 ---
 name: clickhouse-antipatterns
-description: ClickHouse SQL anti-patterns and performance constraints discovered during Gen200-202 triple barrier framework. Use when writing ClickHouse SQL, creating new barrier/pattern generations, modifying array functions, window functions, parameter sweeps, or encountering slow queries, OOM, NULL entry prices, wrong barrier detection, or arrayFirstIndex returning 0. TRIGGERS - ClickHouse SQL, barrier SQL, array function, window function, trailing stop SQL, parameter sweep, slow query, OOM, arrayFirstIndex, leadInFrame, groupArray, arrayFold, arrayScan, threshold-relative, anti-pattern, performance constraint.
+description: ClickHouse SQL anti-patterns and performance constraints discovered during Gen200-Gen600 barrier framework. Use when writing ClickHouse SQL, creating new barrier/pattern generations, modifying array functions, window functions, parameter sweeps, forward arrays, or encountering slow queries, OOM, NULL entry prices, wrong barrier detection, or arrayFirstIndex returning 0. TRIGGERS - ClickHouse SQL, barrier SQL, array function, window function, trailing stop SQL, parameter sweep, slow query, OOM, arrayFirstIndex, leadInFrame, groupArray, arrayFold, arrayScan, threshold-relative, anti-pattern, performance constraint, forward arrays, self-join, O(N×M).
 ---
 
 # ClickHouse Anti-Patterns for Range Bar Pattern SQL
 
-Discovered during Gen200-202 Triple Barrier + Trailing Stop framework implementation. Each anti-pattern has been validated through production failures and resolved with tested workarounds.
+Discovered during Gen200-Gen600 Triple Barrier + Hybrid Feature Sweep framework implementation. Each anti-pattern has been validated through production failures and resolved with tested workarounds.
 
 **GitHub Issue**: [#8 - Anti-Pattern Registry](https://github.com/terrylica/rangebar-patterns/issues/8)
 
@@ -26,29 +26,43 @@ Discovered during Gen200-202 Triple Barrier + Trailing Stop framework implementa
 | AP-11 | TP/SL from signal close, not entry price      | MEDIUM   | [Barrier Alignment](#ap-11-tpsl-from-signal-close-not-entry-price)             |
 | AP-12 | Same-bar TP+SL ambiguity (SL wins)            | MEDIUM   | [Barrier Alignment](#ap-12-same-bar-tpsl-ambiguity)                            |
 | AP-13 | Gap-down SL execution price                   | MEDIUM   | [Barrier Alignment](#ap-13-gap-down-sl-execution-price)                        |
+| AP-14 | Self-join forward arrays O(N×M) bottleneck    | CRITICAL | [Forward Arrays](#ap-14-self-join-forward-arrays-onm-bottleneck)               |
 
 For detailed descriptions with code examples, see [references/anti-patterns.md](./references/anti-patterns.md).
 For infrastructure-specific issues, see [references/infrastructure.md](./references/infrastructure.md).
 
 ## Critical Rules (Never Violate)
 
-### 1. Signals BEFORE Arrays
+### 1. Window-Based Forward Arrays (NOT Self-Join)
 
 ```sql
--- CORRECT: Filter to signals first, THEN collect forward arrays
-signals AS (SELECT * FROM signal_detection WHERE <conditions>),
+-- CORRECT: Pre-compute forward arrays as window functions in base_bars (11s, 1.5 GB)
+base_bars AS (
+    SELECT *,
+        arraySlice(groupArray(high) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_highs,
+        arraySlice(groupArray(low) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_lows,
+        -- same for fwd_opens, fwd_closes
+    FROM range_bars WHERE ...
+)
+-- Then carry fwd_* arrays through CTEs, no self-join needed
+
+-- WRONG: Self-join for forward arrays (133s, 165 MB but 11x slower)
 forward_arrays AS (
     SELECT s.*, groupArray(b.high) AS fwd_highs ...
-    FROM signals s INNER JOIN base_bars b ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
+    FROM signals s INNER JOIN base_bars b ON b.rn BETWEEN s.rn + 1 AND s.rn + 101
     GROUP BY ...
 )
-
--- WRONG: Collect arrays on ALL bars (1.4M x 4 arrays x 51 = 2.36 GB)
-forward_arrays AS (
-    SELECT *, groupArray(high) OVER (ROWS BETWEEN 1 FOLLOWING AND 51 FOLLOWING) ...
-    FROM base_bars  -- 1.4M rows!
-)
+-- The range join ON b.rn BETWEEN s.rn + 1 AND s.rn + 101 is O(N×M) — ClickHouse
+-- cannot index into a CTE and does a nested loop scan.
 ```
+
+**Memory tradeoff**: Window approach uses ~10x more memory (1.5 GB vs 165 MB) because it computes arrays for ALL bars, not just signals. At 16 parallel queries: 1.5 GB × 16 = 24 GB — safe on 61 GB hosts. For memory-constrained hosts, the self-join is acceptable for sparse patterns (<2% signal coverage).
+
+**Historical note**: AP-01 originally recommended self-join over window approach because Gen200 had 1.4M bars × 51 elements = 2.36 GB with the WRONG window frame (`ROWS BETWEEN 1 FOLLOWING AND 51 FOLLOWING` on ALL bars). The CORRECT window approach uses `arraySlice(..., 2, 101)` on `ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING` — slicing off the current row. Gen600 benchmarking proved the window approach is 11x faster for dense patterns (36K+ signals) where the self-join becomes the dominant bottleneck.
 
 ### 2. Pre-Compute Barrier Prices as Columns
 
@@ -126,7 +140,7 @@ quantileExactExclusive(0.95)(trade_intensity) OVER (
 
 After modifying ANY Gen200+ SQL file:
 
-- [ ] Forward arrays collected on SIGNALS only (not all bars)
+- [ ] Forward arrays use window-based approach in base_bars (NOT self-join) — see Critical Rule #1
 - [ ] tp_price/sl_price pre-computed as columns (not in lambda)
 - [ ] All arrayFirstIndex comparisons have `> 0` guards
 - [ ] leadInFrame uses `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`
