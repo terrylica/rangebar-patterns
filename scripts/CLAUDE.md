@@ -47,55 +47,23 @@ includes = [
 
 ---
 
-## Execution Pipeline (remote ClickHouse)
+## Production Patterns
 
-```
-Local (macOS)                    remote ClickHouse (ClickHouse + pueue)
-┌─────────────────┐              ┌──────────────────────────┐
-│ 1. generate.sh  │              │                          │
-│    Creates SQL   │   rsync →   │ /tmp/gen{NNN}_sql/       │
-│    in /tmp/      │              │                          │
-│                  │              │ 2. submit.sh             │
-│                  │   ssh →     │    pueue add -g p1       │
-│                  │              │    (4 parallel slots)    │
-│                  │              │                          │
-│ 3. status.sh    │   ssh →     │    pueue status -g p1    │
-│                  │              │                          │
-│ 4. collect.sh   │   ← scp     │ /tmp/gen{NNN}_*.jsonl    │
-│    to logs/      │              │                          │
-│                  │              │ Each pueue job:          │
-│ 5. report.sh    │              │   clickhouse-client      │
-│    Analyze       │              │     < config_N.sql       │
-│                  │              │     >> results.jsonl     │
-│                  │              │   (flock for concurrency)│
-└─────────────────┘              └──────────────────────────┘
-```
+Current baseline from Gen500 (most mature pipeline). Future generations should evolve beyond these.
 
----
+**Detailed methodology**: See [sweep-methodology skill](/.claude/skills/sweep-methodology/SKILL.md#infrastructure-patterns)
 
-## Pueue Job Management
+### Invariants (what matters)
 
-All jobs use **pueue group `p1`** with 4 parallel slots on remote ClickHouse.
+| Concern              | Invariant                                       | Gen500 Baseline                                    |
+| -------------------- | ----------------------------------------------- | -------------------------------------------------- |
+| **Parallel writes**  | Atomic NDJSON appends                           | `flock "${LOG_FILE}.lock"`                         |
+| **Crash recovery**   | Idempotent re-submission                        | Config-ID dedup via `jq -r '.config_id'`           |
+| **Data integrity**   | Valid JSONL after collection                    | `sed` for `\N`/`nan`/`inf` + python3 validation    |
+| **Reproducibility**  | Provenance in every telemetry line              | `quantile_method`, `template_sha256`, `git_commit` |
+| **Error visibility** | Failed queries produce error lines, not silence | Wrapper writes error NDJSON with truncated message |
 
-```bash
-# Check status
-ssh $RANGEBAR_CH_HOST 'pueue status -g p1'
-
-# Clean completed jobs before new submission
-ssh $RANGEBAR_CH_HOST 'pueue clean -g p1'
-
-# Reset failed/stuck jobs
-ssh $RANGEBAR_CH_HOST 'pueue reset -g p1'
-```
-
-### Job Wrapper Pattern
-
-Each pueue task runs a wrapper script on remote ClickHouse that:
-
-1. Executes SQL via `clickhouse-client --multiquery`
-2. Parses tab-separated output
-3. Constructs NDJSON telemetry line
-4. Appends atomically using `flock` for concurrent write safety
+The mechanisms can evolve. The invariants should hold.
 
 ---
 
