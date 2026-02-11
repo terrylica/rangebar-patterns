@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/terrylica/rangebar-patterns/compare/v1.2.0...v1.3.0) (2026-02-11)
+
+
+### Features
+
+* Gen600 hybrid feature sweep — 22 SQL templates (11 LONG + 11 SHORT) ([db29a5e](https://github.com/terrylica/rangebar-patterns/commit/db29a5eafaa65fc214b583e09e9ba18331bd2fcb)), closes [#14](https://github.com/terrylica/rangebar-patterns/issues/14)
+* Gen600 infrastructure — generate/submit/collect pipeline for 301K configs ([0d075e0](https://github.com/terrylica/rangebar-patterns/commit/0d075e0139100e53be282737b18769ac9d112785)), closes [#14](https://github.com/terrylica/rangebar-patterns/issues/14)
+
 # [1.2.0](https://github.com/terrylica/rangebar-patterns/compare/v1.1.0...v1.2.0) (2026-02-11)
 
 
