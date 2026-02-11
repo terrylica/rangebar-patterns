@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/terrylica/rangebar-patterns/compare/v1.0.0...v1.1.0) (2026-02-11)
+
+
+### Features
+
+* atomic trade reconstruction — bar-by-bar inspection of ClickHouse configs ([#13](https://github.com/terrylica/rangebar-patterns/issues/13)) ([be87872](https://github.com/terrylica/rangebar-patterns/commit/be87872ece0860c2672ec948adb4ab63f90bad43)), closes [hi#performing](https://github.com/hi/issues/performing)
+
 # 1.0.0 (2026-02-08)
 
 
