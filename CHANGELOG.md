@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/terrylica/rangebar-patterns/compare/v1.1.0...v1.2.0) (2026-02-11)
+
+
+### Features
+
+* add sweep-methodology skill — invariant-based guidelines for brute-force pattern discovery ([d20e6a7](https://github.com/terrylica/rangebar-patterns/commit/d20e6a7331ae9ad1963e1588e1e296fe9c46bd08))
+
 # [1.1.0](https://github.com/terrylica/rangebar-patterns/compare/v1.0.0...v1.1.0) (2026-02-11)
 
 
