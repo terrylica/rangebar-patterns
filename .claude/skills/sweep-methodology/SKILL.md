@@ -236,39 +236,15 @@ The default pueue parallelism of 8 was conservative for Gen500 (1K configs). For
 
 **Key insight**: ClickHouse's `concurrent_threads_soft_limit` (= 2 x nproc) is the real execution governor, not pueue's parallelism setting. Each query requests `max_threads` threads (default: nproc), but ClickHouse caps total concurrent threads. Adding `--max_threads=8` to `clickhouse-client` right-sizes thread requests and reduces scheduling overhead.
 
-**Tuning checklist** (before bumping parallelism):
-
-1. Check `system.settings` for `max_concurrent_queries` and `concurrent_threads_soft_limit_ratio_to_cores`
-2. Profile per-query memory: `SELECT formatReadableSize(memory_usage) FROM system.query_log WHERE type='QueryFinish' ORDER BY event_time DESC LIMIT 20`
-3. Calculate: p99 memory × N slots < `max_server_memory_usage`
-4. Monitor after change: `uptime` (load < 0.9 × nproc), `vmstat` (si/so = 0), CH errors = 0
-
-See `devops-tools:pueue-job-orchestration` ClickHouse Parallelism Tuning section for the full decision matrix and sizing formula.
+See `devops-tools:pueue-job-orchestration` ClickHouse Parallelism Tuning section for the full decision matrix, sizing formula, and tuning checklist.
 
 ### Crash Recovery
 
-SSH drops and pueue restarts are expected over multi-hour sweeps. Gen600 solved this with a `--skip-done` flag that builds a done-set from existing JSONL output before generating the commands file:
+SSH drops and pueue restarts are expected over multi-hour sweeps. The invariant: **submissions must be idempotent** — resubmitting a completed config must be a no-op.
 
-```bash
-# Gen600: Build done-set from JSONL, skip completed configs
-declare -A DONE_SET
-for logfile in /tmp/gen600_*.jsonl; do
-    while IFS= read -r config_id; do
-        DONE_SET["${config_id}"]=1
-    done < <(jq -r '.feature_config // empty' "$logfile" 2>/dev/null | sort -u)
-done
-# Then skip any config_id found in DONE_SET during command generation
-```
+Gen600 uses a `--skip-done` flag that builds a done-set from existing JSONL output (bash associative array of completed `feature_config` values) before generating the commands file. Gen500 used simpler per-config grep.
 
-Gen500's simpler approach (grep per config) also works for smaller sweeps:
-
-```bash
-# Gen500 baseline: skip already-completed config IDs
-DONE_IDS=$(ssh "$HOST" "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
-echo "$DONE_IDS" | grep -q "^${CONFIG_ID}$" && continue
-```
-
-The invariant: submissions must be idempotent. The mechanism can evolve (e.g., a checkpoint file, a database table, pueue's own state).
+See `devops-tools:pueue-job-orchestration` Crash Recovery with Skip-Done section for the full implementation pattern.
 
 ### ClickHouse Output Sanitization
 
