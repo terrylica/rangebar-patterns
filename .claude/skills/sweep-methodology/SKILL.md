@@ -22,7 +22,8 @@ Before launching a new generation sweep:
 - [ ] Minimum signal count: Filter configs with n < 100 from results (see [Sample Size](#minimum-sample-size))
 - [ ] Cross-asset validation: Plan for multi-asset sweep from the start (see [Overfitting Filters](#cross-asset-validation))
 - [ ] Evaluation: Use 5-metric stack, not Kelly alone (see [Evaluation](#5-metric-evaluation-stack))
-- [ ] Infrastructure: Parallel SSH submissions, dedup by config_id (see [Infrastructure](#infrastructure-patterns))
+- [ ] Infrastructure: Batch command file + xargs -P on remote host, dedup by config_id (see [Infrastructure](#infrastructure-patterns))
+- [ ] Pueue state: `pueue clean` before bulk submission (see [State Hygiene](#pueue-state-file-hygiene))
 - [ ] Telemetry: NDJSON format, brotli compression for >1MB (see [Telemetry](#telemetry-conventions))
 
 ---
@@ -190,24 +191,76 @@ Features that repeatedly appear across top configs, validated cross-asset and cr
 
 ## Infrastructure Patterns
 
-The patterns below represent the current baseline (Gen500 being the most mature). Future generations should evolve beyond these — the goal is to raise the floor, not cap the ceiling.
+The patterns below represent the current baseline. Gen600 is the most mature pipeline — it evolved Gen500's patterns with high-throughput batch submission and pueue state management.
 
-**Reference implementations**: `scripts/gen500/` (most complete pipeline), `scripts/gen510/` (barrier grid variant)
+**Reference implementations**: `scripts/gen600/` (batch submission, 301K configs), `scripts/gen500/` (serial submission baseline), `scripts/gen510/` (barrier grid variant)
 
 ### Concurrency Safety
 
 Gen500 solved parallel-write corruption with `flock`. Any approach that guarantees atomic NDJSON appends is valid — flock is the current baseline:
 
 ```bash
-# Gen500 baseline: flock around every append
+# Gen500/Gen600 baseline: flock around every append
 flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
 ```
 
 Future generations might outgrow this (e.g., per-job output files merged post-hoc, a results database, streaming to a message queue). The invariant is: parallel writers must not corrupt the telemetry.
 
+### Job Submission: Batch Command File + xargs -P
+
+Gen500 submitted jobs one-at-a-time via SSH (`ssh host "pueue add ..."`). For 300K+ configs, this is too slow — each SSH round-trip adds 50-100ms overhead. Gen600 evolved to a **batch command file** pattern that runs entirely on the remote host:
+
+```bash
+# Step 1: Generate commands file (one pueue add per line)
+bash gen_commands.sh --skip-done > /tmp/commands.txt
+
+# Step 2: Feed via xargs -P on the remote host (no per-job SSH)
+xargs -P16 -I{} bash -c '{}' < /tmp/commands.txt
+```
+
+**Key insights**:
+
+- **Run submission ON the pueue host** — eliminates SSH overhead entirely
+- **xargs -P is the safe default** — GNU Parallel may not be installed (many Linux distros ship moreutils `parallel` instead, which is a completely different tool)
+- **Batch in groups of 5000** with `pueue clean` between batches to prevent state file bloat
+
+### Pueue State File Hygiene
+
+Pueue's `state.json` grows with every completed task. At 50K+ completed tasks (~94MB), each `pueue add` takes 1.3 seconds instead of 106ms. This is the #1 cause of idle execution slots during large sweeps.
+
+**Mandatory**: Run `pueue clean -g <group>` before bulk submission and periodically between batches. See `devops-tools:pueue-job-orchestration` State File Management section for benchmarks.
+
+### ClickHouse Query Parallelism
+
+The default pueue parallelism of 8 was conservative for Gen500 (1K configs). For Gen600 (301K configs), profiling revealed BigBlack was only 55% CPU utilized at 8 slots. Increasing to 16 parallel slots yielded 1.5x throughput with no errors.
+
+**Key insight**: ClickHouse's `concurrent_threads_soft_limit` (= 2 x nproc) is the real execution governor, not pueue's parallelism setting. Each query requests `max_threads` threads (default: nproc), but ClickHouse caps total concurrent threads. Adding `--max_threads=8` to `clickhouse-client` right-sizes thread requests and reduces scheduling overhead.
+
+**Tuning checklist** (before bumping parallelism):
+
+1. Check `system.settings` for `max_concurrent_queries` and `concurrent_threads_soft_limit_ratio_to_cores`
+2. Profile per-query memory: `SELECT formatReadableSize(memory_usage) FROM system.query_log WHERE type='QueryFinish' ORDER BY event_time DESC LIMIT 20`
+3. Calculate: p99 memory × N slots < `max_server_memory_usage`
+4. Monitor after change: `uptime` (load < 0.9 × nproc), `vmstat` (si/so = 0), CH errors = 0
+
+See `devops-tools:pueue-job-orchestration` ClickHouse Parallelism Tuning section for the full decision matrix and sizing formula.
+
 ### Crash Recovery
 
-SSH drops and pueue restarts are expected over multi-hour sweeps. Gen500 solved this with config-ID dedup — re-running `submit.sh` reads the log and skips completed configs:
+SSH drops and pueue restarts are expected over multi-hour sweeps. Gen600 solved this with a `--skip-done` flag that builds a done-set from existing JSONL output before generating the commands file:
+
+```bash
+# Gen600: Build done-set from JSONL, skip completed configs
+declare -A DONE_SET
+for logfile in /tmp/gen600_*.jsonl; do
+    while IFS= read -r config_id; do
+        DONE_SET["${config_id}"]=1
+    done < <(jq -r '.feature_config // empty' "$logfile" 2>/dev/null | sort -u)
+done
+# Then skip any config_id found in DONE_SET during command generation
+```
+
+Gen500's simpler approach (grep per config) also works for smaller sweeps:
 
 ```bash
 # Gen500 baseline: skip already-completed config IDs
@@ -258,7 +311,7 @@ The Gen300 expanding-window bug proved that results are meaningless without know
 
 These are documented for future generations, not prescriptions:
 
-1. **47-feature sweep**: 38 lookback/intra features never tested in any brute-force generation
+1. ~~**47-feature sweep**~~: **Gen600 is testing this** — 9 bar-level x 38 lookback/intra = 342 hybrid pairs across 22 base patterns (11 LONG + 11 SHORT), 301K SQL configs
 2. **Regime conditioning**: Use `lookback_hurst < 0.5` as hard gate (mean-reverting regime only)
 3. **Intra-bar structure**: `intra_bull_epoch_density` / `intra_bear_epoch_density` differentiate exhaustion vs panic
 4. **Dynamic barriers**: Condition TP/SL on volatility (`lookback_garman_klass_vol`)

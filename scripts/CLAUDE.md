@@ -49,19 +49,21 @@ includes = [
 
 ## Production Patterns
 
-Current baseline from Gen500 (most mature pipeline). Future generations should evolve beyond these.
+Current baseline from Gen600 (most mature pipeline). Gen500 established the foundations; Gen600 evolved to batch submission with pueue state management for 301K configs.
 
 **Detailed methodology**: See [sweep-methodology skill](/.claude/skills/sweep-methodology/SKILL.md#infrastructure-patterns)
 
 ### Invariants (what matters)
 
-| Concern              | Invariant                                       | Gen500 Baseline                                    |
-| -------------------- | ----------------------------------------------- | -------------------------------------------------- |
-| **Parallel writes**  | Atomic NDJSON appends                           | `flock "${LOG_FILE}.lock"`                         |
-| **Crash recovery**   | Idempotent re-submission                        | Config-ID dedup via `jq -r '.config_id'`           |
-| **Data integrity**   | Valid JSONL after collection                    | `sed` for `\N`/`nan`/`inf` + python3 validation    |
-| **Reproducibility**  | Provenance in every telemetry line              | `quantile_method`, `template_sha256`, `git_commit` |
-| **Error visibility** | Failed queries produce error lines, not silence | Wrapper writes error NDJSON with truncated message |
+| Concern              | Invariant                                       | Current Baseline (Gen600)                                        |
+| -------------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| **Parallel writes**  | Atomic NDJSON appends                           | `flock "${LOG_FILE}.lock"`                                       |
+| **Crash recovery**   | Idempotent re-submission                        | `--skip-done` flag builds done-set from JSONL before command gen |
+| **Data integrity**   | Valid JSONL after collection                    | `sed` for `\N`/`nan`/`inf` + python3 validation                  |
+| **Reproducibility**  | Provenance in every telemetry line              | `quantile_method`, `template_sha256`, `git_commit`               |
+| **Error visibility** | Failed queries produce error lines, not silence | Wrapper writes error NDJSON with truncated message               |
+| **Submission speed** | Queue stays filled (no idle execution slots)    | Batch command file + `xargs -P16` on remote host                 |
+| **State hygiene**    | `pueue clean` before/during bulk submission     | Periodic clean between 5K batches (keeps state.json < 50MB)      |
 
 The mechanisms can evolve. The invariants should hold.
 
