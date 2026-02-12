@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/terrylica/rangebar-patterns/compare/v1.3.0...v1.4.0) (2026-02-12)
+
+
+### Features
+
+* add AP-14 self-join forward arrays anti-pattern (11x speedup discovery) ([44c81e7](https://github.com/terrylica/rangebar-patterns/commit/44c81e76465b892ba3b4e8021ddf2cf365457316))
+
+
+### Performance Improvements
+
+* apply AP-14 window-based forward arrays to all 22 Gen600 templates ([5c99f63](https://github.com/terrylica/rangebar-patterns/commit/5c99f631918568cd2369f0fc7064e20a7d849427))
+
 # [1.3.0](https://github.com/terrylica/rangebar-patterns/compare/v1.2.0...v1.3.0) (2026-02-11)
 
 
