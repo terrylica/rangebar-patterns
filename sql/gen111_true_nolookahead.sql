@@ -51,16 +51,20 @@ running_stats AS (
         ) as ti_p95_expanding
     FROM base_bars
 ),
--- Step 3: Apply lags
+-- Step 3: Apply lags — AP-15: current row IS the 2nd DOWN bar (lag reduced by 1)
 lagged AS (
     SELECT
         timestamp_ms,
-        direction,
-        lagInFrame(trade_intensity, 1) OVER w as ti_1,
-        lagInFrame(kyle_lambda_proxy, 1) OVER w as kyle_1,
+        -- AP-15: current row is the last pattern bar
+        trade_intensity AS ti_0,
+        kyle_lambda_proxy AS kyle_0,
+        direction AS dir_0,
         lagInFrame(direction, 1) OVER w as dir_1,
-        lagInFrame(direction, 2) OVER w as dir_2,
         lagInFrame(ti_p95_expanding, 0) OVER w as ti_p95_prior,  -- Use current (already shifted by PRECEDING)
+        leadInFrame(direction, 1) OVER (
+            ORDER BY timestamp_ms
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+        ) as next_dir,  -- outcome: is the next bar UP?
         bar_count
     FROM running_stats
     WINDOW w AS (ORDER BY timestamp_ms)
@@ -70,22 +74,22 @@ SELECT
     'true_nla_combo_2down_ti_p95_kyle_gt_0_long',
     'TRUE NO-LOOKAHEAD: 2DOWN + ti>p95_expanding + kyle>0 → LONG',
     4,
-    '{"direction(t-2,t-1)": "DOWN,DOWN", "trade_intensity(t-1)": ">p95_expanding_prior", "kyle_lambda(t-1)": ">0"}',
+    '{"direction(t-1,t)": "DOWN,DOWN", "trade_intensity(t)": ">p95_expanding_prior", "kyle_lambda(t)": ">0"}',
     'long', 2,
     count(*),
-    countIf(dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0), 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0), 0) - 0.5,
-    (countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0), 0) - 0.5) /
-        sqrt(0.25 / nullIf(countIf(dir_2 = 0 AND dir_1 = 0 AND ti_1 > ti_p95_prior AND kyle_1 > 0), 0)),
+    countIf(dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0), 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0), 0) - 0.5,
+    (countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0), 0) - 0.5) /
+        sqrt(0.25 / nullIf(countIf(dir_1 = 0 AND dir_0 = 0 AND ti_0 > ti_p95_prior AND kyle_0 > 0), 0)),
     0.5, 0.5, 0.5,
     111
 FROM lagged
-WHERE dir_2 IS NOT NULL
+WHERE dir_1 IS NOT NULL
   AND ti_p95_prior IS NOT NULL
   AND ti_p95_prior > 0  -- Skip warmup period (first ~100 bars)
   AND bar_count > 1000;  -- Require 1000+ bars of history for stable percentile
@@ -110,12 +114,16 @@ bars AS (
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
     ORDER BY timestamp_ms
 ),
+-- AP-15: current row IS the 2nd DOWN bar (lag reduced by 1)
 lagged AS (
     SELECT
-        direction,
-        lagInFrame(kyle, 1) OVER w as kyle_1,
+        direction AS dir_0,
         lagInFrame(direction, 1) OVER w as dir_1,
-        lagInFrame(direction, 2) OVER w as dir_2
+        kyle AS kyle_0,
+        leadInFrame(direction, 1) OVER (
+            ORDER BY timestamp_ms
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+        ) as next_dir
     FROM bars
     WINDOW w AS (ORDER BY timestamp_ms)
 )
@@ -124,22 +132,22 @@ SELECT
     'true_nla_2down_kyle_gt_0_long',
     'TRUE NO-LOOKAHEAD: 2DOWN + kyle>0 → LONG (no percentile threshold)',
     3,
-    '{"direction(t-2,t-1)": "DOWN,DOWN", "kyle_lambda(t-1)": ">0"}',
+    '{"direction(t-1,t)": "DOWN,DOWN", "kyle_lambda(t)": ">0"}',
     'long', 2,
     count(*),
-    countIf(dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0), 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0), 0) - 0.5,
-    (countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0), 0) - 0.5) /
-        sqrt(0.25 / countIf(dir_2 = 0 AND dir_1 = 0 AND kyle_1 > 0)),
+    countIf(dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0), 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0), 0) - 0.5,
+    (countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0), 0) - 0.5) /
+        sqrt(0.25 / countIf(dir_1 = 0 AND dir_0 = 0 AND kyle_0 > 0)),
     0.5, 0.5, 0.5,
     111
 FROM lagged
-WHERE dir_2 IS NOT NULL;
+WHERE dir_1 IS NOT NULL;
 
 -- ============================================================================
 -- Gen 111: Pure mean reversion (2 DOWN → LONG, no filters)
@@ -160,11 +168,15 @@ bars AS (
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
     ORDER BY timestamp_ms
 ),
+-- AP-15: current row IS the 2nd DOWN bar (lag reduced by 1)
 lagged AS (
     SELECT
-        direction,
+        direction AS dir_0,
         lagInFrame(direction, 1) OVER w as dir_1,
-        lagInFrame(direction, 2) OVER w as dir_2
+        leadInFrame(direction, 1) OVER (
+            ORDER BY timestamp_ms
+            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+        ) as next_dir
     FROM bars
     WINDOW w AS (ORDER BY timestamp_ms)
 )
@@ -173,19 +185,19 @@ SELECT
     'true_nla_pure_2down_long',
     'TRUE NO-LOOKAHEAD: Pure 2DOWN → LONG (baseline)',
     1,
-    '{"direction(t-2,t-1)": "DOWN,DOWN"}',
+    '{"direction(t-1,t)": "DOWN,DOWN"}',
     'long', 2,
     count(*),
-    countIf(dir_2 = 0 AND dir_1 = 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0), 0),
-    countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0), 0) - 0.5,
-    (countIf(direction = 1 AND dir_2 = 0 AND dir_1 = 0) /
-        nullIf(countIf(dir_2 = 0 AND dir_1 = 0), 0) - 0.5) /
-        sqrt(0.25 / countIf(dir_2 = 0 AND dir_1 = 0)),
+    countIf(dir_1 = 0 AND dir_0 = 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0), 0),
+    countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0), 0) - 0.5,
+    (countIf(next_dir = 1 AND dir_1 = 0 AND dir_0 = 0) /
+        nullIf(countIf(dir_1 = 0 AND dir_0 = 0), 0) - 0.5) /
+        sqrt(0.25 / countIf(dir_1 = 0 AND dir_0 = 0)),
     0.5, 0.5, 0.5,
     111
 FROM lagged
-WHERE dir_2 IS NOT NULL;
+WHERE dir_1 IS NOT NULL;

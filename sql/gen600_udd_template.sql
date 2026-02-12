@@ -21,6 +21,7 @@
 --
 -- BARRIERS: 3 profiles via CROSS JOIN (inverted/symmetric/momentum)
 -- QUANTILE: Rolling 1000-signal windows (AP-10 compliant)
+-- TIMING: AP-15 compliant — current row IS the last pattern bar
 -- DATE CUTOFF: timestamp_ms <= 1738713600000 (2026-02-05 00:00:00 UTC)
 -- ============================================================================
 
@@ -76,39 +77,44 @@ signal_detection AS (
         open, high, low, close,
         direction,
         rn,
-        lagInFrame(trade_intensity, 1) OVER w AS ti_1,
-        lagInFrame(kyle_lambda_proxy, 1) OVER w AS kyle_1,
+        -- AP-15: current row IS the last pattern bar (lag reduced by 1)
+        trade_intensity AS ti_0,
+        kyle_lambda_proxy AS kyle_0,
+        direction AS dir_0,
         lagInFrame(direction, 1) OVER w AS dir_1,
         lagInFrame(direction, 2) OVER w AS dir_2,
-        lagInFrame(direction, 3) OVER w AS dir_3,
         lagInFrame(ti_p95_rolling, 0) OVER w AS ti_p95_prior,
-        lagInFrame(__FEATURE_COL_1__, 1) OVER w AS feature1_lag1,
-        lagInFrame(__FEATURE_COL_2__, 1) OVER w AS feature2_lag1,
+        __FEATURE_COL_1__ AS feature1_val,
+        __FEATURE_COL_2__ AS feature2_val,
         leadInFrame(open, 1) OVER (
             ORDER BY timestamp_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
-        ) AS entry_price
+        ) AS entry_price,
+        fwd_highs,
+        fwd_lows,
+        fwd_opens,
+        fwd_closes
     FROM running_stats
     WINDOW w AS (ORDER BY timestamp_ms)
 ),
 champion_signals AS (
     SELECT *
     FROM signal_detection
-    WHERE dir_3 = 1 AND dir_2 = 0 AND dir_1 = 0
-      AND ti_1 > ti_p95_prior
-      AND kyle_1 > 0
+    WHERE dir_2 = 1 AND dir_1 = 0 AND dir_0 = 0
+      AND ti_0 > ti_p95_prior
+      AND kyle_0 > 0
       AND rn > 1000
       AND ti_p95_prior IS NOT NULL
       AND ti_p95_prior > 0
       AND entry_price IS NOT NULL
       AND entry_price > 0
-      AND feature1_lag1 IS NOT NULL
-      AND feature2_lag1 IS NOT NULL
+      AND feature1_val IS NOT NULL
+      AND feature2_val IS NOT NULL
 ),
 feature1_with_quantile AS (
     SELECT
         *,
-        quantileExactExclusive(__QUANTILE_PCT_1__)(feature1_lag1) OVER (
+        quantileExactExclusive(__QUANTILE_PCT_1__)(feature1_val) OVER (
             ORDER BY timestamp_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature1_q
@@ -117,7 +123,7 @@ feature1_with_quantile AS (
 feature2_with_quantile AS (
     SELECT
         *,
-        quantileExactExclusive(__QUANTILE_PCT_2__)(feature2_lag1) OVER (
+        quantileExactExclusive(__QUANTILE_PCT_2__)(feature2_val) OVER (
             ORDER BY timestamp_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature2_q
@@ -128,8 +134,8 @@ signals AS (
     FROM feature2_with_quantile
     WHERE feature1_q IS NOT NULL
       AND feature2_q IS NOT NULL
-      AND feature1_lag1 __DIRECTION_1__ feature1_q
-      AND feature2_lag1 __DIRECTION_2__ feature2_q
+      AND feature1_val __DIRECTION_1__ feature1_q
+      AND feature2_val __DIRECTION_2__ feature2_q
 ),
 barrier_params AS (
     SELECT
