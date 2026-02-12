@@ -137,11 +137,11 @@ These are candidates for monitoring (E-value based sequential testing) rather th
 
 `ofi`, `aggression_ratio`, `turnover_imbalance`, `price_impact`, `vwap_close_deviation`, `volume_per_trade`, `aggregation_density`, `duration_us`, `trade_intensity`
 
-### Lookback Window (16 features — UNTESTED)
+### Lookback Window (16 features — TESTING IN GEN600)
 
 `lookback_ofi`, `lookback_intensity`, `lookback_hurst`, `lookback_permutation_entropy`, `lookback_garman_klass_vol`, `lookback_kaufman_er`, `lookback_burstiness`, `lookback_volume_skew`, `lookback_volume_kurt`, `lookback_price_range`, `lookback_vwap_raw`, `lookback_vwap_position`, `lookback_count_imbalance`, `lookback_kyle_lambda`, `lookback_trade_count`, `lookback_duration_us`
 
-### Intra-Bar (22 features — UNTESTED)
+### Intra-Bar (22 features — TESTING IN GEN600)
 
 `intra_bull_epoch_density`, `intra_bear_epoch_density`, `intra_bull_excess_gain`, `intra_bear_excess_gain`, `intra_bull_cv`, `intra_bear_cv`, `intra_max_drawdown`, `intra_max_runup`, `intra_trade_count`, `intra_ofi`, `intra_duration_us`, `intra_intensity`, `intra_vwap_position`, `intra_count_imbalance`, `intra_kyle_lambda`, `intra_burstiness`, `intra_volume_skew`, `intra_volume_kurt`, `intra_kaufman_er`, `intra_garman_klass_vol`, `intra_hurst`, `intra_permutation_entropy`
 

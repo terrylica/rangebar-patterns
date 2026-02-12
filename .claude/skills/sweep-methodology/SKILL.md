@@ -22,7 +22,7 @@ Before launching a new generation sweep:
 - [ ] Minimum signal count: Filter configs with n < 100 from results (see [Sample Size](#minimum-sample-size))
 - [ ] Cross-asset validation: Plan for multi-asset sweep from the start (see [Overfitting Filters](#cross-asset-validation))
 - [ ] Evaluation: Use 5-metric stack, not Kelly alone (see [Evaluation](#5-metric-evaluation-stack))
-- [ ] Infrastructure: Batch command file + xargs -P on remote host, dedup by config_id (see [Infrastructure](#infrastructure-patterns))
+- [ ] Infrastructure: Two-tier: pueue units (sequential) + xargs -P16 per unit (see [Infrastructure](#infrastructure-patterns))
 - [ ] Pueue state: `pueue clean` before bulk submission (see [State Hygiene](#pueue-state-file-hygiene))
 - [ ] Telemetry: NDJSON format, brotli compression for >1MB (see [Telemetry](#telemetry-conventions))
 
@@ -206,23 +206,24 @@ flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
 
 Future generations might outgrow this (e.g., per-job output files merged post-hoc, a results database, streaming to a message queue). The invariant is: parallel writers must not corrupt the telemetry.
 
-### Job Submission: Batch Command File + xargs -P
+### Job Submission: Two-Tier Architecture (pueue + xargs)
 
-Gen500 submitted jobs one-at-a-time via SSH (`ssh host "pueue add ..."`). For 300K+ configs, this is too slow — each SSH round-trip adds 50-100ms overhead. Gen600 evolved to a **batch command file** pattern that runs entirely on the remote host:
+Gen600 evolved from Gen500's per-query `pueue add` to a **two-tier architecture** that eliminates queueing overhead entirely:
+
+**Tier 1 (pueue)**: Manage coarse units (pattern × asset × threshold combos). Sequential execution to avoid JSONL log-file contention.
+
+**Tier 2 (xargs -P16)**: Inside each unit, run queries in parallel via `xargs -P16` directly executing `clickhouse-client`. No `pueue add` per query.
 
 ```bash
-# Step 1: Generate commands file (one pueue add per line)
-bash gen_commands.sh --skip-done > /tmp/commands.txt
-
-# Step 2: Feed via xargs -P on the remote host (no per-job SSH)
-xargs -P16 -I{} bash -c '{}' < /tmp/commands.txt
+# Each pueue unit runs this internally:
+cat /tmp/todo_configs.txt | while read C; do
+    echo "${ASSET_DIR}/${C}.sql"
+done | xargs -P16 -I{} bash /tmp/wrapper.sh {} ${LOG} ${SYM} ${THR} ${GIT}
 ```
 
-**Key insights**:
+**Why not pueue per query?**: `pueue add` has 148ms overhead per call even with clean state. At 196K remaining queries, that's 8+ hours of pure queueing overhead.
 
-- **Run submission ON the pueue host** — eliminates SSH overhead entirely
-- **xargs -P is the safe default** — GNU Parallel may not be installed (many Linux distros ship moreutils `parallel` instead, which is a completely different tool)
-- **Batch in groups of 5000** with `pueue clean` between batches to prevent state file bloat
+**Why sequential units?**: Each unit appends to one JSONL file via `flock`. Parallel units would contend on the same lock file. Sequential units avoid this entirely.
 
 ### Pueue State File Hygiene
 
@@ -234,6 +235,8 @@ Pueue's `state.json` grows with every completed task. At 50K+ completed tasks (~
 
 The default pueue parallelism of 8 was conservative for Gen500 (1K configs). For Gen600 (301K configs), profiling revealed BigBlack was only 55% CPU utilized at 8 slots. Increasing to 16 parallel slots yielded 1.5x throughput with no errors.
 
+**Gen600 production confirmation**: 16 parallel slots at 3.2 q/s effective throughput, zero errors across 284K+ results, memory stable at ~24 GB peak (1.5 GB/query × 16).
+
 **Key insight**: ClickHouse's `concurrent_threads_soft_limit` (= 2 x nproc) is the real execution governor, not pueue's parallelism setting. Each query requests `max_threads` threads (default: nproc), but ClickHouse caps total concurrent threads. Adding `--max_threads=8` to `clickhouse-client` right-sizes thread requests and reduces scheduling overhead.
 
 See `devops-tools:pueue-job-orchestration` ClickHouse Parallelism Tuning section for the full decision matrix, sizing formula, and tuning checklist.
@@ -242,7 +245,7 @@ See `devops-tools:pueue-job-orchestration` ClickHouse Parallelism Tuning section
 
 SSH drops and pueue restarts are expected over multi-hour sweeps. The invariant: **submissions must be idempotent** — resubmitting a completed config must be a no-op.
 
-Gen600 uses a `--skip-done` flag that builds a done-set from existing JSONL output (bash associative array of completed `feature_config` values) before generating the commands file. Gen500 used simpler per-config grep.
+Gen600 uses `comm -23` (sorted set difference) for crash recovery at 100K+ scale. Bash associative arrays (`declare -A`) work for <10K entries but are slow to build from JSONL at scale. See `devops-tools:pueue-job-orchestration` for the full pattern.
 
 See `devops-tools:pueue-job-orchestration` Crash Recovery with Skip-Done section for the full implementation pattern.
 
@@ -287,7 +290,7 @@ The Gen300 expanding-window bug proved that results are meaningless without know
 
 These are documented for future generations, not prescriptions:
 
-1. ~~**47-feature sweep**~~: **Gen600 is testing this** — 9 bar-level x 38 lookback/intra = 342 hybrid pairs across 22 base patterns (11 LONG + 11 SHORT), 301K SQL configs
+1. ~~**47-feature sweep**~~: **Gen600 IN PROGRESS** — 301K configs, 284K+ results collected (2026-02-11), ETA completion ~16 hours
 2. **Regime conditioning**: Use `lookback_hurst < 0.5` as hard gate (mean-reverting regime only)
 3. **Intra-bar structure**: `intra_bull_epoch_density` / `intra_bear_epoch_density` differentiate exhaustion vs panic
 4. **Dynamic barriers**: Condition TP/SL on volatility (`lookback_garman_klass_vol`)

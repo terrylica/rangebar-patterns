@@ -55,15 +55,16 @@ Current baseline from Gen600 (most mature pipeline). Gen500 established the foun
 
 ### Invariants (what matters)
 
-| Concern              | Invariant                                       | Current Baseline (Gen600)                                        |
-| -------------------- | ----------------------------------------------- | ---------------------------------------------------------------- |
-| **Parallel writes**  | Atomic NDJSON appends                           | `flock "${LOG_FILE}.lock"`                                       |
-| **Crash recovery**   | Idempotent re-submission                        | `--skip-done` flag builds done-set from JSONL before command gen |
-| **Data integrity**   | Valid JSONL after collection                    | `sed` for `\N`/`nan`/`inf` + python3 validation                  |
-| **Reproducibility**  | Provenance in every telemetry line              | `quantile_method`, `template_sha256`, `git_commit`               |
-| **Error visibility** | Failed queries produce error lines, not silence | Wrapper writes error NDJSON with truncated message               |
-| **Submission speed** | Queue stays filled (no idle execution slots)    | Batch command file + `xargs -P16` on remote host                 |
-| **State hygiene**    | `pueue clean` before/during bulk submission     | Periodic clean between 5K batches (keeps state.json < 50MB)      |
+| Concern              | Invariant                                                      | Current Baseline (Gen600)                                                            |
+| -------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **Parallel writes**  | Atomic NDJSON appends                                          | `flock "${LOG_FILE}.lock"`                                                           |
+| **Crash recovery**   | Idempotent re-submission                                       | `--skip-done` flag builds done-set from JSONL before command gen                     |
+| **Data integrity**   | Valid JSONL after collection                                   | `sed` for `\N`/`nan`/`inf` + python3 validation                                      |
+| **Reproducibility**  | Provenance in every telemetry line                             | `quantile_method`, `template_sha256`, `git_commit`                                   |
+| **Error visibility** | Failed queries produce error lines, not silence                | Wrapper writes error NDJSON with truncated message                                   |
+| **Submission speed** | Queue stays filled (no idle execution slots)                   | Two-tier: pueue sequential units + `xargs -P16` per unit (no `pueue add` per query)  |
+| **State hygiene**    | `pueue clean` before/during bulk submission                    | Periodic clean between 5K batches (keeps state.json < 50MB)                          |
+| **Shell safety**     | Scripts under `set -euo pipefail` avoid pipe-breaking patterns | Process substitution for while-read; no `ls\|head`; temp files for intermediate data |
 
 The mechanisms can evolve. The invariants should hold.
 

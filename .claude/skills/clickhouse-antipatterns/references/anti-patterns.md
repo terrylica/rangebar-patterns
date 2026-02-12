@@ -427,3 +427,15 @@ forward_arrays AS (
 **Historical context**: AP-01 originally recommended the self-join to avoid computing arrays on all bars. That was correct for Gen200 (1.4M @250dbps bars with a WRONG window frame that caused 2.36 GB OOM). Gen600 discovered the CORRECT window frame (`CURRENT ROW AND 101 FOLLOWING` + `arraySlice(..., 2, 101)`) which keeps memory at 1.5 GB — safely within budget.
 
 **Files**: All Gen600 templates (`sql/gen600_*_template.sql`). The `forward_arrays` CTE was removed; `fwd_highs/lows/opens/closes` computed in `base_bars` and carried through all CTEs.
+
+**Production Confirmation (Gen600, 2026-02-11)**:
+
+AP-14 validated at production scale:
+
+- **284K+ results** collected with zero errors
+- **3.2 queries/sec** effective throughput (xargs -P16 on 32-core BigBlack)
+- **3-5s per query** across all 22 patterns (sparse 1.2% to dense 49%)
+- **Memory**: 1.5 GB/query × 16 parallel = 24 GB peak (safe on 61 GB host)
+- **Throughput flattened**: Dense patterns (exh_l_ng, 49% coverage) now same speed as sparse (2down, 1.2%) — the window approach's fixed cost dominates
+
+Gen600 sweep: 301K configs × 3 barriers = 903K result rows. The window approach was the key enabler — self-join at 130s/query would have required ~270 hours vs actual ~21 hours.

@@ -62,6 +62,8 @@ forward_arrays AS (
 
 **Memory tradeoff**: Window approach uses ~10x more memory (1.5 GB vs 165 MB) because it computes arrays for ALL bars, not just signals. At 16 parallel queries: 1.5 GB × 16 = 24 GB — safe on 61 GB hosts. For memory-constrained hosts, the self-join is acceptable for sparse patterns (<2% signal coverage).
 
+**Gen600 Production Confirmation** (2026-02-11): AP-14 window approach confirmed at scale — 284K+ results collected at 3.2 queries/sec (xargs -P16), 3-5s per query regardless of pattern density (sparse 1.2% to dense 49%), zero errors, memory stable at ~24 GB peak (1.5 GB/query × 16 parallel).
+
 **Historical note**: AP-01 originally recommended self-join over window approach because Gen200 had 1.4M bars × 51 elements = 2.36 GB with the WRONG window frame (`ROWS BETWEEN 1 FOLLOWING AND 51 FOLLOWING` on ALL bars). The CORRECT window approach uses `arraySlice(..., 2, 101)` on `ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING` — slicing off the current row. Gen600 benchmarking proved the window approach is 11x faster for dense patterns (36K+ signals) where the self-join becomes the dominant bottleneck.
 
 ### 2. Pre-Compute Barrier Prices as Columns
@@ -140,7 +142,7 @@ quantileExactExclusive(0.95)(trade_intensity) OVER (
 
 After modifying ANY Gen200+ SQL file:
 
-- [ ] Forward arrays use window-based approach in base_bars (NOT self-join) — see Critical Rule #1
+- [ ] Forward arrays use window-based approach in base_bars (NOT self-join) — see AP-14 / Critical Rule #1
 - [ ] tp_price/sl_price pre-computed as columns (not in lambda)
 - [ ] All arrayFirstIndex comparisons have `> 0` guards
 - [ ] leadInFrame uses `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`
@@ -151,4 +153,4 @@ After modifying ANY Gen200+ SQL file:
 - [ ] TP exit price is exactly `tp_price` (limit fill)
 - [ ] Same-bar TP+SL: SL wins (raw_sl_bar <= raw_tp_bar)
 - [ ] arraySlice applied before arrayFirstIndex search
-- [ ] Query completes < 60s on @500dbps (~1,900 signals)
+- [ ] Query completes < 10s on any pattern density (AP-14 window approach)

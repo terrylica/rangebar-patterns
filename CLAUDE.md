@@ -41,7 +41,7 @@ CLAUDE.md (this file)                                    <-- Hub: Navigation + E
 
 ## Champion Pattern (TRUE No-Lookahead)
 
-`2 consecutive DOWN bars + trade_intensity > p95_expanding + kyle_lambda > 0 -> LONG`
+`2 consecutive DOWN bars + trade_intensity > p95_rolling + kyle_lambda_proxy > 0 -> LONG`
 
 | Metric         | Value                         |
 | -------------- | ----------------------------- |
