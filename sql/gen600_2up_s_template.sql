@@ -40,6 +40,19 @@ base_bars AS (
             WHEN close <= open THEN (high - open) / nullIf(high - low, 0)   -- DOWN: upper wick
             ELSE (open - low) / nullIf(high - low, 0)                        -- UP: lower wick
         END AS opposite_wick_pct,
+        -- Forward arrays (AP-14: window-based, NOT self-join)
+        arraySlice(groupArray(high) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_highs,
+        arraySlice(groupArray(low) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_lows,
+        arraySlice(groupArray(open) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_opens,
+        arraySlice(groupArray(close) OVER (
+            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+        ), 2, 101) AS fwd_closes,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
         row_number() OVER (ORDER BY timestamp_ms) AS rn
     FROM rangebar_cache.range_bars
@@ -117,30 +130,16 @@ signals AS (
       AND feature1_lag1 __DIRECTION_1__ feature1_q
       AND feature2_lag1 __DIRECTION_2__ feature2_q
 ),
-forward_arrays AS (
-    SELECT
-        s.timestamp_ms AS timestamp_ms,
-        s.entry_price AS entry_price,
-        s.rn AS signal_rn,
-        groupArray(b.high) AS fwd_highs,
-        groupArray(b.low) AS fwd_lows,
-        groupArray(b.open) AS fwd_opens,
-        groupArray(b.close) AS fwd_closes
-    FROM signals s
-    INNER JOIN base_bars b
-        ON b.rn BETWEEN s.rn + 1 AND s.rn + 101
-    GROUP BY s.timestamp_ms, s.entry_price, s.rn
-),
 barrier_params AS (
     SELECT
-        fa.*,
+        s.*,
         bp.barrier_profile,
         bp.tp_mult,
         bp.sl_mult,
         bp.max_bars,
-        fa.entry_price * (1.0 - bp.tp_mult * (__THRESHOLD_DBPS__ / 10000.0)) AS tp_price,
-        fa.entry_price * (1.0 + bp.sl_mult * (__THRESHOLD_DBPS__ / 10000.0)) AS sl_price
-    FROM forward_arrays fa
+        s.entry_price * (1.0 - bp.tp_mult * (__THRESHOLD_DBPS__ / 10000.0)) AS tp_price,
+        s.entry_price * (1.0 + bp.sl_mult * (__THRESHOLD_DBPS__ / 10000.0)) AS sl_price
+    FROM signals s
     CROSS JOIN (
         SELECT 'inverted' AS barrier_profile, 0.25 AS tp_mult, 0.50 AS sl_mult, toUInt32(100) AS max_bars
         UNION ALL
