@@ -46,6 +46,14 @@ ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
 
 **Warmup guard**: Always include `rn > 1000` to exclude bars where the rolling window hasn't filled.
 
+### Pattern Detection Timing (AP-15)
+
+The current row must BE the last pattern bar, not the bar after. When using `lagInFrame(direction, N)`, lag=N retrieves bar[i-N]'s value. To check the current bar's direction, use `direction` directly (lag=0), not `lagInFrame(direction, 1)`.
+
+**Rule**: After writing a signal detection CTE, verify: "Is the current row the last pattern bar?" If `lagInFrame(direction, 1)` appears in the WHERE clause checking the most recent bar, the detection is 1 bar late.
+
+See [AP-15](/.claude/skills/clickhouse-antipatterns/references/anti-patterns.md#ap-15-signal-timing-off-by-one-with-laginframe) for full details.
+
 ### The Feature Quantile Distribution Trap
 
 **Compute feature quantiles WITHIN the signal set, not over all bars.**

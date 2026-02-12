@@ -22,13 +22,15 @@
 
 ```
 IF 2 consecutive DOWN bars
-AND trade_intensity > p95_expanding
-AND kyle_lambda > 0
+AND trade_intensity > p95_rolling
+AND kyle_lambda_proxy > 0
 THEN -> LONG (hold 1 bar)
 ELSE -> FLAT (no position)
 ```
 
 No SHORT signals (they lose on SOL).
+
+**Entry Timing Alignment (AP-15)**: backtesting.py is the authority for signal timing — it detects the pattern at the completion bar itself (e.g., `Close[-1] < Open[-1]` is the 2nd DOWN bar). SQL queries must match this by ensuring the current row IS the last pattern bar, not the bar after. See [AP-15](/.claude/skills/clickhouse-antipatterns/references/anti-patterns.md#ap-15-signal-timing-off-by-one-with-laginframe).
 
 **Verdict**: DEAD as standalone strategy. Use as ML/NN feature input only. No configs survive multiple testing (Bonferroni, e-BH, Romano-Wolf, DSR). See [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12).
 

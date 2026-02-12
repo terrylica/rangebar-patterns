@@ -27,6 +27,7 @@ Discovered during Gen200-Gen600 Triple Barrier + Hybrid Feature Sweep framework 
 | AP-12 | Same-bar TP+SL ambiguity (SL wins)            | MEDIUM   | [Barrier Alignment](#ap-12-same-bar-tpsl-ambiguity)                            |
 | AP-13 | Gap-down SL execution price                   | MEDIUM   | [Barrier Alignment](#ap-13-gap-down-sl-execution-price)                        |
 | AP-14 | Self-join forward arrays O(N×M) bottleneck    | CRITICAL | [Forward Arrays](#ap-14-self-join-forward-arrays-onm-bottleneck)               |
+| AP-15 | Signal timing off-by-one with lagInFrame      | HIGH     | [Signal Detection](#ap-15-signal-timing-off-by-one-with-laginframe)            |
 
 For detailed descriptions with code examples, see [references/anti-patterns.md](./references/anti-patterns.md).
 For infrastructure-specific issues, see [references/infrastructure.md](./references/infrastructure.md).
@@ -154,3 +155,4 @@ After modifying ANY Gen200+ SQL file:
 - [ ] Same-bar TP+SL: SL wins (raw_sl_bar <= raw_tp_bar)
 - [ ] arraySlice applied before arrayFirstIndex search
 - [ ] Query completes < 10s on any pattern density (AP-14 window approach)
+- [ ] `lagInFrame` direction lags are correct — current bar uses `direction` directly, not `lagInFrame(direction, 1)` (AP-15)

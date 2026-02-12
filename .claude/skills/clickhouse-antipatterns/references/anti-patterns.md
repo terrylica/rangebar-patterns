@@ -439,3 +439,33 @@ AP-14 validated at production scale:
 - **Throughput flattened**: Dense patterns (exh_l_ng, 49% coverage) now same speed as sparse (2down, 1.2%) — the window approach's fixed cost dominates
 
 Gen600 sweep: 301K configs × 3 barriers = 903K result rows. The window approach was the key enabler — self-join at 130s/query would have required ~270 hours vs actual ~21 hours.
+
+---
+
+## Signal Detection
+
+### AP-15: Signal Timing Off-by-One with lagInFrame
+
+**Severity**: HIGH | **Regression Risk**: HIGH
+
+**Symptom**: SQL entry prices are 1 bar later than backtesting.py. SQL detects 2-DOWN at bar[k+2] (1 bar AFTER 2nd DOWN bar), enters at Open[k+3]. Python detects at bar[k+1] (the 2nd DOWN bar itself), enters at Open[k+2].
+
+**Root Cause**: `lagInFrame(direction, 1)` retrieves bar[i-1]'s direction. To check if the CURRENT bar is DOWN, you need `lagInFrame(direction, 0)` (or just use the `direction` column directly). Using lag=1 means the pattern completion is detected 1 bar late.
+
+**Fix**: Reduce all direction/indicator/feature lags by 1:
+
+- `lagInFrame(direction, 2)` -> `lagInFrame(direction, 1)`
+- `lagInFrame(direction, 1)` -> `direction` (or `lagInFrame(direction, 0)`)
+- `lagInFrame(trade_intensity, 1)` -> `trade_intensity`
+- `lagInFrame(kyle_lambda_proxy, 1)` -> `kyle_lambda_proxy`
+- `lagInFrame(__FEATURE_COL__, 1)` -> `__FEATURE_COL__`
+
+Do NOT change:
+
+- `lagInFrame(ti_p95_rolling, 0)` — already excludes current row via `ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING`
+- `leadInFrame(open, 1)` — still correct for next-bar entry
+- Forward arrays — still computed from next bar onward
+
+**Regression Risk**: Any new pattern template using `lagInFrame` for direction detection will have this bug if lag values aren't carefully chosen. ALWAYS verify: "Is the current row the last pattern bar?"
+
+**Discovery**: Gen600 oracle verification (2026-02-12). 7 oracle agents verified all other aspects bit-exact; this was the sole CRITICAL finding.

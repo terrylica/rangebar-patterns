@@ -54,6 +54,10 @@ clickhouse-client  # local
 
 **NEVER use expanding windows for quantiles** — always use `ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING` (rolling 1000-bar). Expanding windows create early-data instability and inflate signal quality. The Gen300 "winner" (Kelly=+0.029) was an artifact of expanding window; with rolling window it has Kelly=-0.046.
 
+## Signal Timing Policy
+
+**Current row IS the last pattern bar** (AP-15 compliant). When using `lagInFrame(direction, N)` for pattern detection, the lag offset must place the current row as the final bar of the pattern. `lagInFrame(direction, 1)` gets bar[i-1]'s direction — to check the current bar, use `direction` directly. See [AP-15](/.claude/skills/clickhouse-antipatterns/references/anti-patterns.md#ap-15-signal-timing-off-by-one-with-laginframe).
+
 ## Reproduction
 
 ```
