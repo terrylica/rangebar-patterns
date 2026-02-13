@@ -4,9 +4,20 @@ ADR: docs/adr/2026-02-06-repository-creation.md
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/14
 
 Usage:
+    # Default (udd config):
     uv run --python 3.13 python scripts/gen600_oracle_compare.py \
         --sql-tsv /tmp/sql_udd_solusdt_1000_trades.tsv \
         --symbol SOLUSDT --threshold 1000
+
+    # Any config (fully parameterized):
+    uv run --python 3.13 python scripts/gen600_oracle_compare.py \
+        --sql-tsv /tmp/sql_exh_l_solusdt_750_trades.tsv \
+        --symbol SOLUSDT --threshold 750 \
+        --pattern exh_l \
+        --feature1 opposite_wick_pct --dir1 lt --q1 0.50 \
+        --feature2 intra_garman_klass_vol --dir2 gt --q2 0.50 \
+        --tp-mult 0.25 --sl-mult 0.50 --max-bars 100 \
+        --extra-columns intra_max_drawdown,intra_garman_klass_vol
 
 Gates:
     1. Signal count: |N_SQL - N_PY| / max(N_SQL, N_PY) < 5%
@@ -48,8 +59,13 @@ def load_sql_tsv(path):
     return rows
 
 
-def run_backtesting_py(symbol, threshold, end_ts_ms):
+def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
     """Run Gen600Strategy via backtesting.py and extract per-trade data.
+
+    Args:
+        config: dict with keys: pattern, feature1_name, feature1_direction,
+            feature1_quantile, feature2_name, feature2_direction, feature2_quantile,
+            tp_mult, sl_mult, max_bars, extra_columns
 
     Returns list of dicts with: timestamp_ms, entry_price, exit_type, exit_price, pnl_pct
     """
@@ -61,48 +77,44 @@ def run_backtesting_py(symbol, threshold, end_ts_ms):
 
     end_date = pd.Timestamp(end_ts_ms, unit="ms").strftime("%Y-%m-%d")
 
-    threshold_pct = threshold / 10000.0  # 1000 dbps = 0.10
+    threshold_pct = threshold / 10000.0
+    tp_mult = config["tp_mult"]
+    sl_mult = config["sl_mult"]
 
     print(f"Loading {symbol}@{threshold} range bars (start=2017-01-01, end={end_date})...")
     df = load_range_bars(
         symbol=symbol,
         threshold=threshold,
-        start="2017-01-01",  # Match SQL: no lower bound filter
+        start="2017-01-01",
         end=end_date,
-        extra_columns=["volume_per_trade", "lookback_price_range"],
+        extra_columns=config.get("extra_columns"),
     )
     print(f"  Loaded {len(df)} bars ({df.index[0]} to {df.index[-1]})")
 
-    # Configure strategy params to match SQL oracle
-    Gen600Strategy.pattern = "udd"
-    Gen600Strategy.feature1_name = "volume_per_trade"
-    Gen600Strategy.feature1_direction = "lt"
-    Gen600Strategy.feature1_quantile = 0.50
-    Gen600Strategy.feature2_name = "lookback_price_range"
-    Gen600Strategy.feature2_direction = "lt"
-    Gen600Strategy.feature2_quantile = 0.50
-    Gen600Strategy.tp_mult = 0.50
-    Gen600Strategy.sl_mult = 0.50
-    Gen600Strategy.max_bars = 50
+    Gen600Strategy.pattern = config["pattern"]
+    Gen600Strategy.feature1_name = config["feature1_name"]
+    Gen600Strategy.feature1_direction = config["feature1_direction"]
+    Gen600Strategy.feature1_quantile = config["feature1_quantile"]
+    Gen600Strategy.feature2_name = config["feature2_name"]
+    Gen600Strategy.feature2_direction = config["feature2_direction"]
+    Gen600Strategy.feature2_quantile = config["feature2_quantile"]
+    Gen600Strategy.tp_mult = tp_mult
+    Gen600Strategy.sl_mult = sl_mult
+    Gen600Strategy.max_bars = config["max_bars"]
     Gen600Strategy.threshold_pct = threshold_pct
 
     bt = Backtest(
         df,
         Gen600Strategy,
-        cash=100_000,
-        commission=0,  # No commission for oracle comparison
-        hedging=True,  # Allow multiple concurrent positions (matches SQL independence)
-        exclusive_orders=False,  # Don't auto-close previous trades on new signal
+        cash=10_000_000,
+        commission=0,
+        hedging=True,
+        exclusive_orders=False,
     )
 
     stats = bt.run()
 
-    # Extract per-trade data
-    # Use signal_timestamps from strategy for matching (not entry timestamps)
     signal_ts_list = stats._strategy._signal_timestamps
-
-    # CRITICAL: _trades is sorted by ExitTime, but signal_timestamps are chronological
-    # by entry. Sort trades by EntryTime to align with signal order.
     trades = stats._trades.sort_values("EntryTime").reset_index(drop=True)
     py_trades = []
     for i, (_, trade) in enumerate(trades.iterrows()):
@@ -110,16 +122,14 @@ def run_backtesting_py(symbol, threshold, end_ts_ms):
         exit_price = float(trade["ExitPrice"])
         pnl_pct = (exit_price - entry_price) / entry_price
 
-        # Use signal bar timestamp (matches SQL's timestamp_ms)
         signal_ts = str(signal_ts_list[i]) if i < len(signal_ts_list) else "0"
 
-        # Classify exit type based on barrier hit
         if threshold_pct > 0:
-            tp_price = entry_price * (1.0 + 0.50 * threshold_pct)
-            sl_price = entry_price * (1.0 - 0.50 * threshold_pct)
-            if exit_price >= tp_price * 0.999:  # Within 0.1% of TP
+            tp_price = entry_price * (1.0 + tp_mult * threshold_pct)
+            sl_price = entry_price * (1.0 - sl_mult * threshold_pct)
+            if exit_price >= tp_price * 0.999:
                 exit_type = "TP"
-            elif exit_price <= sl_price * 1.001:  # Within 0.1% of SL
+            elif exit_price <= sl_price * 1.001:
                 exit_type = "SL"
             else:
                 exit_type = "TIME"
@@ -191,12 +201,57 @@ def compute_kelly(trades, is_sql=False):
         return p
 
 
+def _build_config(args):
+    """Build config dict from CLI args."""
+    extra = args.extra_columns.split(",") if args.extra_columns else None
+    return {
+        "pattern": args.pattern,
+        "feature1_name": args.feature1,
+        "feature1_direction": args.dir1,
+        "feature1_quantile": args.q1,
+        "feature2_name": args.feature2,
+        "feature2_direction": args.dir2,
+        "feature2_quantile": args.q2,
+        "tp_mult": args.tp_mult,
+        "sl_mult": args.sl_mult,
+        "max_bars": args.max_bars,
+        "extra_columns": extra,
+    }
+
+
+def _config_label(config):
+    """Human-readable config label for output."""
+    q1 = f"p{int(config['feature1_quantile'] * 100)}"
+    q2 = f"p{int(config['feature2_quantile'] * 100)}"
+    return (
+        f"{config['pattern']}__{config['feature1_name']}"
+        f"_{config['feature1_direction']}_{q1}"
+        f"__{config['feature2_name']}"
+        f"_{config['feature2_direction']}_{q2}"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="Gen600 5-gate oracle comparison")
     parser.add_argument("--sql-tsv", required=True, help="SQL trade TSV file path")
     parser.add_argument("--symbol", default="SOLUSDT", help="Trading symbol")
     parser.add_argument("--threshold", type=int, default=1000, help="Threshold in dBps")
+    # Strategy config (defaults match original udd oracle)
+    parser.add_argument("--pattern", default="udd", help="Pattern id")
+    parser.add_argument("--feature1", default="volume_per_trade", help="Feature 1 name")
+    parser.add_argument("--dir1", default="lt", help="Feature 1 direction (lt/gt)")
+    parser.add_argument("--q1", type=float, default=0.50, help="Feature 1 quantile")
+    parser.add_argument("--feature2", default="lookback_price_range", help="Feature 2 name")
+    parser.add_argument("--dir2", default="lt", help="Feature 2 direction (lt/gt)")
+    parser.add_argument("--q2", type=float, default=0.50, help="Feature 2 quantile")
+    parser.add_argument("--tp-mult", type=float, default=0.50, help="TP barrier multiplier")
+    parser.add_argument("--sl-mult", type=float, default=0.50, help="SL barrier multiplier")
+    parser.add_argument("--max-bars", type=int, default=50, help="Max bars time barrier")
+    parser.add_argument("--extra-columns", default="volume_per_trade,lookback_price_range",
+                        help="Comma-separated extra columns for data loader")
     args = parser.parse_args()
+
+    config = _build_config(args)
 
     # Load SQL trades
     sql_rows = load_sql_tsv(args.sql_tsv)
@@ -206,7 +261,7 @@ def main():
     end_ts_ms = 1738713600000  # 2025-02-05 00:00:00 UTC (matches SQL WHERE clause)
 
     # Run backtesting.py
-    py_trades, _stats = run_backtesting_py(args.symbol, args.threshold, end_ts_ms)
+    py_trades, _stats = run_backtesting_py(args.symbol, args.threshold, end_ts_ms, config=config)
     print(f"Python trades: {len(py_trades)}")
 
     # ================================================================
@@ -350,9 +405,13 @@ def main():
     for i, (g, name) in enumerate(zip(gates, gate_names, strict=True), 1):
         print(f"  Gate {i} ({name:>10s}): {'PASS' if g else 'FAIL'}")
 
-    print("\nConfig: udd__volume_per_trade_lt_p50__lookback_price_range_lt_p50")
+    print(f"\nConfig: {_config_label(config)}")
     print(f"Asset:  {args.symbol}@{args.threshold}")
-    print("Barrier: TP=0.50x SL=0.50x max_bars=50 (symmetric)")
+    tp = config['tp_mult']
+    sl = config['sl_mult']
+    mb = config['max_bars']
+    sym = "symmetric" if tp == sl else "inverted"
+    print(f"Barrier: TP={tp}x SL={sl}x max_bars={mb} ({sym})")
 
     # Write results to TSV for downstream consumption
     out_path = f"/tmp/oracle_result_{args.symbol.lower()}_{args.threshold}.tsv"
