@@ -15,11 +15,16 @@ def load_range_bars(
     start: str = "2020-01-01",
     end: str = "2026-01-01",
     ssh_alias: str | None = None,
+    extra_columns: list[str] | None = None,
 ):
     """Load range bars with microstructure features from ClickHouse.
 
     Tries local ClickHouse first (localhost:8123). If local has no data for the
     requested symbol/threshold, falls back to SSH tunnel (set RANGEBAR_CH_HOST).
+
+    Args:
+        extra_columns: Additional columns to SELECT beyond the default set.
+            Example: ["volume_per_trade", "lookback_price_range"]
 
     Returns DataFrame with DatetimeIndex + OHLCV + trade_intensity + kyle_lambda_proxy.
     Compatible with backtesting.py (requires capitalized OHLCV columns).
@@ -33,9 +38,13 @@ def load_range_bars(
     start_ts = int(pd.Timestamp(start).timestamp() * 1000)
     end_ts = int(pd.Timestamp(end).timestamp() * 1000)
 
+    extra_sql = ""
+    if extra_columns:
+        extra_sql = ",\n               " + ", ".join(extra_columns)
+
     query = f"""
         SELECT timestamp_ms, open, high, low, close, volume,
-               trade_intensity, kyle_lambda_proxy, duration_us
+               trade_intensity, kyle_lambda_proxy, duration_us{extra_sql}
         FROM rangebar_cache.range_bars
         WHERE symbol = '{symbol}'
           AND threshold_decimal_bps = {threshold}
