@@ -22,3 +22,4 @@
 | 2026-02-07 | `tmp/beyond-kelly-poc/results/verdict.md` | **Beyond-Kelly POC**: 0 survive e-BH/Romano-Wolf, 5-metric stack decided       |
 | 2026-02-11 | feature-column-provenance-audit.md        | Feature column schema change audit (kyle_lambda → kyle_lambda_proxy)           |
 | 2026-02-12 | gen600-sweep-results.md                   | **Gen600**: 300K configs, 13K survive Bonferroni, LONG>>SHORT, exh_l dominates |
+| 2026-02-12 | 2026-02-12-gen600-oracle-validation.md    | **Oracle**: SQL vs backtesting.py 5-gate PASS on 3 assets, hedging=True req'd  |

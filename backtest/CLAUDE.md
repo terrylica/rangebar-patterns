@@ -74,6 +74,30 @@ WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 250
 | rangebar-py/examples/backtesting_integration.py      | backtesting.py | rangebar-py       |
 | KMeansTransformer/backtest/nautilus_strategy_fast.py | NautilusTrader | KMeansTransformer |
 
+## backtesting.py Multi-Position Mode (SQL Oracle Match)
+
+When validating SQL sweep results, backtesting.py **must** use independent multi-position mode:
+
+```python
+bt = Backtest(
+    df, Strategy,
+    cash=100_000,
+    commission=0,
+    hedging=True,           # Multiple concurrent positions
+    exclusive_orders=False,  # Don't auto-close on new signal
+)
+```
+
+**Why**: SQL evaluates each signal independently (overlapping trades allowed). Without `hedging=True`, backtesting.py skips signals while a position is open, producing fewer trades than SQL.
+
+**Trade sorting**: `stats._trades` is sorted by ExitTime, not EntryTime. When comparing with SQL signal timestamps, always sort by EntryTime first: `trades = stats._trades.sort_values("EntryTime").reset_index(drop=True)`.
+
+**Position sizing**: Use fixed fractional sizing (e.g., `size=0.01` = 1% equity per trade) to avoid margin exhaustion with overlapping positions.
+
+**NaN handling in rolling quantiles**: `np.percentile` with NaN inputs returns NaN, propagating forward. Skip NaN values when building signal windows to match SQL's `quantileExactExclusive` NULL handling.
+
+**Oracle validation**: See [findings/2026-02-12-gen600-oracle-validation.md](/findings/2026-02-12-gen600-oracle-validation.md) for the 5-gate validation framework (signal count, timestamp, price, exit type, Kelly).
+
 ## Dependencies
 
 ```bash

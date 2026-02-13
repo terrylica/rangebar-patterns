@@ -11,23 +11,24 @@ Discovered during Gen200-Gen600 Triple Barrier + Hybrid Feature Sweep framework 
 
 ## Quick Lookup
 
-| ID    | Anti-Pattern                                  | Severity | Section                                                                        |
-| ----- | --------------------------------------------- | -------- | ------------------------------------------------------------------------------ |
-| AP-01 | groupArray memory explosion (2.36 GB)         | CRITICAL | [Array Functions](#ap-01-grouparray-memory-explosion)                          |
-| AP-02 | Lambda closure over outer columns (CH #45028) | HIGH     | [Array Functions](#ap-02-lambda-closure-over-outer-columns)                    |
-| AP-03 | arrayFirstIndex returns 0 for not-found       | HIGH     | [Array Functions](#ap-03-arrayfirstindex-returns-0-for-not-found)              |
-| AP-04 | arrayMap + arrayReduce O(n^2) complexity      | MEDIUM   | [Array Functions](#ap-04-arraymap--arrayreduce-on2-complexity)                 |
-| AP-05 | arrayScan does not exist in ClickHouse        | LOW      | [Array Functions](#ap-05-arrayscan-does-not-exist)                             |
-| AP-06 | arrayFold returns only final value            | LOW      | [Array Functions](#ap-06-arrayfold-returns-only-final-value)                   |
-| AP-07 | leadInFrame default frame excludes next row   | HIGH     | [Window Functions](#ap-07-leadinframe-default-frame-excludes-next-row)         |
-| AP-08 | arraySlice before arrayFirstIndex             | MEDIUM   | [Search Efficiency](#ap-08-arrayslice-before-arrayfirstindex)                  |
-| AP-09 | Absolute % params across thresholds           | HIGH     | [Parameter Grid](#ap-09-absolute-percentage-parameters-across-thresholds)      |
-| AP-10 | NEVER expanding window, always rolling 1000   | CRITICAL | [Signal Detection](#ap-10-never-use-expanding-window--always-rolling-1000-bar) |
-| AP-11 | TP/SL from signal close, not entry price      | MEDIUM   | [Barrier Alignment](#ap-11-tpsl-from-signal-close-not-entry-price)             |
-| AP-12 | Same-bar TP+SL ambiguity (SL wins)            | MEDIUM   | [Barrier Alignment](#ap-12-same-bar-tpsl-ambiguity)                            |
-| AP-13 | Gap-down SL execution price                   | MEDIUM   | [Barrier Alignment](#ap-13-gap-down-sl-execution-price)                        |
-| AP-14 | Self-join forward arrays O(N×M) bottleneck    | CRITICAL | [Forward Arrays](#ap-14-self-join-forward-arrays-onm-bottleneck)               |
-| AP-15 | Signal timing off-by-one with lagInFrame      | HIGH     | [Signal Detection](#ap-15-signal-timing-off-by-one-with-laginframe)            |
+| ID    | Anti-Pattern                                  | Severity | Section                                                                            |
+| ----- | --------------------------------------------- | -------- | ---------------------------------------------------------------------------------- |
+| AP-01 | groupArray memory explosion (2.36 GB)         | CRITICAL | [Array Functions](#ap-01-grouparray-memory-explosion)                              |
+| AP-02 | Lambda closure over outer columns (CH #45028) | HIGH     | [Array Functions](#ap-02-lambda-closure-over-outer-columns)                        |
+| AP-03 | arrayFirstIndex returns 0 for not-found       | HIGH     | [Array Functions](#ap-03-arrayfirstindex-returns-0-for-not-found)                  |
+| AP-04 | arrayMap + arrayReduce O(n^2) complexity      | MEDIUM   | [Array Functions](#ap-04-arraymap--arrayreduce-on2-complexity)                     |
+| AP-05 | arrayScan does not exist in ClickHouse        | LOW      | [Array Functions](#ap-05-arrayscan-does-not-exist)                                 |
+| AP-06 | arrayFold returns only final value            | LOW      | [Array Functions](#ap-06-arrayfold-returns-only-final-value)                       |
+| AP-07 | leadInFrame default frame excludes next row   | HIGH     | [Window Functions](#ap-07-leadinframe-default-frame-excludes-next-row)             |
+| AP-08 | arraySlice before arrayFirstIndex             | MEDIUM   | [Search Efficiency](#ap-08-arrayslice-before-arrayfirstindex)                      |
+| AP-09 | Absolute % params across thresholds           | HIGH     | [Parameter Grid](#ap-09-absolute-percentage-parameters-across-thresholds)          |
+| AP-10 | NEVER expanding window, always rolling 1000   | CRITICAL | [Signal Detection](#ap-10-never-use-expanding-window--always-rolling-1000-bar)     |
+| AP-11 | TP/SL from signal close, not entry price      | MEDIUM   | [Barrier Alignment](#ap-11-tpsl-from-signal-close-not-entry-price)                 |
+| AP-12 | Same-bar TP+SL ambiguity (SL wins)            | MEDIUM   | [Barrier Alignment](#ap-12-same-bar-tpsl-ambiguity)                                |
+| AP-13 | Gap-down SL execution price                   | MEDIUM   | [Barrier Alignment](#ap-13-gap-down-sl-execution-price)                            |
+| AP-14 | Self-join forward arrays O(N×M) bottleneck    | CRITICAL | [Forward Arrays](#ap-14-self-join-forward-arrays-onm-bottleneck)                   |
+| AP-15 | Signal timing off-by-one with lagInFrame      | HIGH     | [Signal Detection](#ap-15-signal-timing-off-by-one-with-laginframe)                |
+| AP-16 | backtesting.py multi-position mode for oracle | HIGH     | [Barrier Alignment](#ap-16-backtestingpy-multi-position-mode-for-sql-oracle-match) |
 
 For detailed descriptions with code examples, see [references/anti-patterns.md](./references/anti-patterns.md).
 For infrastructure-specific issues, see [references/infrastructure.md](./references/infrastructure.md).
@@ -156,3 +157,4 @@ After modifying ANY Gen200+ SQL file:
 - [ ] arraySlice applied before arrayFirstIndex search
 - [ ] Query completes < 10s on any pattern density (AP-14 window approach)
 - [ ] `lagInFrame` direction lags are correct — current bar uses `direction` directly, not `lagInFrame(direction, 1)` (AP-15)
+- [ ] backtesting.py oracle uses `hedging=True, exclusive_orders=False` for multi-position SQL match (AP-16)

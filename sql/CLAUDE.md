@@ -58,6 +58,16 @@ clickhouse-client  # local
 
 **Current row IS the last pattern bar** (AP-15 compliant). When using `lagInFrame(direction, N)` for pattern detection, the lag offset must place the current row as the final bar of the pattern. `lagInFrame(direction, 1)` gets bar[i-1]'s direction — to check the current bar, use `direction` directly. See [AP-15](/.claude/skills/clickhouse-antipatterns/references/anti-patterns.md#ap-15-signal-timing-off-by-one-with-laginframe).
 
+## Oracle Validation (SQL vs backtesting.py)
+
+Gen600 SQL sweep results are validated bit-atomic replicable by backtesting.py. Key alignment requirements:
+
+- **backtesting.py config**: `hedging=True, exclusive_orders=False` (multi-position mode matching SQL's independent signal evaluation)
+- **Trade sort**: `stats._trades.sort_values("EntryTime")` — backtesting.py sorts by ExitTime by default
+- **NaN handling**: Skip NaN values in rolling quantile windows to match SQL's `quantileExactExclusive` NULL handling
+
+See [findings/2026-02-12-gen600-oracle-validation.md](/findings/2026-02-12-gen600-oracle-validation.md) | [backtest/CLAUDE.md](/backtest/CLAUDE.md#backtestingpy-multi-position-mode-sql-oracle-match)
+
 ## Reproduction
 
 ```

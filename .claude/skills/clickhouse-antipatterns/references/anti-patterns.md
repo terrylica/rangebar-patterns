@@ -312,6 +312,31 @@ if self._needs_barrier_setup and self.trades:
 
 **Files**: champion_strategy.py lines 65-74.
 
+### AP-16: backtesting.py Multi-Position Mode for SQL Oracle Match
+
+**Severity**: HIGH | **Regression Risk**: HIGH
+
+**Symptom**: backtesting.py produces fewer trades than SQL. Signals fired while a position is already open are silently skipped.
+
+**Root Cause**: Default `exclusive_orders=True` mode closes existing positions when a new signal fires. SQL evaluates each signal independently with overlapping trades.
+
+**Resolution**: Always use `hedging=True, exclusive_orders=False` when validating SQL sweep results:
+
+```python
+bt = Backtest(df, Strategy, cash=100_000, commission=0,
+              hedging=True, exclusive_orders=False)
+```
+
+Additional alignment requirements:
+
+- Sort `stats._trades` by EntryTime (default is ExitTime)
+- Use fixed fractional sizing (`size=0.01`) to avoid margin exhaustion
+- Skip NaN values in rolling quantile windows (matches SQL `quantileExactExclusive`)
+
+**Discovery**: Gen600 oracle verification (2026-02-12). Without hedging, SOLUSDT produced 105 trades vs SQL's 121. With hedging: 121=121, 100% price match.
+
+**Files**: gen600_strategy.py, gen600_oracle_compare.py.
+
 ---
 
 ### AP-12: Same-Bar TP+SL Ambiguity
