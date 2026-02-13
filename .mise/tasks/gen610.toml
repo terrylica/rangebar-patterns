@@ -1,0 +1,23 @@
+["gen610:generate"]
+description = "Generate 4,800 SQL files (20 configs x 24 barriers x 10 assets)"
+run = "bash scripts/gen610/generate.sh"
+
+["gen610:poc"]
+description = "Fail-fast POC validation on BigBlack"
+run = "bash scripts/gen610/poc.sh"
+
+["gen610:submit"]
+description = "Submit one asset/threshold: mise run gen610:submit SOLUSDT 750"
+run = "bash scripts/gen610/submit.sh $@"
+
+["gen610:status"]
+description = "Check sweep progress across 10 asset units"
+run = "bash scripts/gen610/status.sh"
+
+["gen610:collect"]
+description = "Download results from remote host + validate JSONL"
+run = "bash scripts/gen610/collect.sh"
+
+["gen610:report"]
+description = "Barrier grid optimization analysis"
+run = "bash scripts/gen610/report.sh"
