@@ -1,3 +1,18 @@
+# [1.5.0](https://github.com/terrylica/rangebar-patterns/compare/v1.4.0...v1.5.0) (2026-02-13)
+
+
+### Bug Fixes
+
+* AP-15 signal timing alignment — reduce all lags by 1 to match backtesting.py ([a1ba117](https://github.com/terrylica/rangebar-patterns/commit/a1ba1174128cc78ad1c0dbbf5a7fb2a2ce7d6747))
+
+
+### Features
+
+* add AP-15 SQL vs Python oracle verification scripts ([36efe46](https://github.com/terrylica/rangebar-patterns/commit/36efe4635e1d7a1f24c9410008e4d839d0591113))
+* add backtesting-py-oracle skill for SQL/Python alignment ([053c00c](https://github.com/terrylica/rangebar-patterns/commit/053c00ca90058003f7148311084815fe95824ddc))
+* Gen600 oracle validation — SQL vs backtesting.py trade-by-trade match ([a535502](https://github.com/terrylica/rangebar-patterns/commit/a535502abd33e4d51d4749139130cc5050868d37))
+* Gen600 sweep results — 300K configs, 1.3M lines, 13K Bonferroni survivors ([2fc2d21](https://github.com/terrylica/rangebar-patterns/commit/2fc2d2155f70d3653a2c0bc7d4e22de7fce33a65))
+
 # [1.4.0](https://github.com/terrylica/rangebar-patterns/compare/v1.3.0...v1.4.0) (2026-02-12)
 
 
