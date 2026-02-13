@@ -90,12 +90,31 @@ def _detect_3down(direction):
     return mask
 
 
+def _rolling_p75(x, window=1000):
+    """Compute rolling p75 with fixed window (matches SQL ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING)."""
+    result = np.empty(len(x))
+    for i in range(len(x)):
+        start = max(0, i + 1 - window)
+        # Use values PRECEDING current bar (exclude current)
+        if i > 0:
+            window_data = x[start:i]
+            # Filter NaN (intra_max_drawdown is Nullable)
+            clean = window_data[~np.isnan(window_data)]
+            result[i] = np.percentile(clean, 75) if len(clean) > 0 else np.nan
+        else:
+            result[i] = np.nan
+    return result
+
+
 PATTERN_DETECTORS = {
     "2down": _detect_2down,
     "udd": _detect_udd,
     "dud": _detect_dud,
     "3down": _detect_3down,
 }
+
+# Exhaustion patterns use different champion gates (no TI/kyle)
+EXHAUSTION_PATTERNS = {"exh_l", "exh_l_ng"}
 
 
 class Gen600Strategy(Strategy):
@@ -132,42 +151,57 @@ class Gen600Strategy(Strategy):
     threshold_pct = 0.10  # @1000dbps = 0.10
 
     def init(self):
-        ti = self.data.trade_intensity
-        self.ti_p95 = self.I(_rolling_p95, ti, self.ti_window)
-
         opens = np.array(self.data.Open)
         closes = np.array(self.data.Close)
-        ti_arr = np.array(self.data.trade_intensity)
-        kyle_arr = np.array(self.data.kyle_lambda_proxy)
-        ti_p95_arr = np.array(self.ti_p95)
 
         # Compute direction: 1 = UP, 0 = DOWN
         direction = (closes > opens).astype(int)
 
-        # Detect pattern
-        detector = PATTERN_DETECTORS.get(self.pattern)
-        if detector is None:
-            raise ValueError(f"Unknown pattern: {self.pattern}. Available: {list(PATTERN_DETECTORS.keys())}")
-        pattern_mask = detector(direction)
+        if self.pattern in EXHAUSTION_PATTERNS:
+            # Exhaustion patterns: DOWN bar + intra_max_drawdown > p75_rolling
+            mdd_arr = np.array(self.data.intra_max_drawdown, dtype=float)
+            self.mdd_p75 = self.I(_rolling_p75, mdd_arr, self.ti_window)
+            mdd_p75_arr = np.array(self.mdd_p75)
 
-        # Champion signal = pattern + TI > p95 + kyle > 0 + warmup
-        is_signal = np.zeros(len(opens), dtype=bool)
-        for i in range(len(opens)):
-            if (pattern_mask[i]
-                    and ti_arr[i] > ti_p95_arr[i]
-                    and kyle_arr[i] > 0
-                    and i > self.ti_window):
-                is_signal[i] = True
+            is_signal = np.zeros(len(opens), dtype=bool)
+            for i in range(len(opens)):
+                if (direction[i] == 0  # DOWN bar
+                        and not np.isnan(mdd_arr[i])
+                        and not np.isnan(mdd_p75_arr[i])
+                        and mdd_arr[i] > mdd_p75_arr[i]
+                        and i > self.ti_window):
+                    is_signal[i] = True
+        else:
+            # Standard patterns: pattern_mask + TI > p95 + kyle > 0
+            ti = self.data.trade_intensity
+            self.ti_p95 = self.I(_rolling_p95, ti, self.ti_window)
+            ti_arr = np.array(self.data.trade_intensity)
+            kyle_arr = np.array(self.data.kyle_lambda_proxy)
+            ti_p95_arr = np.array(self.ti_p95)
+
+            detector = PATTERN_DETECTORS.get(self.pattern)
+            if detector is None:
+                available = list(PATTERN_DETECTORS.keys()) + list(EXHAUSTION_PATTERNS)
+                raise ValueError(f"Unknown pattern: {self.pattern}. Available: {available}")
+            pattern_mask = detector(direction)
+
+            is_signal = np.zeros(len(opens), dtype=bool)
+            for i in range(len(opens)):
+                if (pattern_mask[i]
+                        and ti_arr[i] > ti_p95_arr[i]
+                        and kyle_arr[i] > 0
+                        and i > self.ti_window):
+                    is_signal[i] = True
 
         # Feature 1: rolling quantile over signal set
-        f1_arr = np.array(getattr(self.data, self.feature1_name))
+        f1_arr = self._get_feature_array(self.feature1_name, opens, closes)
         self._f1_quantile = _rolling_quantile_on_signals(
             f1_arr, is_signal, self.feature1_quantile,
         )
         self._f1_values = f1_arr
 
         # Feature 2: rolling quantile over signal set
-        f2_arr = np.array(getattr(self.data, self.feature2_name))
+        f2_arr = self._get_feature_array(self.feature2_name, opens, closes)
         self._f2_quantile = _rolling_quantile_on_signals(
             f2_arr, is_signal, self.feature2_quantile,
         )
@@ -179,6 +213,23 @@ class Gen600Strategy(Strategy):
         # Per-trade time barrier: id(trade) -> entry_bar_index
         self._trade_entry_bar = {}
         self._known_trades = set()
+
+    def _get_feature_array(self, name, opens, closes):
+        """Get feature values, computing derived features if needed."""
+        if name == "opposite_wick_pct":
+            highs = np.array(self.data.High)
+            lows = np.array(self.data.Low)
+            result = np.empty(len(opens))
+            for i in range(len(opens)):
+                hl_range = highs[i] - lows[i]
+                if hl_range == 0:
+                    result[i] = np.nan
+                elif closes[i] <= opens[i]:  # DOWN bar: upper wick
+                    result[i] = (highs[i] - opens[i]) / hl_range
+                else:  # UP bar: lower wick
+                    result[i] = (opens[i] - lows[i]) / hl_range
+            return result
+        return np.array(getattr(self.data, name))
 
     def _check_feature(self, idx, values, quantile, direction):
         """Check if feature passes the quantile filter at bar idx."""
