@@ -1,3 +1,11 @@
+# [1.6.0](https://github.com/terrylica/rangebar-patterns/compare/v1.5.0...v1.6.0) (2026-02-13)
+
+
+### Features
+
+* Gen600 cross-asset consistency analysis + exhaustion oracle validation ([2e7029f](https://github.com/terrylica/rangebar-patterns/commit/2e7029fd78e159f18beb3be438430eb8558850c9))
+* Gen610 barrier grid optimization + backtesting.py cross-asset validation ([4f8ebfe](https://github.com/terrylica/rangebar-patterns/commit/4f8ebfee490223f77384be842ed34991a532baf6))
+
 # [1.5.0](https://github.com/terrylica/rangebar-patterns/compare/v1.4.0...v1.5.0) (2026-02-13)
 
 
