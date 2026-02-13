@@ -1,11 +1,13 @@
 ---
 name: clickhouse-antipatterns
-description: ClickHouse SQL anti-patterns and performance constraints discovered during Gen200-Gen600 barrier framework. Use when writing ClickHouse SQL, creating new barrier/pattern generations, modifying array functions, window functions, parameter sweeps, forward arrays, or encountering slow queries, OOM, NULL entry prices, wrong barrier detection, or arrayFirstIndex returning 0. TRIGGERS - ClickHouse SQL, barrier SQL, array function, window function, trailing stop SQL, parameter sweep, slow query, OOM, arrayFirstIndex, leadInFrame, groupArray, arrayFold, arrayScan, threshold-relative, anti-pattern, performance constraint, forward arrays, self-join, O(N×M).
+description: ClickHouse SQL anti-patterns and performance constraints discovered during Gen200-Gen600 barrier framework. Use when writing ClickHouse SQL, creating new barrier/pattern generations, modifying array functions, window functions, parameter sweeps, forward arrays, or encountering slow queries, OOM, NULL entry prices, wrong barrier detection, arrayFirstIndex returning 0, or aligning SQL results with backtesting.py. TRIGGERS - ClickHouse SQL, barrier SQL, array function, window function, trailing stop SQL, parameter sweep, slow query, OOM, arrayFirstIndex, leadInFrame, groupArray, arrayFold, arrayScan, threshold-relative, anti-pattern, performance constraint, forward arrays, self-join, O(N×M), SQL vs Python, SQL vs backtesting.
 ---
 
 # ClickHouse Anti-Patterns for Range Bar Pattern SQL
 
 Discovered during Gen200-Gen600 Triple Barrier + Hybrid Feature Sweep framework implementation. Each anti-pattern has been validated through production failures and resolved with tested workarounds.
+
+**Companion skills**: [backtesting-py-oracle](../backtesting-py-oracle/SKILL.md) (Python-side anti-patterns) | [sweep-methodology](../sweep-methodology/SKILL.md) (sweep design)
 
 **GitHub Issue**: [#8 - Anti-Pattern Registry](https://github.com/terrylica/rangebar-patterns/issues/8)
 
