@@ -238,7 +238,7 @@ for thresh in sorted(thresh_stats.keys()):
     s = thresh_stats[thresh]
     n = len(s["kellys"])
     avg_k = sum(s["kellys"]) / n
-    print(f"@{thresh:<11s} {n:<8d} {avg_k:<+12.5f} {s['pos']:<8d} {s['pos']/n*100:<8.1f}")
+    print(f"@{str(thresh):<11s} {n:<8d} {avg_k:<+12.5f} {s['pos']:<8d} {s['pos']/n*100:<8.1f}")
 
 # ---- 7. Bonferroni check ----
 print("\n" + "=" * 80)
