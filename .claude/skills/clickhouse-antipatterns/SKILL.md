@@ -7,7 +7,7 @@ description: ClickHouse SQL anti-patterns and performance constraints discovered
 
 Discovered during Gen200-Gen600 Triple Barrier + Hybrid Feature Sweep framework implementation. Each anti-pattern has been validated through production failures and resolved with tested workarounds.
 
-**Companion skills**: [backtesting-py-oracle](../backtesting-py-oracle/SKILL.md) (Python-side anti-patterns) | [sweep-methodology](../sweep-methodology/SKILL.md) (sweep design)
+**Companion skills**: `quant-research:backtesting-py-oracle` (Python-side anti-patterns) | [sweep-methodology](../sweep-methodology/SKILL.md) (sweep design)
 
 **GitHub Issue**: [#8 - Anti-Pattern Registry](https://github.com/terrylica/rangebar-patterns/issues/8)
 
