@@ -1,3 +1,11 @@
+# [1.7.0](https://github.com/terrylica/rangebar-patterns/compare/v1.6.0...v1.7.0) (2026-02-13)
+
+
+### Features
+
+* add Gemini 3 Pro tail-risk evaluation findings — Rachev, CDaR, OU barriers, TAMRS ([e43fdf7](https://github.com/terrylica/rangebar-patterns/commit/e43fdf70c2f49e00fa733f1736ad218f05ffac92)), closes [#15](https://github.com/terrylica/rangebar-patterns/issues/15) [#16](https://github.com/terrylica/rangebar-patterns/issues/16)
+* Gen610 barrier grid sweep results — 65 configs positive on all 10 combos ([a2fed32](https://github.com/terrylica/rangebar-patterns/commit/a2fed32907de62728d8165eeeff00919cddb40f0))
+
 # [1.6.0](https://github.com/terrylica/rangebar-patterns/compare/v1.5.0...v1.6.0) (2026-02-13)
 
 
