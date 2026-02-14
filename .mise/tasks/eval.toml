@@ -35,7 +35,7 @@ description = "Cross-metric synthesis: e-BH FDR, Romano-Wolf stepdown, verdict. 
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.synthesis"
 
 ["eval:screen"]
-description = "Multi-tier lenient screening with TAMRS gates. Reads all metric JSONL files including tamrs_rankings.jsonl. Writes results/eval/lenient_screen.jsonl + lenient_verdict.md. Tier thresholds from RBP_SCREEN_* env vars. See Issue #12, #16."
+description = "Multi-tier screening with TAMRS + signal regularity gates (Kelly removed). Reads all metric JSONL files. Writes results/eval/lenient_screen.jsonl + lenient_verdict.md. Tier thresholds from RBP_SCREEN_* env vars. See Issue #12, #16, #17."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.screening"
 
 # ---- TAMRS stack (Issue #16) ----
@@ -60,11 +60,17 @@ run = "uv run -p 3.13 python -m rangebar_patterns.eval.tamrs"
 description = "Run TAMRS fail-fast POC with synthetic profiles. Validates Rachev/CDaR/OU components against Gemini 3 Pro worked examples. Writes results/eval/tamrs_poc.jsonl. GO/NO-GO gate for full integration (Issue #16)."
 run = "uv run -p 3.13 python scripts/tamrs_poc.py"
 
+# ---- Signal Regularity (Issue #17) ----
+
+["eval:regularity"]
+description = "Compute signal temporal regularity via KDE peak-finding per config. Reads results/eval/trade_returns.jsonl (timestamps_ms), writes results/eval/signal_regularity_rankings.jsonl. KDE with Scott/4 bandwidth, peak CV + temporal coverage. Replaces Kelly as screening gate (Issue #17)."
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.signal_regularity"
+
 # ---- Pipeline orchestration ----
 
 ["eval:compute"]
-description = "Run all local compute stages (no ClickHouse needed). Phase 1 (parallel): DSR, MinBTL, CF-ES, Omega, E-values, Rachev, CDaR. See Issue #12 (eval stack), #16 (TAMRS)."
-depends = ["eval:dsr", "eval:minbtl", "eval:cornish-fisher", "eval:omega", "eval:evalues", "eval:rachev", "eval:cdar"]
+description = "Run all local compute stages (no ClickHouse needed). Phase 1 (parallel): DSR, MinBTL, CF-ES, Omega, E-values, Rachev, CDaR, Regularity. See Issue #12, #16, #17."
+depends = ["eval:dsr", "eval:minbtl", "eval:cornish-fisher", "eval:omega", "eval:evalues", "eval:rachev", "eval:cdar", "eval:regularity"]
 
 ["eval:compute-phase2"]
 description = "Phase 2 of eval compute: TAMRS composite + CSCV/PBO. Runs after Phase 1 completes. TAMRS joins Rachev+CDaR+OU. CSCV uses RBP_CSCV_RANKER for IS-winner selection (Issue #16)."

@@ -133,6 +133,10 @@ def cross_metric_comparison() -> dict:
     tamrs_path = rd / "tamrs_rankings.jsonl"
     tamrs = {r["config_id"]: r for r in load_jsonl(tamrs_path)} if tamrs_path.exists() else {}
 
+    # Signal regularity data (Issue #17)
+    reg_path = rd / "signal_regularity_rankings.jsonl"
+    regularity = {r["config_id"]: r for r in load_jsonl(reg_path)} if reg_path.exists() else {}
+
     common_ids = sorted(
         set(moments.keys()) & set(dsr.keys()) & set(omega.keys()) & set(evalues.keys())
     )
@@ -145,6 +149,7 @@ def cross_metric_comparison() -> dict:
         e = evalues.get(cid, {})
         c = cf.get(cid, {})
         t = tamrs.get(cid, {})
+        rg = regularity.get(cid, {})
 
         kelly = m.get("kelly_fraction")
         sr = d.get("sharpe_ratio")
@@ -154,6 +159,7 @@ def cross_metric_comparison() -> dict:
         grow_val = e.get("grow_criterion")
         cf_es = c.get("mean_over_cf_es_05")
         tamrs_val = t.get("tamrs")
+        kde_cv = rg.get("kde_peak_cv")
 
         def _is_finite(v):
             return v is not None and (not isinstance(v, float) or math.isfinite(v))
@@ -166,11 +172,12 @@ def cross_metric_comparison() -> dict:
                 vectors.setdefault(name, []).append(val)
             vectors.setdefault("cf_es_adj", []).append(cf_es if cf_es is not None else 0.0)
             vectors.setdefault("tamrs", []).append(tamrs_val if tamrs_val is not None else 0.0)
+            vectors.setdefault("kde_cv", []).append(kde_cv if kde_cv is not None else 0.0)
 
     if not vectors or len(vectors.get("kelly", [])) < 10:
         return {"error": "Insufficient common configs for correlation"}
 
-    metric_names = ["kelly", "sharpe", "psr", "dsr", "omega", "grow", "cf_es_adj", "tamrs"]
+    metric_names = ["kelly", "sharpe", "psr", "dsr", "omega", "grow", "cf_es_adj", "tamrs", "kde_cv"]
     n_metrics = len(metric_names)
     corr_matrix = np.zeros((n_metrics, n_metrics))
 

@@ -1,12 +1,13 @@
-"""Multi-tier lenient screening with TAMRS gates for forensic re-evaluation.
+"""Multi-tier lenient screening with TAMRS + signal regularity gates.
 
 Re-evaluates all configs with graduated lenient thresholds (3 tiers) to
 identify candidates for further investigation. Includes TAMRS gates
-(Rachev, CDaR, OU barrier ratio) from Issue #16 alongside the original
-5-metric gates from Issue #12.
+(Rachev, CDaR, OU barrier ratio) from Issue #16 and signal regularity
+(KDE peak CV, temporal coverage) from Issue #17. Kelly removed as gate.
 
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
 """
 
 from __future__ import annotations
@@ -17,17 +18,19 @@ import math
 import numpy as np
 
 from rangebar_patterns.config import (
+    SCREEN_COVERAGE_MIN,
     SCREEN_OU_RATIO_MIN,
     SCREEN_RACHEV_MIN,
+    SCREEN_REGULARITY_CV_MAX,
     SCREEN_TAMRS_MIN,
 )
 from rangebar_patterns.eval._io import load_jsonl, results_dir
 
 # --- Tier Thresholds ---
-# TAMRS gates read from mise [env] via config.py tuples (Issue #16)
+# TAMRS gates from Issue #16, signal regularity from Issue #17.
+# Kelly REMOVED as gate (Spearman(Kelly,TAMRS) = -0.01, orthogonal/contradictory).
 TIERS = {
     "tier1_exploratory": {
-        "kelly_min": 0.0,
         "omega_min": 1.0,
         "dsr_min": -1.0,
         "headroom_min": 0.01,
@@ -35,9 +38,10 @@ TIERS = {
         "tamrs_min": SCREEN_TAMRS_MIN[0],
         "rachev_min": SCREEN_RACHEV_MIN[0],
         "ou_ratio_min": SCREEN_OU_RATIO_MIN[0],
+        "regularity_cv_max": SCREEN_REGULARITY_CV_MAX[0],
+        "coverage_min": SCREEN_COVERAGE_MIN[0],
     },
     "tier2_balanced": {
-        "kelly_min": 0.01,
         "omega_min": 1.02,
         "dsr_min": -1.0,
         "headroom_min": 0.05,
@@ -45,9 +49,10 @@ TIERS = {
         "tamrs_min": SCREEN_TAMRS_MIN[1],
         "rachev_min": SCREEN_RACHEV_MIN[1],
         "ou_ratio_min": SCREEN_OU_RATIO_MIN[1],
+        "regularity_cv_max": SCREEN_REGULARITY_CV_MAX[1],
+        "coverage_min": SCREEN_COVERAGE_MIN[1],
     },
     "tier3_strict": {
-        "kelly_min": 0.05,
         "omega_min": 1.05,
         "dsr_min": -1.0,
         "headroom_min": 0.10,
@@ -55,6 +60,8 @@ TIERS = {
         "tamrs_min": SCREEN_TAMRS_MIN[2],
         "rachev_min": SCREEN_RACHEV_MIN[2],
         "ou_ratio_min": SCREEN_OU_RATIO_MIN[2],
+        "regularity_cv_max": SCREEN_REGULARITY_CV_MAX[2],
+        "coverage_min": SCREEN_COVERAGE_MIN[2],
     },
 }
 
@@ -83,6 +90,10 @@ def load_all_metrics() -> dict[str, dict]:
     tamrs_path = rd / "tamrs_rankings.jsonl"
     tamrs = {r["config_id"]: r for r in load_jsonl(tamrs_path)} if tamrs_path.exists() else {}
 
+    # Signal regularity data (Issue #17)
+    reg_path = rd / "signal_regularity_rankings.jsonl"
+    regularity = {r["config_id"]: r for r in load_jsonl(reg_path)} if reg_path.exists() else {}
+
     all_ids = sorted(set(moments.keys()) | set(dsr.keys()) | set(omega.keys()))
 
     configs = {}
@@ -94,6 +105,7 @@ def load_all_metrics() -> dict[str, dict]:
         e = evalues_data.get(cid, {})
         c = cf.get(cid, {})
         t = tamrs.get(cid, {})
+        reg = regularity.get(cid, {})
 
         configs[cid] = {
             "config_id": cid,
@@ -109,6 +121,8 @@ def load_all_metrics() -> dict[str, dict]:
             "tamrs": t.get("tamrs"),
             "rachev": t.get("rachev_ratio"),
             "ou_ratio": t.get("ou_barrier_ratio"),
+            "regularity_cv": reg.get("kde_peak_cv"),
+            "temporal_coverage": reg.get("temporal_coverage"),
         }
 
     return configs
@@ -117,7 +131,6 @@ def load_all_metrics() -> dict[str, dict]:
 def _extract_gate_values(cfg: dict) -> dict:
     """Extract and coerce gate values from a config dict."""
     return {
-        "kelly": _safe_float(cfg["kelly"], -999),
         "omega": _safe_float(cfg["omega"], 0),
         "dsr": _safe_float(cfg["dsr"], -1),
         "headroom": _safe_float(cfg["headroom"], 0),
@@ -125,6 +138,8 @@ def _extract_gate_values(cfg: dict) -> dict:
         "tamrs": _safe_float(cfg.get("tamrs"), -1),
         "rachev": _safe_float(cfg.get("rachev"), -1),
         "ou_ratio": _safe_float(cfg.get("ou_ratio"), -1),
+        "regularity_cv": _safe_float(cfg.get("regularity_cv"), 999),
+        "temporal_coverage": _safe_float(cfg.get("temporal_coverage"), 0),
     }
 
 
@@ -132,14 +147,15 @@ def passes_tier(cfg: dict, thresholds: dict) -> bool:
     """Check if a config passes all gates for a given tier."""
     v = _extract_gate_values(cfg)
     return (
-        v["kelly"] > thresholds["kelly_min"]
-        and v["omega"] > thresholds["omega_min"]
+        v["omega"] > thresholds["omega_min"]
         and v["dsr"] > thresholds["dsr_min"]
         and v["headroom"] > thresholds["headroom_min"]
         and v["n_trades"] >= thresholds["n_trades_min"]
         and v["tamrs"] >= thresholds["tamrs_min"]
         and v["rachev"] >= thresholds["rachev_min"]
         and v["ou_ratio"] >= thresholds["ou_ratio_min"]
+        and v["regularity_cv"] < thresholds["regularity_cv_max"]
+        and v["temporal_coverage"] >= thresholds["coverage_min"]
     )
 
 
@@ -147,7 +163,6 @@ def individual_gate_pass(cfg: dict, thresholds: dict) -> dict[str, bool]:
     """Check each gate independently."""
     v = _extract_gate_values(cfg)
     return {
-        "kelly": v["kelly"] > thresholds["kelly_min"],
         "omega": v["omega"] > thresholds["omega_min"],
         "dsr": v["dsr"] > thresholds["dsr_min"],
         "headroom": v["headroom"] > thresholds["headroom_min"],
@@ -155,6 +170,8 @@ def individual_gate_pass(cfg: dict, thresholds: dict) -> dict[str, bool]:
         "tamrs": v["tamrs"] >= thresholds["tamrs_min"],
         "rachev": v["rachev"] >= thresholds["rachev_min"],
         "ou_ratio": v["ou_ratio"] >= thresholds["ou_ratio_min"],
+        "regularity_cv": v["regularity_cv"] < thresholds["regularity_cv_max"],
+        "temporal_coverage": v["temporal_coverage"] >= thresholds["coverage_min"],
     }
 
 
@@ -210,7 +227,8 @@ def write_forensic_report(
         "| Metric | Min | P10 | P25 | P50 | P75 | P90 | Max |",
         "|--------|-----|-----|-----|-----|-----|-----|-----|",
     ]
-    for key in ["kelly", "omega", "dsr", "headroom", "n_trades", "tamrs", "rachev"]:
+    for key in ["omega", "dsr", "headroom", "n_trades", "tamrs", "rachev",
+                 "regularity_cv", "temporal_coverage"]:
         s = dist_stats.get(key, {})
         if s.get("n", 0) > 0:
             lines.append(
@@ -226,11 +244,13 @@ def write_forensic_report(
             "",
             f"## 2. {tier_label}",
             "",
-            f"**Thresholds**: Kelly > {thresholds['kelly_min']}, "
+            f"**Thresholds**: "
             f"Omega > {thresholds['omega_min']}, "
             f"DSR > {thresholds['dsr_min']}, "
             f"MinBTL headroom > {thresholds['headroom_min']}, "
-            f"n_trades >= {thresholds['n_trades_min']}",
+            f"n_trades >= {thresholds['n_trades_min']}, "
+            f"regularity_cv < {thresholds['regularity_cv_max']}, "
+            f"coverage >= {thresholds['coverage_min']}",
             "",
         ])
 
@@ -242,8 +262,9 @@ def write_forensic_report(
             "|------|------|------|--------|",
         ])
         total = funnel["total"]
-        for gate_name in ["kelly", "omega", "dsr", "headroom", "n_trades",
-                         "tamrs", "rachev", "ou_ratio"]:
+        for gate_name in ["omega", "dsr", "headroom", "n_trades",
+                         "tamrs", "rachev", "ou_ratio",
+                         "regularity_cv", "temporal_coverage"]:
             p = funnel["gates"].get(gate_name, 0)
             f_count = total - p
             pct = round(100 * p / total, 1) if total > 0 else 0
@@ -269,17 +290,18 @@ def write_forensic_report(
         lines.extend([
             f"### Top {min(20, len(passing))} Configs (by composite score)",
             "",
-            "| Rank | Config ID | TAMRS | Kelly | Omega | DSR | Headroom | N Trades | Score |",
-            "|------|-----------|-------|-------|-------|-----|----------|----------|-------|",
+            "| Rank | Config ID | TAMRS | Omega | DSR | Headroom | Reg CV | Coverage | N | Score |",
+            "|------|-----------|-------|-------|-----|----------|--------|----------|---|-------|",
         ])
         for rank, cfg in enumerate(passing[:20], 1):
             lines.append(
                 f"| {rank} | {cfg['config_id'][:50]} "
                 f"| {_safe_float(cfg.get('tamrs')):.4f} "
-                f"| {_safe_float(cfg['kelly']):.4f} "
                 f"| {_safe_float(cfg['omega']):.4f} "
                 f"| {_safe_float(cfg['dsr']):.6f} "
                 f"| {_safe_float(cfg['headroom']):.4f} "
+                f"| {_safe_float(cfg.get('regularity_cv'), 999):.4f} "
+                f"| {_safe_float(cfg.get('temporal_coverage')):.2f} "
                 f"| {cfg.get('n_trades', 0)} "
                 f"| {cfg.get('composite_score', 0):.4f} |"
             )
@@ -313,21 +335,23 @@ def write_forensic_report(
         for gate, count in sorted(by_gate.items(), key=lambda x: -x[1]):
             lines.append(f"| {gate} | {count} |")
 
-        near_miss.sort(key=lambda x: _safe_float(x[0]["kelly"]), reverse=True)
+        near_miss.sort(key=lambda x: _safe_float(x[0].get("tamrs")), reverse=True)
         lines.extend([
             "",
-            "### Top 10 Near-Misses (by Kelly)",
+            "### Top 10 Near-Misses (by TAMRS)",
             "",
-            "| Config ID | Kelly | Omega | DSR | Headroom | N | Failed Gate |",
-            "|-----------|-------|-------|-----|----------|---|-------------|",
+            "| Config ID | TAMRS | Omega | DSR | Headroom | Reg CV | Cov | N | Failed Gate |",
+            "|-----------|-------|-------|-----|----------|--------|-----|---|-------------|",
         ])
         for cfg, gate in near_miss[:10]:
             lines.append(
                 f"| {cfg['config_id'][:45]} "
-                f"| {_safe_float(cfg['kelly']):.4f} "
+                f"| {_safe_float(cfg.get('tamrs')):.4f} "
                 f"| {_safe_float(cfg['omega']):.4f} "
                 f"| {_safe_float(cfg['dsr']):.6f} "
                 f"| {_safe_float(cfg['headroom']):.4f} "
+                f"| {_safe_float(cfg.get('regularity_cv'), 999):.4f} "
+                f"| {_safe_float(cfg.get('temporal_coverage')):.2f} "
                 f"| {cfg.get('n_trades', 0)} "
                 f"| {gate} |"
             )
@@ -380,20 +404,22 @@ def main():
 
     dist_stats = {}
     for key, getter in [
-        ("kelly", lambda c: _safe_float(c["kelly"], float("nan"))),
         ("omega", lambda c: _safe_float(c["omega"], float("nan"))),
         ("dsr", lambda c: _safe_float(c["dsr"], float("nan"))),
         ("headroom", lambda c: _safe_float(c["headroom"], float("nan"))),
         ("n_trades", lambda c: float(c.get("n_trades", 0) or 0)),
         ("tamrs", lambda c: _safe_float(c.get("tamrs"), float("nan"))),
         ("rachev", lambda c: _safe_float(c.get("rachev"), float("nan"))),
+        ("regularity_cv", lambda c: _safe_float(c.get("regularity_cv"), float("nan"))),
+        ("temporal_coverage", lambda c: _safe_float(c.get("temporal_coverage"), float("nan"))),
     ]:
         values = [getter(c) for c in all_configs.values()]
         finite_values = [v for v in values if math.isfinite(v)]
         label_map = {
-            "kelly": "Kelly", "omega": "Omega", "dsr": "DSR",
+            "omega": "Omega", "dsr": "DSR",
             "headroom": "MinBTL Headroom", "n_trades": "N Trades",
             "tamrs": "TAMRS", "rachev": "Rachev",
+            "regularity_cv": "Regularity CV", "temporal_coverage": "Coverage",
         }
         dist_stats[key] = distribution_stats(finite_values, label_map[key])
 
@@ -403,8 +429,9 @@ def main():
     for tier_name, thresholds in TIERS.items():
         passing = []
         gate_counts: dict[str, int] = {
-            "kelly": 0, "omega": 0, "dsr": 0, "headroom": 0, "n_trades": 0,
+            "omega": 0, "dsr": 0, "headroom": 0, "n_trades": 0,
             "tamrs": 0, "rachev": 0, "ou_ratio": 0,
+            "regularity_cv": 0, "temporal_coverage": 0,
         }
 
         for cfg in all_configs.values():

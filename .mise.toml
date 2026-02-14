@@ -70,6 +70,20 @@ RBP_SCREEN_OU_RATIO_MIN_T1 = "0.0"
 RBP_SCREEN_OU_RATIO_MIN_T2 = "0.30"
 RBP_SCREEN_OU_RATIO_MIN_T3 = "0.50"
 
+# ---- Research: Signal Regularity Parameters (Issue #17) ----
+# Minimum trades for meaningful KDE density estimation
+RBP_MIN_TRADES_REGULARITY = "10"
+# Screening gate: max KDE peak CV (lower = more regular signal spacing)
+# None/T1: no gate, T2: < 0.80, T3: < 0.50
+RBP_SCREEN_REGULARITY_CV_MAX_T1 = "999.0"
+RBP_SCREEN_REGULARITY_CV_MAX_T2 = "0.80"
+RBP_SCREEN_REGULARITY_CV_MAX_T3 = "0.50"
+# Screening gate: min temporal coverage (fraction of timeline with signals)
+# None/T1: no gate, T2: >= 0.50, T3: >= 0.70
+RBP_SCREEN_COVERAGE_MIN_T1 = "0.0"
+RBP_SCREEN_COVERAGE_MIN_T2 = "0.50"
+RBP_SCREEN_COVERAGE_MIN_T3 = "0.70"
+
 [task_config]
 includes = [
     ".mise/tasks/dev.toml",

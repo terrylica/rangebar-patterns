@@ -4,23 +4,23 @@
 
 | Metric | Min | P10 | P25 | P50 | P75 | P90 | Max |
 |--------|-----|-----|-----|-----|-----|-----|-----|
-| Kelly | -0.311348 | -0.128044 | -0.068838 | -0.030307 | -0.003448 | 0.040995 | 0.623787 |
 | Omega | 0.0 | 0.84058 | 0.940096 | 1.016461 | 1.083001 | 1.2 | 5.942338 |
 | DSR | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.5 |
 | MinBTL Headroom | 0.0 | 0.0002 | 0.0023 | 0.0165 | 0.052325 | 0.125 | 0.4706 |
 | N Trades | 0.0 | 21.0 | 79.75 | 189.0 | 363.0 | 656.3 | 1696.0 |
 | TAMRS | 0.008538 | 0.019623 | 0.026354 | 0.039804 | 0.062571 | 0.088418 | 0.379308 |
 | Rachev | 1.799281 | 1.946922 | 1.970233 | 1.993552 | 2.0 | 2.0 | 2.0 |
+| Regularity CV | 0.0 | 0.0 | 0.064103 | 0.244019 | 0.406689 | 0.581773 | 1.007334 |
+| Coverage | 0.2 | 0.55 | 0.7 | 0.85 | 1.0 | 1.0 | 1.0 |
 
 ## 2. Tier1 Exploratory
 
-**Thresholds**: Kelly > 0.0, Omega > 1.0, DSR > -1.0, MinBTL headroom > 0.01, n_trades >= 30
+**Thresholds**: Omega > 1.0, DSR > -1.0, MinBTL headroom > 0.01, n_trades >= 30, regularity_cv < 999.0, coverage >= 0.0
 
 ### Funnel (individual gate pass rates)
 
 | Gate | Pass | Fail | % Pass |
 |------|------|------|--------|
-| kelly | 220 | 788 | 21.8% |
 | omega | 533 | 475 | 52.9% |
 | dsr | 961 | 47 | 95.3% |
 | headroom | 584 | 424 | 57.9% |
@@ -28,44 +28,45 @@
 | tamrs | 914 | 94 | 90.7% |
 | rachev | 914 | 94 | 90.7% |
 | ou_ratio | 976 | 32 | 96.8% |
-| **ALL gates** | **151** | **857** | **15.0%** |
+| regularity_cv | 896 | 112 | 88.9% |
+| temporal_coverage | 1008 | 0 | 100.0% |
+| **ALL gates** | **298** | **710** | **29.6%** |
 
-### Binding Constraint: **kelly** (kills 158 configs that pass other 4 gates)
+### Binding Constraint: **omega** (kills 221 configs that pass other 4 gates)
 
 ### Top 20 Configs (by composite score)
 
-| Rank | Config ID | TAMRS | Kelly | Omega | DSR | Headroom | N Trades | Score |
-|------|-----------|-------|-------|-------|-----|----------|----------|-------|
-| 1 | vwap_close_deviation_lt_p10__volume_per_trade_gt_p | 0.3793 | 0.2742 | 2.1333 | 0.000000 | 0.2886 | 31 | 0.7604 |
-| 2 | ofi_gt_p90__vwap_close_deviation_gt_p75 | 0.2635 | 0.2712 | 2.1152 | 0.000000 | 0.3198 | 35 | 0.6364 |
-| 3 | turnover_imbalance_gt_p90__vwap_close_deviation_gt | 0.1979 | 0.2712 | 2.1152 | 0.000000 | 0.3198 | 35 | 0.5651 |
-| 4 | volume_per_trade_gt_p90__aggregation_density_lt_p2 | 0.1686 | 0.2091 | 1.9743 | 0.000000 | 0.3023 | 40 | 0.4913 |
-| 5 | turnover_imbalance_gt_p90__price_impact_gt_p75 | 0.2304 | 0.0892 | 1.6615 | 0.000000 | 0.1891 | 46 | 0.4488 |
-| 6 | ofi_gt_p90__price_impact_gt_p75 | 0.2298 | 0.0892 | 1.6615 | 0.000000 | 0.1891 | 46 | 0.4481 |
-| 7 | turnover_imbalance_gt_p75__price_impact_gt_p75 | 0.1299 | 0.1121 | 1.5052 | 0.000000 | 0.3551 | 130 | 0.3333 |
-| 8 | ofi_gt_p75__price_impact_gt_p75 | 0.1215 | 0.1121 | 1.5052 | 0.000000 | 0.3551 | 130 | 0.3241 |
-| 9 | vwap_close_deviation_lt_p10__duration_us_gt_p90 | 0.2351 | 0.0625 | 1.2000 | 0.000000 | 0.0168 | 32 | 0.2910 |
-| 10 | aggression_ratio_lt_p50__turnover_imbalance_gt_p75 | 0.1209 | 0.1303 | 1.4493 | 0.000000 | 0.1550 | 69 | 0.2647 |
-| 11 | volume_per_trade_gt_p75__aggregation_density_lt_p2 | 0.1006 | 0.0939 | 1.4140 | 0.000000 | 0.2060 | 105 | 0.2441 |
-| 12 | price_impact_lt_p50__aggregation_density_lt_p25 | 0.0983 | 0.1013 | 1.3707 | 0.000000 | 0.2672 | 164 | 0.2432 |
-| 13 | ofi_gt_p90__duration_us_lt_p50 | 0.0934 | 0.0942 | 1.4557 | 0.000000 | 0.1688 | 74 | 0.2395 |
-| 14 | price_impact_lt_p25__vwap_close_deviation_gt_p90 | 0.0822 | 0.1427 | 1.4991 | 0.000000 | 0.1685 | 63 | 0.2391 |
-| 15 | turnover_imbalance_gt_p50__duration_us_lt_p50 | 0.0648 | 0.0755 | 1.2913 | 0.000000 | 0.4706 | 440 | 0.2295 |
-| 16 | turnover_imbalance_gt_p50__vwap_close_deviation_gt | 0.1240 | 0.0787 | 1.3572 | 0.000000 | 0.0766 | 51 | 0.2261 |
-| 17 | price_impact_lt_p10__vwap_close_deviation_lt_p10 | 0.1863 | 0.0481 | 1.1515 | 0.000000 | 0.0165 | 52 | 0.2247 |
-| 18 | ofi_gt_p75__aggression_ratio_lt_p50 | 0.0910 | 0.1213 | 1.4140 | 0.000000 | 0.1368 | 70 | 0.2187 |
-| 19 | turnover_imbalance_gt_p90__duration_us_lt_p50 | 0.0828 | 0.0860 | 1.4219 | 0.000000 | 0.1501 | 75 | 0.2148 |
-| 20 | aggression_ratio_gt_p90__duration_us_gt_p90 | 0.1055 | 0.0952 | 1.3158 | 0.000000 | 0.1549 | 126 | 0.2117 |
+| Rank | Config ID | TAMRS | Omega | DSR | Headroom | Reg CV | Coverage | N | Score |
+|------|-----------|-------|-------|-----|----------|--------|----------|---|-------|
+| 1 | ofi_gt_p90__vwap_close_deviation_gt_p75 | 0.2635 | 2.1152 | 0.000000 | 0.3198 | 0.0376 | 0.85 | 35 | 0.7673 |
+| 2 | turnover_imbalance_gt_p90__vwap_close_deviation_gt | 0.1979 | 2.1152 | 0.000000 | 0.3198 | 0.0376 | 0.85 | 35 | 0.6633 |
+| 3 | turnover_imbalance_gt_p90__price_impact_gt_p75 | 0.2304 | 1.6615 | 0.000000 | 0.1891 | 0.4416 | 0.70 | 46 | 0.5616 |
+| 4 | ofi_gt_p90__price_impact_gt_p75 | 0.2298 | 1.6615 | 0.000000 | 0.1891 | 0.4416 | 0.70 | 46 | 0.5606 |
+| 5 | vwap_close_deviation_lt_p10__duration_us_gt_p90 | 0.2351 | 1.2000 | 0.000000 | 0.0168 | 0.0000 | 0.60 | 32 | 0.4046 |
+| 6 | turnover_imbalance_gt_p75__price_impact_gt_p75 | 0.1299 | 1.5052 | 0.000000 | 0.3551 | 0.2510 | 0.90 | 130 | 0.3953 |
+| 7 | ofi_gt_p75__price_impact_gt_p75 | 0.1215 | 1.5052 | 0.000000 | 0.3551 | 0.2510 | 0.90 | 130 | 0.3819 |
+| 8 | aggression_ratio_lt_p50__turnover_imbalance_gt_p75 | 0.1209 | 1.4493 | 0.000000 | 0.1550 | 0.3813 | 0.80 | 69 | 0.3220 |
+| 9 | price_impact_lt_p10__vwap_close_deviation_lt_p10 | 0.1863 | 1.1515 | 0.000000 | 0.0165 | 0.0714 | 0.60 | 52 | 0.3137 |
+| 10 | volume_per_trade_lt_p10__aggregation_density_lt_p1 | 0.1137 | 1.4075 | 0.000000 | 0.1205 | 0.0000 | 0.50 | 66 | 0.2917 |
+| 11 | volume_per_trade_gt_p75__aggregation_density_lt_p2 | 0.1006 | 1.4140 | 0.000000 | 0.2060 | 0.0000 | 0.80 | 105 | 0.2912 |
+| 12 | aggression_ratio_gt_p75__vwap_close_deviation_gt_p | 0.1611 | 1.2010 | 0.000000 | 0.0318 | 0.0926 | 0.80 | 60 | 0.2908 |
+| 13 | price_impact_lt_p50__aggregation_density_lt_p25 | 0.0983 | 1.3707 | 0.000000 | 0.2672 | 0.3036 | 1.00 | 164 | 0.2890 |
+| 14 | vwap_close_deviation_gt_p90__aggregation_density_l | 0.1153 | 1.3665 | 0.000000 | 0.1469 | 0.1053 | 0.75 | 95 | 0.2886 |
+| 15 | turnover_imbalance_gt_p50__vwap_close_deviation_gt | 0.1240 | 1.3572 | 0.000000 | 0.0766 | 0.1800 | 0.80 | 51 | 0.2847 |
+| 16 | ofi_gt_p90__duration_us_lt_p50 | 0.0934 | 1.4557 | 0.000000 | 0.1688 | 0.3386 | 0.90 | 74 | 0.2832 |
+| 17 | turnover_imbalance_gt_p90__aggregation_density_gt_ | 0.1557 | 1.2000 | 0.000000 | 0.0212 | 0.1483 | 0.60 | 40 | 0.2796 |
+| 18 | ofi_gt_p75__aggression_ratio_lt_p50 | 0.0910 | 1.4140 | 0.000000 | 0.1368 | 0.3813 | 0.80 | 70 | 0.2610 |
+| 19 | aggression_ratio_gt_p90__duration_us_gt_p90 | 0.1055 | 1.3158 | 0.000000 | 0.1549 | 0.6585 | 0.85 | 126 | 0.2609 |
+| 20 | turnover_imbalance_gt_p50__duration_us_lt_p50 | 0.0648 | 1.2913 | 0.000000 | 0.4706 | 0.3301 | 1.00 | 440 | 0.2581 |
 
 ## 2. Tier2 Balanced
 
-**Thresholds**: Kelly > 0.01, Omega > 1.02, DSR > -1.0, MinBTL headroom > 0.05, n_trades >= 50
+**Thresholds**: Omega > 1.02, DSR > -1.0, MinBTL headroom > 0.05, n_trades >= 50, regularity_cv < 0.8, coverage >= 0.5
 
 ### Funnel (individual gate pass rates)
 
 | Gate | Pass | Fail | % Pass |
 |------|------|------|--------|
-| kelly | 165 | 843 | 16.4% |
 | omega | 465 | 543 | 46.1% |
 | dsr | 961 | 47 | 95.3% |
 | headroom | 260 | 748 | 25.8% |
@@ -73,44 +74,45 @@
 | tamrs | 332 | 676 | 32.9% |
 | rachev | 914 | 94 | 90.7% |
 | ou_ratio | 971 | 37 | 96.3% |
-| **ALL gates** | **42** | **966** | **4.2%** |
+| regularity_cv | 887 | 121 | 88.0% |
+| temporal_coverage | 884 | 124 | 87.7% |
+| **ALL gates** | **69** | **939** | **6.8%** |
 
-### Binding Constraint: **kelly** (kills 31 configs that pass other 4 gates)
+### Binding Constraint: **headroom** (kills 94 configs that pass other 4 gates)
 
 ### Top 20 Configs (by composite score)
 
-| Rank | Config ID | TAMRS | Kelly | Omega | DSR | Headroom | N Trades | Score |
-|------|-----------|-------|-------|-------|-----|----------|----------|-------|
-| 1 | turnover_imbalance_gt_p75__price_impact_gt_p75 | 0.1299 | 0.1121 | 1.5052 | 0.000000 | 0.3551 | 130 | 0.7724 |
-| 2 | ofi_gt_p75__price_impact_gt_p75 | 0.1215 | 0.1121 | 1.5052 | 0.000000 | 0.3551 | 130 | 0.7290 |
-| 3 | aggression_ratio_lt_p50__turnover_imbalance_gt_p75 | 0.1209 | 0.1303 | 1.4493 | 0.000000 | 0.1550 | 69 | 0.6362 |
-| 4 | turnover_imbalance_gt_p50__vwap_close_deviation_gt | 0.1240 | 0.0787 | 1.3572 | 0.000000 | 0.0766 | 51 | 0.5656 |
-| 5 | volume_per_trade_gt_p75__aggregation_density_lt_p2 | 0.1006 | 0.0939 | 1.4140 | 0.000000 | 0.2060 | 105 | 0.5172 |
-| 6 | ofi_gt_p90__duration_us_lt_p50 | 0.0934 | 0.0942 | 1.4557 | 0.000000 | 0.1688 | 74 | 0.5022 |
-| 7 | price_impact_lt_p50__aggregation_density_lt_p25 | 0.0983 | 0.1013 | 1.3707 | 0.000000 | 0.2672 | 164 | 0.4881 |
-| 8 | price_impact_lt_p25__vwap_close_deviation_gt_p90 | 0.0822 | 0.1427 | 1.4991 | 0.000000 | 0.1685 | 63 | 0.4767 |
-| 9 | aggression_ratio_gt_p90__duration_us_gt_p90 | 0.1055 | 0.0952 | 1.3158 | 0.000000 | 0.1549 | 126 | 0.4577 |
-| 10 | ofi_gt_p75__aggression_ratio_lt_p50 | 0.0910 | 0.1213 | 1.4140 | 0.000000 | 0.1368 | 70 | 0.4513 |
-| 11 | ofi_gt_p50__vwap_close_deviation_gt_p90 | 0.1125 | 0.0598 | 1.2907 | 0.000000 | 0.0522 | 50 | 0.4507 |
-| 12 | turnover_imbalance_gt_p90__duration_us_lt_p50 | 0.0828 | 0.0860 | 1.4219 | 0.000000 | 0.1501 | 75 | 0.4180 |
-| 13 | price_impact_lt_p25__aggregation_density_lt_p25 | 0.0742 | 0.1269 | 1.4359 | 0.000000 | 0.1429 | 67 | 0.3822 |
-| 14 | ofi_gt_p90__price_impact_lt_p10 | 0.0950 | 0.0724 | 1.2340 | 0.000000 | 0.0543 | 76 | 0.3188 |
-| 15 | turnover_imbalance_gt_p90__vwap_close_deviation_gt | 0.0813 | 0.0669 | 1.2953 | 0.000000 | 0.1357 | 125 | 0.3128 |
-| 16 | price_impact_gt_p50__volume_per_trade_gt_p90 | 0.0770 | 0.0741 | 1.3439 | 0.000000 | 0.0770 | 56 | 0.3126 |
-| 17 | turnover_imbalance_gt_p75__duration_us_lt_p50 | 0.0642 | 0.0917 | 1.3541 | 0.000000 | 0.3020 | 201 | 0.3080 |
-| 18 | turnover_imbalance_gt_p50__duration_us_lt_p50 | 0.0648 | 0.0755 | 1.2913 | 0.000000 | 0.4706 | 440 | 0.3046 |
-| 19 | price_impact_lt_p25__vwap_close_deviation_gt_p75 | 0.0745 | 0.0844 | 1.3068 | 0.000000 | 0.1897 | 163 | 0.2989 |
-| 20 | vwap_close_deviation_lt_p10__volume_per_trade_gt_p | 0.0769 | 0.0792 | 1.3117 | 0.000000 | 0.1136 | 95 | 0.2970 |
+| Rank | Config ID | TAMRS | Omega | DSR | Headroom | Reg CV | Coverage | N | Score |
+|------|-----------|-------|-------|-----|----------|--------|----------|---|-------|
+| 1 | turnover_imbalance_gt_p75__price_impact_gt_p75 | 0.1299 | 1.5052 | 0.000000 | 0.3551 | 0.2510 | 0.90 | 130 | 0.7725 |
+| 2 | ofi_gt_p75__price_impact_gt_p75 | 0.1215 | 1.5052 | 0.000000 | 0.3551 | 0.2510 | 0.90 | 130 | 0.7293 |
+| 3 | aggression_ratio_lt_p50__turnover_imbalance_gt_p75 | 0.1209 | 1.4493 | 0.000000 | 0.1550 | 0.3813 | 0.80 | 69 | 0.6373 |
+| 4 | turnover_imbalance_gt_p50__vwap_close_deviation_gt | 0.1240 | 1.3572 | 0.000000 | 0.0766 | 0.1800 | 0.80 | 51 | 0.5678 |
+| 5 | volume_per_trade_lt_p10__aggregation_density_lt_p1 | 0.1137 | 1.4075 | 0.000000 | 0.1205 | 0.0000 | 0.50 | 66 | 0.5619 |
+| 6 | vwap_close_deviation_gt_p90__aggregation_density_l | 0.1153 | 1.3665 | 0.000000 | 0.1469 | 0.1053 | 0.75 | 95 | 0.5462 |
+| 7 | volume_per_trade_gt_p75__aggregation_density_lt_p2 | 0.1006 | 1.4140 | 0.000000 | 0.2060 | 0.0000 | 0.80 | 105 | 0.5192 |
+| 8 | ofi_gt_p90__duration_us_lt_p50 | 0.0934 | 1.4557 | 0.000000 | 0.1688 | 0.3386 | 0.90 | 74 | 0.5039 |
+| 9 | price_impact_lt_p50__aggregation_density_lt_p25 | 0.0983 | 1.3707 | 0.000000 | 0.2672 | 0.3036 | 1.00 | 164 | 0.4905 |
+| 10 | volume_per_trade_lt_p10__aggregation_density_lt_p2 | 0.1131 | 1.2804 | 0.000000 | 0.1036 | 0.0000 | 0.55 | 107 | 0.4616 |
+| 11 | aggression_ratio_gt_p90__duration_us_gt_p90 | 0.1055 | 1.3158 | 0.000000 | 0.1549 | 0.6585 | 0.85 | 126 | 0.4607 |
+| 12 | ofi_gt_p50__vwap_close_deviation_gt_p90 | 0.1125 | 1.2907 | 0.000000 | 0.0522 | 0.1800 | 0.80 | 50 | 0.4539 |
+| 13 | ofi_gt_p75__aggression_ratio_lt_p50 | 0.0910 | 1.4140 | 0.000000 | 0.1368 | 0.3813 | 0.80 | 70 | 0.4535 |
+| 14 | turnover_imbalance_gt_p90__duration_us_lt_p50 | 0.0828 | 1.4219 | 0.000000 | 0.1501 | 0.3386 | 0.90 | 75 | 0.4203 |
+| 15 | turnover_imbalance_lt_p25__aggregation_density_lt_ | 0.1130 | 1.2045 | 0.000000 | 0.0734 | 0.0818 | 0.85 | 137 | 0.3988 |
+| 16 | price_impact_lt_p25__aggregation_density_lt_p25 | 0.0742 | 1.4359 | 0.000000 | 0.1429 | 0.2908 | 0.85 | 67 | 0.3845 |
+| 17 | vwap_close_deviation_gt_p90__aggregation_density_l | 0.0987 | 1.2495 | 0.000000 | 0.0895 | 0.0992 | 0.75 | 114 | 0.3619 |
+| 18 | price_impact_gt_p90__aggregation_density_lt_p25 | 0.0932 | 1.2395 | 0.000000 | 0.1297 | 0.2876 | 0.85 | 180 | 0.3357 |
+| 19 | ofi_gt_p90__price_impact_lt_p10 | 0.0950 | 1.2340 | 0.000000 | 0.0543 | 0.0000 | 0.70 | 76 | 0.3231 |
+| 20 | turnover_imbalance_gt_p90__vwap_close_deviation_gt | 0.0813 | 1.2953 | 0.000000 | 0.1357 | 0.2000 | 1.00 | 125 | 0.3165 |
 
 ## 2. Tier3 Strict
 
-**Thresholds**: Kelly > 0.05, Omega > 1.05, DSR > -1.0, MinBTL headroom > 0.1, n_trades >= 100
+**Thresholds**: Omega > 1.05, DSR > -1.0, MinBTL headroom > 0.1, n_trades >= 100, regularity_cv < 0.5, coverage >= 0.7
 
 ### Funnel (individual gate pass rates)
 
 | Gate | Pass | Fail | % Pass |
 |------|------|------|--------|
-| kelly | 78 | 930 | 7.7% |
 | omega | 336 | 672 | 33.3% |
 | dsr | 961 | 47 | 95.3% |
 | headroom | 128 | 880 | 12.7% |
@@ -118,42 +120,46 @@
 | tamrs | 18 | 990 | 1.8% |
 | rachev | 914 | 94 | 90.7% |
 | ou_ratio | 17 | 991 | 1.7% |
+| regularity_cv | 751 | 257 | 74.5% |
+| temporal_coverage | 738 | 270 | 73.2% |
 | **ALL gates** | **0** | **1008** | **0.0%** |
 
-### Binding Constraint: **kelly** (kills 0 configs that pass other 4 gates)
+### Binding Constraint: **omega** (kills 0 configs that pass other 4 gates)
 
 **No configs pass all gates at this tier.**
 
 ## 3. Near-Miss Analysis (Tier 2 -- fail exactly 1 gate)
 
-**99 configs** fail exactly 1 gate at Tier 2:
+**172 configs** fail exactly 1 gate at Tier 2:
 
 | Failed Gate | Count |
 |-------------|-------|
-| kelly | 31 |
-| tamrs | 31 |
-| headroom | 24 |
-| n_trades | 13 |
+| headroom | 94 |
+| tamrs | 59 |
+| n_trades | 10 |
+| omega | 5 |
+| regularity_cv | 3 |
+| temporal_coverage | 1 |
 
-### Top 10 Near-Misses (by Kelly)
+### Top 10 Near-Misses (by TAMRS)
 
-| Config ID | Kelly | Omega | DSR | Headroom | N | Failed Gate |
-|-----------|-------|-------|-----|----------|---|-------------|
-| aggression_ratio_lt_p25__turnover_imbalance_g | 0.2827 | 2.1721 | 0.000000 | 0.2024 | 21 | n_trades |
-| ofi_gt_p50__aggression_ratio_lt_p25 | 0.2827 | 2.1721 | 0.000000 | 0.2024 | 21 | n_trades |
-| vwap_close_deviation_lt_p10__volume_per_trade | 0.2742 | 2.1333 | 0.000000 | 0.2886 | 31 | n_trades |
-| ofi_gt_p90__vwap_close_deviation_gt_p75 | 0.2712 | 2.1152 | 0.000000 | 0.3198 | 35 | n_trades |
-| turnover_imbalance_gt_p90__vwap_close_deviati | 0.2712 | 2.1152 | 0.000000 | 0.3198 | 35 | n_trades |
-| volume_per_trade_gt_p90__aggregation_density_ | 0.2091 | 1.9743 | 0.000000 | 0.3023 | 40 | n_trades |
-| vwap_close_deviation_gt_p90__duration_us_gt_p | 0.1522 | 1.5385 | 0.000000 | 0.0677 | 23 | n_trades |
-| aggression_ratio_lt_p50__turnover_imbalance_g | 0.1424 | 1.4976 | 0.000000 | 0.0541 | 21 | n_trades |
-| ofi_gt_p90__aggression_ratio_lt_p50 | 0.1424 | 1.4976 | 0.000000 | 0.0541 | 21 | n_trades |
-| price_impact_lt_p10__aggregation_density_lt_p | 0.1207 | 1.4118 | 0.000000 | 0.0550 | 29 | n_trades |
+| Config ID | TAMRS | Omega | DSR | Headroom | Reg CV | Cov | N | Failed Gate |
+|-----------|-------|-------|-----|----------|--------|-----|---|-------------|
+| ofi_gt_p50__aggression_ratio_lt_p25 | 0.3502 | 2.1721 | 0.000000 | 0.2024 | 0.0000 | 0.55 | 21 | n_trades |
+| ofi_gt_p90__vwap_close_deviation_gt_p75 | 0.2635 | 2.1152 | 0.000000 | 0.3198 | 0.0376 | 0.85 | 35 | n_trades |
+| aggression_ratio_lt_p50__turnover_imbalance_g | 0.2489 | 1.4976 | 0.000000 | 0.0541 | 0.0000 | 0.55 | 21 | n_trades |
+| aggression_ratio_lt_p25__turnover_imbalance_g | 0.2420 | 2.1721 | 0.000000 | 0.2024 | 0.0000 | 0.55 | 21 | n_trades |
+| turnover_imbalance_gt_p90__price_impact_gt_p7 | 0.2304 | 1.6615 | 0.000000 | 0.1891 | 0.4416 | 0.70 | 46 | n_trades |
+| ofi_gt_p90__price_impact_gt_p75 | 0.2298 | 1.6615 | 0.000000 | 0.1891 | 0.4416 | 0.70 | 46 | n_trades |
+| turnover_imbalance_gt_p90__vwap_close_deviati | 0.1979 | 2.1152 | 0.000000 | 0.3198 | 0.0376 | 0.85 | 35 | n_trades |
+| ofi_gt_p90__aggression_ratio_lt_p50 | 0.1867 | 1.4976 | 0.000000 | 0.0541 | 0.0000 | 0.55 | 21 | n_trades |
+| price_impact_lt_p10__vwap_close_deviation_lt_ | 0.1863 | 1.1515 | 0.000000 | 0.0165 | 0.0714 | 0.60 | 52 | headroom |
+| aggression_ratio_gt_p75__vwap_close_deviation | 0.1611 | 1.2010 | 0.000000 | 0.0318 | 0.0926 | 0.80 | 60 | headroom |
 
 ## 4. Summary
 
 | Tier | Pass | % | Binding Constraint |
 |------|------|---|-------------------|
-| Tier1 Exploratory | 151 | 15.0% | kelly |
-| Tier2 Balanced | 42 | 4.2% | kelly |
-| Tier3 Strict | 0 | 0.0% | kelly |
+| Tier1 Exploratory | 298 | 29.6% | omega |
+| Tier2 Balanced | 69 | 6.8% | headroom |
+| Tier3 Strict | 0 | 0.0% | omega |

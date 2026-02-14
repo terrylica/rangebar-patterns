@@ -54,3 +54,16 @@ SCREEN_OU_RATIO_MIN: tuple[float, ...] = (
     float(os.environ.get("RBP_SCREEN_OU_RATIO_MIN_T2", "0.30")),
     float(os.environ.get("RBP_SCREEN_OU_RATIO_MIN_T3", "0.50")),
 )
+
+# ---- Signal Regularity Parameters (Issue #17) ----
+MIN_TRADES_REGULARITY: int = int(os.environ.get("RBP_MIN_TRADES_REGULARITY", "10"))
+SCREEN_REGULARITY_CV_MAX: tuple[float, ...] = (
+    float(os.environ.get("RBP_SCREEN_REGULARITY_CV_MAX_T1", "999.0")),
+    float(os.environ.get("RBP_SCREEN_REGULARITY_CV_MAX_T2", "0.80")),
+    float(os.environ.get("RBP_SCREEN_REGULARITY_CV_MAX_T3", "0.50")),
+)
+SCREEN_COVERAGE_MIN: tuple[float, ...] = (
+    float(os.environ.get("RBP_SCREEN_COVERAGE_MIN_T1", "0.0")),
+    float(os.environ.get("RBP_SCREEN_COVERAGE_MIN_T2", "0.50")),
+    float(os.environ.get("RBP_SCREEN_COVERAGE_MIN_T3", "0.70")),
+)
