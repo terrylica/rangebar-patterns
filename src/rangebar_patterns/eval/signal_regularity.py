@@ -116,35 +116,23 @@ def main():
         n_trades = data.get("n_trades", 0)
         timestamps = data.get("timestamps_ms", [])
 
+        null_result = {
+            "config_id": config_id, "n_trades": n_trades,
+            "kde_peak_cv": None, "n_peaks": None,
+            "raw_iat_cv": None, "temporal_coverage": None,
+        }
+
         if data.get("error") or n_trades < MIN_TRADES_REGULARITY:
-            results.append({
-                "config_id": config_id,
-                "n_trades": n_trades,
-                "kde_peak_cv": None,
-                "n_peaks": None,
-                "raw_iat_cv": None,
-                "temporal_coverage": None,
-            })
+            results.append(null_result)
             continue
 
         reg = compute_signal_regularity(timestamps)
         if reg is None:
-            results.append({
-                "config_id": config_id,
-                "n_trades": n_trades,
-                "kde_peak_cv": None,
-                "n_peaks": None,
-                "raw_iat_cv": None,
-                "temporal_coverage": None,
-            })
+            results.append(null_result)
             continue
 
         n_valid += 1
-        results.append({
-            "config_id": config_id,
-            "n_trades": n_trades,
-            **reg,
-        })
+        results.append({"config_id": config_id, "n_trades": n_trades, **reg})
 
     with open(output_file, "w") as f:
         for r in results:
