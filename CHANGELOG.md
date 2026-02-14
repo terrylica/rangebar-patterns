@@ -1,3 +1,14 @@
+# [1.8.0](https://github.com/terrylica/rangebar-patterns/compare/v1.7.0...v1.8.0) (2026-02-14)
+
+
+### Features
+
+* 10K-trial optimization results — 5 objectives, universal champion identified ([a6f7b9d](https://github.com/terrylica/rangebar-patterns/commit/a6f7b9d0e3c8d4138875cc0b5bb2cb682e59dd24))
+* add per-metric percentile ranking system with Optuna cutoff optimizer (Issue [#17](https://github.com/terrylica/rangebar-patterns/issues/17)) ([0c6d53f](https://github.com/terrylica/rangebar-patterns/commit/0c6d53f64ef8a62bc9e8f108fe4c8b2d0afbc66c))
+* add signal regularity gate, remove Kelly from screening (Issue [#17](https://github.com/terrylica/rangebar-patterns/issues/17)) ([4ee7980](https://github.com/terrylica/rangebar-patterns/commit/4ee798068b3fcb30b106d9af681994c5048b547e))
+* rolling 1000-bar OU calibration per signal — Option A (Issue [#16](https://github.com/terrylica/rangebar-patterns/issues/16)) ([1847d33](https://github.com/terrylica/rangebar-patterns/commit/1847d33b1432e892297bc3d946eb124e55c4aad6))
+* TAMRS evaluation stack — Rachev, CDaR, OU barriers, screening integration (Issue [#16](https://github.com/terrylica/rangebar-patterns/issues/16)) ([181af9d](https://github.com/terrylica/rangebar-patterns/commit/181af9ddfe136f58b075e92cfbdc6d95a4d61e40))
+
 # [1.7.0](https://github.com/terrylica/rangebar-patterns/compare/v1.6.0...v1.7.0) (2026-02-13)
 
 
