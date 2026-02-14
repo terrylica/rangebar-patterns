@@ -66,6 +66,16 @@ run = "uv run -p 3.13 python scripts/tamrs_poc.py"
 description = "Compute signal temporal regularity via KDE peak-finding per config. Reads results/eval/trade_returns.jsonl (timestamps_ms), writes results/eval/signal_regularity_rankings.jsonl. KDE with Scott/4 bandwidth, peak CV + temporal coverage. Replaces Kelly as screening gate (Issue #17)."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.signal_regularity"
 
+# ---- Ranking (Issue #17) ----
+
+["eval:rank"]
+description = "Compute per-metric percentile rankings and intersection at configurable cutoffs. Each metric has its own RBP_RANK_CUT_<METRIC> env var (default 100 = no filter). Intersection = configs passing all cutoffs. Writes results/eval/rankings.jsonl + ranking_report.md. Independent of screening (Issue #17)."
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.ranking"
+
+["eval:rank-optimize"]
+description = "Run Optuna evolutionary optimization to find best per-metric percentile cutoffs. Objective from RBP_RANK_OBJECTIVE (default: max_survivors_min_cutoff). N trials from RBP_RANK_N_TRIALS (default: 200). Writes results/eval/rank_optimization.jsonl with best cutoffs and trial history. See Issue #17."
+run = "uv run -p 3.13 python scripts/rank_optimize.py"
+
 # ---- Pipeline orchestration ----
 
 ["eval:compute"]
@@ -78,4 +88,4 @@ depends = ["eval:compute", "eval:tamrs", "eval:cscv"]
 
 ["eval:full"]
 description = "Full eval pipeline: extract + OU + compute + synthesize + screen. Runs ClickHouse extraction, all metric modules, cross-metric synthesis, and multi-tier screening. Override any parameter via RBP_* env vars. See Issue #12, #16."
-depends = ["eval:extract", "eval:ou", "eval:compute", "eval:compute-phase2", "eval:synthesize", "eval:screen"]
+depends = ["eval:extract", "eval:ou", "eval:compute", "eval:compute-phase2", "eval:synthesize", "eval:screen", "eval:rank"]

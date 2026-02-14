@@ -67,3 +67,23 @@ SCREEN_COVERAGE_MIN: tuple[float, ...] = (
     float(os.environ.get("RBP_SCREEN_COVERAGE_MIN_T2", "0.50")),
     float(os.environ.get("RBP_SCREEN_COVERAGE_MIN_T3", "0.70")),
 )
+
+# ---- Ranking Cutoffs (Issue #17) ----
+# Per-metric percentile cutoff: top X% survives. 100 = no filter. 0 = nothing passes.
+# All default to 100 (wide open). Evolutionary optimizer tightens from here.
+RANK_CUT_TAMRS: int = int(os.environ.get("RBP_RANK_CUT_TAMRS", "100"))
+RANK_CUT_RACHEV: int = int(os.environ.get("RBP_RANK_CUT_RACHEV", "100"))
+RANK_CUT_OU_RATIO: int = int(os.environ.get("RBP_RANK_CUT_OU_RATIO", "100"))
+RANK_CUT_SL_CDAR: int = int(os.environ.get("RBP_RANK_CUT_SL_CDAR", "100"))
+RANK_CUT_OMEGA: int = int(os.environ.get("RBP_RANK_CUT_OMEGA", "100"))
+RANK_CUT_DSR: int = int(os.environ.get("RBP_RANK_CUT_DSR", "100"))
+RANK_CUT_HEADROOM: int = int(os.environ.get("RBP_RANK_CUT_HEADROOM", "100"))
+RANK_CUT_EVALUE: int = int(os.environ.get("RBP_RANK_CUT_EVALUE", "100"))
+RANK_CUT_REGULARITY_CV: int = int(os.environ.get("RBP_RANK_CUT_REGULARITY_CV", "100"))
+RANK_CUT_COVERAGE: int = int(os.environ.get("RBP_RANK_CUT_COVERAGE", "100"))
+RANK_CUT_N_TRADES: int = int(os.environ.get("RBP_RANK_CUT_N_TRADES", "100"))
+RANK_CUT_KELLY: int = int(os.environ.get("RBP_RANK_CUT_KELLY", "100"))
+RANK_TOP_N: int = int(os.environ.get("RBP_RANK_TOP_N", "50"))
+RANK_OBJECTIVE: str = os.environ.get("RBP_RANK_OBJECTIVE", "max_survivors_min_cutoff")
+RANK_N_TRIALS: int = int(os.environ.get("RBP_RANK_N_TRIALS", "200"))
+RANK_TARGET_N: int = int(os.environ.get("RBP_RANK_TARGET_N", "10"))

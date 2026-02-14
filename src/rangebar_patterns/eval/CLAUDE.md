@@ -28,23 +28,24 @@ TAMRS (Tail-Adjusted Mean Reversion Score) replaces Kelly as primary ranker (Iss
 
 ## Module Index
 
-| Module                 | Purpose                                       | Key Function(s)                                              |
-| ---------------------- | --------------------------------------------- | ------------------------------------------------------------ |
-| `_io.py`               | Shared I/O: load_jsonl, results_dir           | `results_dir()`, `load_jsonl()`                              |
-| `extraction.py`        | ClickHouse SQL extraction (moments + returns) | `generate_configs()`, `build_sql()`, `run_query_ou_prices()` |
-| `dsr.py`               | DSR + PSR                                     | `compute_psr()`, `expected_max_sr()`                         |
-| `minbtl.py`            | Minimum Backtest Length gate                  | `compute_minbtl()`                                           |
-| `cornish_fisher.py`    | Cornish-Fisher Expected Shortfall             | `cornish_fisher_quantile()`, `cf_expected_shortfall()`       |
-| `omega.py`             | Omega Ratio from trade returns                | `compute_omega()`                                            |
-| `cscv.py`              | CSCV/PBO with TAMRS or Sharpe ranker          | `compute_sharpe()`, `compute_tamrs_for_block()`              |
-| `evalues.py`           | E-values + GROW sequential test               | `compute_evalues()`                                          |
-| `rachev.py`            | Rachev ratio (CVaR tail asymmetry)            | `compute_rachev()`                                           |
-| `cdar.py`              | CDaR (Conditional Drawdown at Risk)           | `compute_cdar()`                                             |
-| `ou_barriers.py`       | OU calibration + barrier ratio                | `calibrate_ou()`, `ou_barrier_ratio()`                       |
-| `tamrs.py`             | TAMRS composite (Rachev _SL/CDaR_ OU)         | `compute_tamrs()`                                            |
-| `synthesis.py`         | e-BH FDR + Romano-Wolf + TAMRS correlation    | `ebh_procedure()`, `romano_wolf_stepdown()`                  |
-| `signal_regularity.py` | KDE temporal regularity (Issue #17)           | `compute_signal_regularity()`                                |
-| `screening.py`         | Multi-tier screening (TAMRS + regularity)     | `passes_tier()`, `compute_composite_scores()`                |
+| Module                 | Purpose                                       | Key Function(s)                                                      |
+| ---------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
+| `_io.py`               | Shared I/O: load_jsonl, results_dir           | `results_dir()`, `load_jsonl()`                                      |
+| `extraction.py`        | ClickHouse SQL extraction (moments + returns) | `generate_configs()`, `build_sql()`, `run_query_ou_prices()`         |
+| `dsr.py`               | DSR + PSR                                     | `compute_psr()`, `expected_max_sr()`                                 |
+| `minbtl.py`            | Minimum Backtest Length gate                  | `compute_minbtl()`                                                   |
+| `cornish_fisher.py`    | Cornish-Fisher Expected Shortfall             | `cornish_fisher_quantile()`, `cf_expected_shortfall()`               |
+| `omega.py`             | Omega Ratio from trade returns                | `compute_omega()`                                                    |
+| `cscv.py`              | CSCV/PBO with TAMRS or Sharpe ranker          | `compute_sharpe()`, `compute_tamrs_for_block()`                      |
+| `evalues.py`           | E-values + GROW sequential test               | `compute_evalues()`                                                  |
+| `rachev.py`            | Rachev ratio (CVaR tail asymmetry)            | `compute_rachev()`                                                   |
+| `cdar.py`              | CDaR (Conditional Drawdown at Risk)           | `compute_cdar()`                                                     |
+| `ou_barriers.py`       | OU calibration + barrier ratio                | `calibrate_ou()`, `ou_barrier_ratio()`                               |
+| `tamrs.py`             | TAMRS composite (Rachev _SL/CDaR_ OU)         | `compute_tamrs()`                                                    |
+| `synthesis.py`         | e-BH FDR + Romano-Wolf + TAMRS correlation    | `ebh_procedure()`, `romano_wolf_stepdown()`                          |
+| `signal_regularity.py` | KDE temporal regularity (Issue #17)           | `compute_signal_regularity()`                                        |
+| `screening.py`         | Multi-tier screening (TAMRS + regularity)     | `passes_tier()`, `compute_composite_scores()`                        |
+| `ranking.py`           | Per-metric percentile cutoffs + intersection  | `percentile_ranks()`, `apply_cutoff()`, `run_ranking_with_cutoffs()` |
 
 ---
 
@@ -76,6 +77,11 @@ All research parameters come from `rangebar_patterns.config` (SSoT = `.mise.toml
 | `MIN_TRADES_REGULARITY`    | signal_regularity.py          |
 | `SCREEN_REGULARITY_CV_MAX` | screening.py                  |
 | `SCREEN_COVERAGE_MIN`      | screening.py                  |
+| `RANK_CUT_*` (12 metrics)  | ranking.py                    |
+| `RANK_TOP_N`               | ranking.py                    |
+| `RANK_OBJECTIVE`           | rank_optimize.py              |
+| `RANK_N_TRIALS`            | rank_optimize.py              |
+| `RANK_TARGET_N`            | rank_optimize.py              |
 
 Override via environment: `RBP_RACHEV_ALPHA=0.10 mise run eval:rachev`
 
@@ -99,11 +105,13 @@ mise run eval:regularity       # KDE signal regularity
 mise run eval:evalues
 mise run eval:synthesize
 mise run eval:screen
+mise run eval:rank             # Per-metric percentile ranking
+mise run eval:rank-optimize    # Optuna cutoff optimization
 
 # Pipeline orchestration
 mise run eval:compute          # Phase 1: all parallel local metrics
 mise run eval:compute-phase2   # Phase 2: TAMRS + CSCV (after Phase 1)
-mise run eval:full             # Everything: extract + ou + compute + synthesize + screen
+mise run eval:full             # Everything: extract + ou + compute + synthesize + screen + rank
 
 # POC validation
 mise run eval:tamrs-poc        # Synthetic profile validation
@@ -137,6 +145,9 @@ Output goes to `results/eval/` (repo root, git-tracked):
 | verdict.md                       | synthesis.py         |
 | lenient_screen.jsonl             | screening.py         |
 | lenient_verdict.md               | screening.py         |
+| rankings.jsonl                   | ranking.py           |
+| ranking_report.md                | ranking.py           |
+| rank_optimization.jsonl          | rank_optimize.py     |
 
 ---
 
