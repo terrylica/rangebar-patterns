@@ -58,10 +58,12 @@ def compute_tamrs_for_block(
 
 
 def _get_ranker_fn(ranker: str, ou_ratio: float):
-    """Return (rank_fn, score_fn) based on ranker selection.
+    """Return rank_fn based on ranker selection.
 
     rank_fn: (np.ndarray) -> float  -- scores a block of returns
     Both rankers return a float (higher = better).
+
+    ou_ratio can be per-config (caller sets it) or global fallback.
     """
     if ranker == "tamrs":
         def _tamrs_fn(rets: np.ndarray) -> float:
@@ -79,21 +81,28 @@ def main():
     print(f"Loaded {len(all_data)} configs from {input_file}")
     print(f"Ranker: {CSCV_RANKER} (RBP_CSCV_RANKER)")
 
-    # Load OU calibration for TAMRS ranker
-    ou_ratio = 1.0
+    # Load OU calibration for TAMRS ranker (per-config or global)
+    ou_per_config: dict[str, float] = {}
+    ou_fallback = 1.0
     if CSCV_RANKER == "tamrs":
         ou_file = rd / "ou_calibration.jsonl"
         if ou_file.exists():
             ou_records = load_jsonl(ou_file)
-            if ou_records and ou_records[0].get("mean_reverting"):
-                ou_ratio = ou_records[0].get("ou_barrier_ratio", 1.0)
-                print(f"OU barrier ratio: {ou_ratio}")
-            else:
-                print("WARNING: OU not mean-reverting, using ou_ratio=1.0")
+            if ou_records:
+                summary = ou_records[0]
+                if summary.get("method") == "rolling":
+                    for rec in ou_records[1:]:
+                        cid = rec.get("config_id")
+                        if cid and rec.get("ou_barrier_ratio") is not None:
+                            ou_per_config[cid] = rec["ou_barrier_ratio"]
+                    print(f"OU method: rolling ({len(ou_per_config)} per-config ratios)")
+                elif summary.get("mean_reverting"):
+                    ou_fallback = summary.get("ou_barrier_ratio", 1.0)
+                    print(f"OU method: full_history (global ratio={ou_fallback})")
+                else:
+                    print("WARNING: OU not mean-reverting, using ou_ratio=1.0")
         else:
             print("WARNING: ou_calibration.jsonl not found, using ou_ratio=1.0")
-
-    rank_fn = _get_ranker_fn(CSCV_RANKER, ou_ratio)
 
     # Collect all timestamps to define time blocks
     all_timestamps = set()
@@ -125,6 +134,12 @@ def main():
             blocks[block_idx].append(r)
         block_returns.append([np.array(b) for b in blocks])
 
+    # Build per-config ranker functions
+    rank_fns = []
+    for cid in config_ids:
+        ou_ratio = ou_per_config.get(cid, ou_fallback)
+        rank_fns.append(_get_ranker_fn(CSCV_RANKER, ou_ratio))
+
     all_blocks = list(range(N_SPLITS))
     splits = list(combinations(all_blocks, N_SPLITS // 2))
     print(f"Generated {len(splits)} combinatorial splits")
@@ -141,7 +156,7 @@ def main():
                 [block_returns[cfg_idx][b] for b in train_blocks
                  if len(block_returns[cfg_idx][b]) > 0]
             ) if any(len(block_returns[cfg_idx][b]) > 0 for b in train_blocks) else np.array([])
-            is_scores[cfg_idx] = rank_fn(train_rets)
+            is_scores[cfg_idx] = rank_fns[cfg_idx](train_rets)
 
         is_winner_idx = int(np.argmax(is_scores))
         is_winner_configs.append(config_ids[is_winner_idx])
@@ -152,7 +167,7 @@ def main():
                 [block_returns[cfg_idx][b] for b in test_blocks
                  if len(block_returns[cfg_idx][b]) > 0]
             ) if any(len(block_returns[cfg_idx][b]) > 0 for b in test_blocks) else np.array([])
-            oos_scores[cfg_idx] = rank_fn(test_rets)
+            oos_scores[cfg_idx] = rank_fns[cfg_idx](test_rets)
 
         is_winner_oos = oos_scores[is_winner_idx]
         rank_pct = float(np.mean(oos_scores <= is_winner_oos))

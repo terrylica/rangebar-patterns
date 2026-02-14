@@ -140,12 +140,12 @@ Output goes to `results/eval/` (repo root, git-tracked):
 | e-BH discoveries                | **0** / 961                          |
 | Romano-Wolf rejections          | **0** / 939                          |
 | DSR > 0.95                      | **0** / 961                          |
-| PBO (TAMRS ranker)              | **0.3143** (marginal)                |
+| PBO (TAMRS ranker)              | **0.3714** (marginal)                |
 | Kelly > 0 configs               | 220 / 1,008                          |
 | Pathological (Kelly>0, DSR<0.5) | 218                                  |
 | Expected max SR (null)          | 3.2574                               |
-| TAMRS range (real OU)           | [0.0005, 0.0214]                     |
-| OU barrier ratio (SOLUSDT@500)  | 0.0214 (TP=2.1% of OU optimal)       |
-| OU half-life                    | 23,967 bars                          |
-| Spearman(TAMRS, Kelly)          | 0.034 (uncorrelated)                 |
-| T2/T3 pass (real OU)            | **0** / 1,008 (OU penalty dominates) |
+| TAMRS range (rolling 1000-bar)  | [0.009, 0.379]                       |
+| OU method                       | Rolling 1000-bar lookback per signal |
+| OU ratio range                  | [0.215, 0.664] (median 0.388)        |
+| Spearman(TAMRS, Kelly)          | -0.010 (uncorrelated)                |
+| T1 / T2 / T3 pass               | 151 / **42** / 0 (binding: Kelly)    |
