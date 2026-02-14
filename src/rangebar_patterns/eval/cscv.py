@@ -1,12 +1,17 @@
 """Combinatorial Symmetric Cross-Validation (CSCV) and PBO.
 
-Implements CSCV with S=8 blocks to estimate Probability of Backtest
-Overfitting (PBO). For each of C(8,4)=70 train/test splits, finds the
-best config by Sharpe on train data and measures its OOS rank.
+Implements CSCV with S blocks (default 8) to estimate Probability of Backtest
+Overfitting (PBO). For each of C(S,S/2) train/test splits, finds the
+best config by the selected ranker (TAMRS or Sharpe) on train data and
+measures its OOS rank.
 
 PBO = fraction of splits where the IS-winner underperforms the OOS median.
 
+Ranker controlled by RBP_CSCV_RANKER (mise env): "tamrs" (default) or "sharpe".
+Splits controlled by RBP_CSCV_SPLITS (mise env): default 8 -> C(8,4)=70 combos.
+
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -17,9 +22,10 @@ from itertools import combinations
 
 import numpy as np
 
+from rangebar_patterns.config import CSCV_RANKER, CSCV_SPLITS, SL_EMP
 from rangebar_patterns.eval._io import load_jsonl, results_dir
 
-N_SPLITS = 8
+N_SPLITS = CSCV_SPLITS
 
 
 def compute_sharpe(returns: np.ndarray) -> float:
@@ -32,6 +38,38 @@ def compute_sharpe(returns: np.ndarray) -> float:
     return float(returns.mean() / std)
 
 
+def compute_tamrs_for_block(
+    returns: np.ndarray, sl_emp: float, ou_ratio: float,
+) -> float:
+    """TAMRS ranker for CSCV block evaluation.
+
+    Computes Rachev * min(1, |SL|/CDaR) * ou_ratio for a single block.
+    Returns 0.0 if insufficient trades for stable Rachev/CDaR.
+    """
+    from rangebar_patterns.eval.cdar import compute_cdar
+    from rangebar_patterns.eval.rachev import compute_rachev
+
+    rr = compute_rachev(returns.tolist())
+    cd = compute_cdar(returns.tolist())
+    if rr is None or cd is None:
+        return 0.0
+    sl_cdar = min(1.0, sl_emp / cd) if cd > 1e-12 else 1.0
+    return rr * sl_cdar * ou_ratio
+
+
+def _get_ranker_fn(ranker: str, ou_ratio: float):
+    """Return (rank_fn, score_fn) based on ranker selection.
+
+    rank_fn: (np.ndarray) -> float  -- scores a block of returns
+    Both rankers return a float (higher = better).
+    """
+    if ranker == "tamrs":
+        def _tamrs_fn(rets: np.ndarray) -> float:
+            return compute_tamrs_for_block(rets, SL_EMP, ou_ratio)
+        return _tamrs_fn
+    return compute_sharpe
+
+
 def main():
     rd = results_dir()
     input_file = rd / "trade_returns.jsonl"
@@ -39,6 +77,23 @@ def main():
 
     all_data = load_jsonl(input_file)
     print(f"Loaded {len(all_data)} configs from {input_file}")
+    print(f"Ranker: {CSCV_RANKER} (RBP_CSCV_RANKER)")
+
+    # Load OU calibration for TAMRS ranker
+    ou_ratio = 1.0
+    if CSCV_RANKER == "tamrs":
+        ou_file = rd / "ou_calibration.jsonl"
+        if ou_file.exists():
+            ou_records = load_jsonl(ou_file)
+            if ou_records and ou_records[0].get("mean_reverting"):
+                ou_ratio = ou_records[0].get("ou_barrier_ratio", 1.0)
+                print(f"OU barrier ratio: {ou_ratio}")
+            else:
+                print("WARNING: OU not mean-reverting, using ou_ratio=1.0")
+        else:
+            print("WARNING: ou_calibration.jsonl not found, using ou_ratio=1.0")
+
+    rank_fn = _get_ranker_fn(CSCV_RANKER, ou_ratio)
 
     # Collect all timestamps to define time blocks
     all_timestamps = set()
@@ -80,27 +135,27 @@ def main():
     for train_blocks in splits:
         test_blocks = [b for b in all_blocks if b not in train_blocks]
 
-        is_sharpes = np.zeros(n_configs)
+        is_scores = np.zeros(n_configs)
         for cfg_idx in range(n_configs):
             train_rets = np.concatenate(
                 [block_returns[cfg_idx][b] for b in train_blocks
                  if len(block_returns[cfg_idx][b]) > 0]
             ) if any(len(block_returns[cfg_idx][b]) > 0 for b in train_blocks) else np.array([])
-            is_sharpes[cfg_idx] = compute_sharpe(train_rets)
+            is_scores[cfg_idx] = rank_fn(train_rets)
 
-        is_winner_idx = int(np.argmax(is_sharpes))
+        is_winner_idx = int(np.argmax(is_scores))
         is_winner_configs.append(config_ids[is_winner_idx])
 
-        oos_sharpes = np.zeros(n_configs)
+        oos_scores = np.zeros(n_configs)
         for cfg_idx in range(n_configs):
             test_rets = np.concatenate(
                 [block_returns[cfg_idx][b] for b in test_blocks
                  if len(block_returns[cfg_idx][b]) > 0]
             ) if any(len(block_returns[cfg_idx][b]) > 0 for b in test_blocks) else np.array([])
-            oos_sharpes[cfg_idx] = compute_sharpe(test_rets)
+            oos_scores[cfg_idx] = rank_fn(test_rets)
 
-        is_winner_oos = oos_sharpes[is_winner_idx]
-        rank_pct = float(np.mean(oos_sharpes <= is_winner_oos))
+        is_winner_oos = oos_scores[is_winner_idx]
+        rank_pct = float(np.mean(oos_scores <= is_winner_oos))
         oos_ranks_of_is_winner.append(rank_pct)
 
     pbo = float(np.mean(np.array(oos_ranks_of_is_winner) < 0.5))
@@ -112,6 +167,7 @@ def main():
         "n_configs": n_configs,
         "n_splits": N_SPLITS,
         "n_combinations": len(splits),
+        "ranker": CSCV_RANKER,
         "pbo": round(pbo, 4),
         "pbo_interpretation": (
             "ROBUST" if pbo < 0.05
@@ -129,6 +185,7 @@ def main():
         f.write(json.dumps(result) + "\n")
 
     print(f"\nPBO = {pbo:.4f} ({result['pbo_interpretation']})")
+    print(f"Ranker: {CSCV_RANKER}")
     print(f"Mean OOS rank of IS winner: {result['mean_oos_rank']:.4f}")
     print(f"Most common IS winner: {most_common_winner[0]} ({most_common_winner[1]}/{len(splits)} splits)")
     print(f"Output: {output_file}")

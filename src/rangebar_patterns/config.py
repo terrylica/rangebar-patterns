@@ -27,3 +27,30 @@ MAX_BARS: int = int(os.environ.get("RBP_MAX_BARS", "50"))
 N_TRIALS: int = int(os.environ.get("RBP_N_TRIALS", "1008"))
 ALPHA: float = float(os.environ.get("RBP_ALPHA", "0.05"))
 DSR_THRESHOLD: float = float(os.environ.get("RBP_DSR_THRESHOLD", "0.95"))
+
+# ---- TAMRS Parameters (Issue #16) ----
+RACHEV_ALPHA: float = float(os.environ.get("RBP_RACHEV_ALPHA", "0.05"))
+CDAR_ALPHA: float = float(os.environ.get("RBP_CDAR_ALPHA", "0.95"))
+MIN_TRADES_RACHEV: int = int(os.environ.get("RBP_MIN_TRADES_RACHEV", "20"))
+MIN_TRADES_CDAR: int = int(os.environ.get("RBP_MIN_TRADES_CDAR", "10"))
+CSCV_RANKER: str = os.environ.get("RBP_CSCV_RANKER", "tamrs")
+CSCV_SPLITS: int = int(os.environ.get("RBP_CSCV_SPLITS", "8"))
+TP_EMP: float = TP_MULT * THRESHOLD_PCT  # Derived: 0.5 * 0.05 = 0.025
+SL_EMP: float = SL_MULT * THRESHOLD_PCT  # Derived: 0.25 * 0.05 = 0.0125
+
+# ---- Screening Tier Thresholds (Issue #16) ----
+SCREEN_TAMRS_MIN: tuple[float, ...] = (
+    float(os.environ.get("RBP_SCREEN_TAMRS_MIN_T1", "0.0")),
+    float(os.environ.get("RBP_SCREEN_TAMRS_MIN_T2", "0.05")),
+    float(os.environ.get("RBP_SCREEN_TAMRS_MIN_T3", "0.15")),
+)
+SCREEN_RACHEV_MIN: tuple[float, ...] = (
+    float(os.environ.get("RBP_SCREEN_RACHEV_MIN_T1", "0.0")),
+    float(os.environ.get("RBP_SCREEN_RACHEV_MIN_T2", "0.30")),
+    float(os.environ.get("RBP_SCREEN_RACHEV_MIN_T3", "0.50")),
+)
+SCREEN_OU_RATIO_MIN: tuple[float, ...] = (
+    float(os.environ.get("RBP_SCREEN_OU_RATIO_MIN_T1", "0.0")),
+    float(os.environ.get("RBP_SCREEN_OU_RATIO_MIN_T2", "0.30")),
+    float(os.environ.get("RBP_SCREEN_OU_RATIO_MIN_T3", "0.50")),
+)

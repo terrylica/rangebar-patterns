@@ -320,6 +320,25 @@ def run_query_returns(client, config: dict) -> dict | None:
         return None
 
 
+def run_query_ou_prices(client, symbol: str, threshold: int) -> list[float]:
+    """Extract close prices for OU calibration. Returns list of floats.
+
+    Uses query_arrow for zero-copy Arrow extraction when available,
+    falls back to standard query otherwise.
+    """
+    sql = (
+        f"SELECT close FROM rangebar_cache.range_bars "
+        f"WHERE symbol = '{symbol}' AND threshold_decimal_bps = {threshold} "
+        f"ORDER BY timestamp_ms"
+    )
+    try:
+        arrow_table = client.query_arrow(sql)
+        return arrow_table.column("close").to_pylist()
+    except (AttributeError, RuntimeError):
+        result = client.query(sql)
+        return [float(row[0]) for row in result.result_rows]
+
+
 def _run_extraction(mode: str) -> None:
     """Common extraction loop for both modes."""
     import clickhouse_connect

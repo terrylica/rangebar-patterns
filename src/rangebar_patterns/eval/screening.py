@@ -1,10 +1,12 @@
-"""Multi-tier lenient screening for forensic re-evaluation.
+"""Multi-tier lenient screening with TAMRS gates for forensic re-evaluation.
 
 Re-evaluates all configs with graduated lenient thresholds (3 tiers) to
-identify candidates for further investigation. The strict thresholds from
-the original POC (DSR > 0.95, MinBTL pass) yielded 0 survivors.
+identify candidates for further investigation. Includes TAMRS gates
+(Rachev, CDaR, OU barrier ratio) from Issue #16 alongside the original
+5-metric gates from Issue #12.
 
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -14,9 +16,15 @@ import math
 
 import numpy as np
 
+from rangebar_patterns.config import (
+    SCREEN_OU_RATIO_MIN,
+    SCREEN_RACHEV_MIN,
+    SCREEN_TAMRS_MIN,
+)
 from rangebar_patterns.eval._io import load_jsonl, results_dir
 
 # --- Tier Thresholds ---
+# TAMRS gates read from mise [env] via config.py tuples (Issue #16)
 TIERS = {
     "tier1_exploratory": {
         "kelly_min": 0.0,
@@ -24,6 +32,9 @@ TIERS = {
         "dsr_min": -1.0,
         "headroom_min": 0.01,
         "n_trades_min": 30,
+        "tamrs_min": SCREEN_TAMRS_MIN[0],
+        "rachev_min": SCREEN_RACHEV_MIN[0],
+        "ou_ratio_min": SCREEN_OU_RATIO_MIN[0],
     },
     "tier2_balanced": {
         "kelly_min": 0.01,
@@ -31,6 +42,9 @@ TIERS = {
         "dsr_min": -1.0,
         "headroom_min": 0.05,
         "n_trades_min": 50,
+        "tamrs_min": SCREEN_TAMRS_MIN[1],
+        "rachev_min": SCREEN_RACHEV_MIN[1],
+        "ou_ratio_min": SCREEN_OU_RATIO_MIN[1],
     },
     "tier3_strict": {
         "kelly_min": 0.05,
@@ -38,6 +52,9 @@ TIERS = {
         "dsr_min": -1.0,
         "headroom_min": 0.10,
         "n_trades_min": 100,
+        "tamrs_min": SCREEN_TAMRS_MIN[2],
+        "rachev_min": SCREEN_RACHEV_MIN[2],
+        "ou_ratio_min": SCREEN_OU_RATIO_MIN[2],
     },
 }
 
@@ -62,6 +79,10 @@ def load_all_metrics() -> dict[str, dict]:
     cf_path = rd / "cornish_fisher.jsonl"
     cf = {r["config_id"]: r for r in load_jsonl(cf_path)} if cf_path.exists() else {}
 
+    # TAMRS data (Issue #16)
+    tamrs_path = rd / "tamrs_rankings.jsonl"
+    tamrs = {r["config_id"]: r for r in load_jsonl(tamrs_path)} if tamrs_path.exists() else {}
+
     all_ids = sorted(set(moments.keys()) | set(dsr.keys()) | set(omega.keys()))
 
     configs = {}
@@ -72,6 +93,7 @@ def load_all_metrics() -> dict[str, dict]:
         o = omega.get(cid, {})
         e = evalues_data.get(cid, {})
         c = cf.get(cid, {})
+        t = tamrs.get(cid, {})
 
         configs[cid] = {
             "config_id": cid,
@@ -84,42 +106,55 @@ def load_all_metrics() -> dict[str, dict]:
             "evalue": e.get("final_evalue"),
             "cf_es": c.get("mean_over_cf_es_05"),
             "min_btl_required": b.get("min_btl_required"),
+            "tamrs": t.get("tamrs"),
+            "rachev": t.get("rachev_ratio"),
+            "ou_ratio": t.get("ou_barrier_ratio"),
         }
 
     return configs
 
 
+def _extract_gate_values(cfg: dict) -> dict:
+    """Extract and coerce gate values from a config dict."""
+    return {
+        "kelly": _safe_float(cfg["kelly"], -999),
+        "omega": _safe_float(cfg["omega"], 0),
+        "dsr": _safe_float(cfg["dsr"], -1),
+        "headroom": _safe_float(cfg["headroom"], 0),
+        "n_trades": cfg.get("n_trades", 0) or 0,
+        "tamrs": _safe_float(cfg.get("tamrs"), -1),
+        "rachev": _safe_float(cfg.get("rachev"), -1),
+        "ou_ratio": _safe_float(cfg.get("ou_ratio"), -1),
+    }
+
+
 def passes_tier(cfg: dict, thresholds: dict) -> bool:
     """Check if a config passes all gates for a given tier."""
-    kelly = _safe_float(cfg["kelly"], -999)
-    omega = _safe_float(cfg["omega"], 0)
-    dsr_val = _safe_float(cfg["dsr"], -1)
-    headroom = _safe_float(cfg["headroom"], 0)
-    n_trades = cfg.get("n_trades", 0) or 0
-
+    v = _extract_gate_values(cfg)
     return (
-        kelly > thresholds["kelly_min"]
-        and omega > thresholds["omega_min"]
-        and dsr_val > thresholds["dsr_min"]
-        and headroom > thresholds["headroom_min"]
-        and n_trades >= thresholds["n_trades_min"]
+        v["kelly"] > thresholds["kelly_min"]
+        and v["omega"] > thresholds["omega_min"]
+        and v["dsr"] > thresholds["dsr_min"]
+        and v["headroom"] > thresholds["headroom_min"]
+        and v["n_trades"] >= thresholds["n_trades_min"]
+        and v["tamrs"] >= thresholds["tamrs_min"]
+        and v["rachev"] >= thresholds["rachev_min"]
+        and v["ou_ratio"] >= thresholds["ou_ratio_min"]
     )
 
 
 def individual_gate_pass(cfg: dict, thresholds: dict) -> dict[str, bool]:
     """Check each gate independently."""
-    kelly = _safe_float(cfg["kelly"], -999)
-    omega = _safe_float(cfg["omega"], 0)
-    dsr_val = _safe_float(cfg["dsr"], -1)
-    headroom = _safe_float(cfg["headroom"], 0)
-    n_trades = cfg.get("n_trades", 0) or 0
-
+    v = _extract_gate_values(cfg)
     return {
-        "kelly": kelly > thresholds["kelly_min"],
-        "omega": omega > thresholds["omega_min"],
-        "dsr": dsr_val > thresholds["dsr_min"],
-        "headroom": headroom > thresholds["headroom_min"],
-        "n_trades": n_trades >= thresholds["n_trades_min"],
+        "kelly": v["kelly"] > thresholds["kelly_min"],
+        "omega": v["omega"] > thresholds["omega_min"],
+        "dsr": v["dsr"] > thresholds["dsr_min"],
+        "headroom": v["headroom"] > thresholds["headroom_min"],
+        "n_trades": v["n_trades"] >= thresholds["n_trades_min"],
+        "tamrs": v["tamrs"] >= thresholds["tamrs_min"],
+        "rachev": v["rachev"] >= thresholds["rachev_min"],
+        "ou_ratio": v["ou_ratio"] >= thresholds["ou_ratio_min"],
     }
 
 
@@ -132,17 +167,20 @@ def normalize_array(arr: np.ndarray) -> np.ndarray:
 
 
 def compute_composite_scores(passing: list[dict]) -> list[dict]:
-    """Weighted composite: 0.4*kelly + 0.3*omega + 0.2*dsr + 0.1*headroom."""
+    """Weighted composite: 0.4*tamrs + 0.3*omega + 0.2*dsr + 0.1*headroom.
+
+    TAMRS replaces Kelly as the primary ranker (Issue #16).
+    """
     if not passing:
         return []
 
-    kellys = np.array([_safe_float(c["kelly"]) for c in passing])
+    tamrs_vals = np.array([_safe_float(c.get("tamrs")) for c in passing])
     omegas = np.array([_safe_float(c["omega"]) for c in passing])
     dsrs = np.array([_safe_float(c["dsr"]) for c in passing])
     headrooms = np.array([_safe_float(c["headroom"]) for c in passing])
 
     scores = (
-        0.4 * normalize_array(kellys)
+        0.4 * normalize_array(tamrs_vals)
         + 0.3 * normalize_array(omegas)
         + 0.2 * normalize_array(dsrs)
         + 0.1 * normalize_array(headrooms)
@@ -172,7 +210,7 @@ def write_forensic_report(
         "| Metric | Min | P10 | P25 | P50 | P75 | P90 | Max |",
         "|--------|-----|-----|-----|-----|-----|-----|-----|",
     ]
-    for key in ["kelly", "omega", "dsr", "headroom", "n_trades"]:
+    for key in ["kelly", "omega", "dsr", "headroom", "n_trades", "tamrs", "rachev"]:
         s = dist_stats.get(key, {})
         if s.get("n", 0) > 0:
             lines.append(
@@ -204,7 +242,8 @@ def write_forensic_report(
             "|------|------|------|--------|",
         ])
         total = funnel["total"]
-        for gate_name in ["kelly", "omega", "dsr", "headroom", "n_trades"]:
+        for gate_name in ["kelly", "omega", "dsr", "headroom", "n_trades",
+                         "tamrs", "rachev", "ou_ratio"]:
             p = funnel["gates"].get(gate_name, 0)
             f_count = total - p
             pct = round(100 * p / total, 1) if total > 0 else 0
@@ -230,12 +269,13 @@ def write_forensic_report(
         lines.extend([
             f"### Top {min(20, len(passing))} Configs (by composite score)",
             "",
-            "| Rank | Config ID | Kelly | Omega | DSR | Headroom | N Trades | Score |",
-            "|------|-----------|-------|-------|-----|----------|----------|-------|",
+            "| Rank | Config ID | TAMRS | Kelly | Omega | DSR | Headroom | N Trades | Score |",
+            "|------|-----------|-------|-------|-------|-----|----------|----------|-------|",
         ])
         for rank, cfg in enumerate(passing[:20], 1):
             lines.append(
                 f"| {rank} | {cfg['config_id'][:50]} "
+                f"| {_safe_float(cfg.get('tamrs')):.4f} "
                 f"| {_safe_float(cfg['kelly']):.4f} "
                 f"| {_safe_float(cfg['omega']):.4f} "
                 f"| {_safe_float(cfg['dsr']):.6f} "
@@ -345,12 +385,15 @@ def main():
         ("dsr", lambda c: _safe_float(c["dsr"], float("nan"))),
         ("headroom", lambda c: _safe_float(c["headroom"], float("nan"))),
         ("n_trades", lambda c: float(c.get("n_trades", 0) or 0)),
+        ("tamrs", lambda c: _safe_float(c.get("tamrs"), float("nan"))),
+        ("rachev", lambda c: _safe_float(c.get("rachev"), float("nan"))),
     ]:
         values = [getter(c) for c in all_configs.values()]
         finite_values = [v for v in values if math.isfinite(v)]
         label_map = {
             "kelly": "Kelly", "omega": "Omega", "dsr": "DSR",
             "headroom": "MinBTL Headroom", "n_trades": "N Trades",
+            "tamrs": "TAMRS", "rachev": "Rachev",
         }
         dist_stats[key] = distribution_stats(finite_values, label_map[key])
 
@@ -361,6 +404,7 @@ def main():
         passing = []
         gate_counts: dict[str, int] = {
             "kelly": 0, "omega": 0, "dsr": 0, "headroom": 0, "n_trades": 0,
+            "tamrs": 0, "rachev": 0, "ou_ratio": 0,
         }
 
         for cfg in all_configs.values():

@@ -1,47 +1,75 @@
-# Eval: Beyond-Kelly evaluation pipeline
+# Eval: Beyond-Kelly evaluation pipeline (Issue #12) + TAMRS stack (Issue #16)
 # Modules in src/rangebar_patterns/eval/
 # Config from mise [env]: RBP_* variables
 
 ["eval:extract"]
-description = "Extract moments + trade returns from ClickHouse (requires SSH)"
+description = "Extract moments + per-trade returns from ClickHouse range_bars table. Reads RBP_SYMBOL, RBP_THRESHOLD_DBPS, RBP_TP_MULT, RBP_SL_MULT, RBP_MAX_BARS from mise [env]. Writes results/eval/moments.jsonl + results/eval/trade_returns.jsonl. Requires SSH tunnel to RANGEBAR_CH_HOST. See Issue #12 (eval stack)."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.extraction"
 
 ["eval:dsr"]
-description = "Compute DSR and PSR rankings"
+description = "Compute Deflated Sharpe Ratio (DSR) and Probability of Sharpe Ratio (PSR) per config. Reads results/eval/moments.jsonl. Writes results/eval/dsr_rankings.jsonl. Uses RBP_N_TRIALS for multiple-testing correction, RBP_DSR_THRESHOLD for pass gate. Bailey & Lopez de Prado (2014). See Issue #12."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.dsr"
 
 ["eval:minbtl"]
-description = "Compute MinBTL data sufficiency gate"
+description = "Compute Minimum Backtest Length (MinBTL) data sufficiency gate per config. Reads results/eval/moments.jsonl. Writes results/eval/minbtl_gate.jsonl. Uses RBP_N_TRIALS for expected max SR. See Issue #12."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.minbtl"
 
 ["eval:cornish-fisher"]
-description = "Compute Cornish-Fisher Expected Shortfall"
+description = "Compute Cornish-Fisher Expected Shortfall per config. Reads results/eval/moments.jsonl. Writes results/eval/cornish_fisher.jsonl. Adjusts VaR for skewness and kurtosis. See Issue #12."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.cornish_fisher"
 
 ["eval:omega"]
-description = "Compute Omega Ratio from trade returns"
+description = "Compute Omega Ratio (Keating & Shadwick 2002) at threshold L=0 per config. Reads results/eval/trade_returns.jsonl. Writes results/eval/omega_rankings.jsonl. Considers entire return distribution. See Issue #12."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.omega"
 
 ["eval:cscv"]
-description = "Compute CSCV/PBO overfitting detection"
+description = "Combinatorial Symmetric Cross-Validation (CSCV) for PBO estimation. S=RBP_CSCV_SPLITS blocks, C(S,S/2) train/test splits. Ranker selected by RBP_CSCV_RANKER (tamrs or sharpe). Reads results/eval/trade_returns.jsonl. Writes results/eval/cscv_pbo.jsonl. PBO < 0.50 = not overfit. See Issue #12, #16."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.cscv"
 
 ["eval:evalues"]
-description = "Compute E-values and GROW criterion"
+description = "Compute E-values and GROW sequential test per config. Reads results/eval/trade_returns.jsonl. Writes results/eval/evalues.jsonl. Uses RBP_ALPHA for significance. See Issue #12."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.evalues"
 
 ["eval:synthesize"]
-description = "Cross-metric synthesis: e-BH, Romano-Wolf, verdict"
+description = "Cross-metric synthesis: e-BH FDR, Romano-Wolf stepdown, verdict. Reads all metric JSONL files. Writes results/eval/ebh_fdr.jsonl, romano_wolf.jsonl, rank_correlations.jsonl, verdict.md. See Issue #12."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.synthesis"
 
 ["eval:screen"]
-description = "Multi-tier lenient screening"
+description = "Multi-tier lenient screening with TAMRS gates. Reads all metric JSONL files including tamrs_rankings.jsonl. Writes results/eval/lenient_screen.jsonl + lenient_verdict.md. Tier thresholds from RBP_SCREEN_* env vars. See Issue #12, #16."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.screening"
 
+# ---- TAMRS stack (Issue #16) ----
+
+["eval:rachev"]
+description = "Compute Rachev ratio (CVaR gain/loss tail ratio) per config. Reads results/eval/trade_returns.jsonl, writes results/eval/rachev_rankings.jsonl. Alpha from RBP_RACHEV_ALPHA (default 0.05). Min trades from RBP_MIN_TRADES_RACHEV. Part of TAMRS stack (Issue #16)."
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.rachev"
+
+["eval:cdar"]
+description = "Compute CDaR (Conditional Drawdown at Risk) per config. Reads results/eval/trade_returns.jsonl, writes results/eval/cdar_rankings.jsonl. Alpha from RBP_CDAR_ALPHA (default 0.95). Detects clustered loss sequences (Issue #16)."
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.cdar"
+
+["eval:ou"]
+description = "Calibrate Ornstein-Uhlenbeck model on range bar close prices. Queries ClickHouse for RBP_SYMBOL@RBP_THRESHOLD_DBPS close prices, computes mu/sigma/half_life. Writes results/eval/ou_calibration.jsonl. Requires SSH tunnel (Issue #16)."
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.ou_barriers"
+
+["eval:tamrs"]
+description = "Compute TAMRS (Tail-Adjusted Mean Reversion Score) composite per config. Joins rachev_rankings + cdar_rankings + ou_calibration into tamrs_rankings.jsonl. TAMRS = Rachev * min(1,|SL|/CDaR) * min(1,TP/TP_OU). Replaces Kelly as primary ranker (Issue #16)."
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.tamrs"
+
+["eval:tamrs-poc"]
+description = "Run TAMRS fail-fast POC with synthetic profiles. Validates Rachev/CDaR/OU components against Gemini 3 Pro worked examples. Writes results/eval/tamrs_poc.jsonl. GO/NO-GO gate for full integration (Issue #16)."
+run = "uv run -p 3.13 python scripts/tamrs_poc.py"
+
+# ---- Pipeline orchestration ----
+
 ["eval:compute"]
-description = "Run all local compute stages (no ClickHouse needed)"
-depends = ["eval:dsr", "eval:minbtl", "eval:cornish-fisher", "eval:omega", "eval:cscv", "eval:evalues"]
+description = "Run all local compute stages (no ClickHouse needed). Phase 1 (parallel): DSR, MinBTL, CF-ES, Omega, E-values, Rachev, CDaR. See Issue #12 (eval stack), #16 (TAMRS)."
+depends = ["eval:dsr", "eval:minbtl", "eval:cornish-fisher", "eval:omega", "eval:evalues", "eval:rachev", "eval:cdar"]
+
+["eval:compute-phase2"]
+description = "Phase 2 of eval compute: TAMRS composite + CSCV/PBO. Runs after Phase 1 completes. TAMRS joins Rachev+CDaR+OU. CSCV uses RBP_CSCV_RANKER for IS-winner selection (Issue #16)."
+depends = ["eval:compute", "eval:tamrs", "eval:cscv"]
 
 ["eval:full"]
-description = "Full pipeline: extract + compute + synthesize + screen"
-depends = ["eval:extract", "eval:compute", "eval:synthesize", "eval:screen"]
+description = "Full eval pipeline: extract + OU + compute + synthesize + screen. Runs ClickHouse extraction, all metric modules, cross-metric synthesis, and multi-tier screening. Override any parameter via RBP_* env vars. See Issue #12, #16."
+depends = ["eval:extract", "eval:ou", "eval:compute", "eval:compute-phase2", "eval:synthesize", "eval:screen"]

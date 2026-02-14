@@ -1,0 +1,1 @@
+{"symbol": "SOLUSDT", "threshold_dbps": 500, "mean_reverting": true, "n_prices": 379589, "mu_dt": 2.892e-05, "sigma_dt": 0.49891453, "half_life": 23967.28, "optimal_tp_abs": 77.23880526, "optimal_tp_frac": 1.16847259, "empirical_tp_frac": 0.025, "ou_barrier_ratio": 0.021395}

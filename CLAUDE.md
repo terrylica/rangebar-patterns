@@ -56,21 +56,26 @@ CLAUDE.md (this file)                                    <-- Hub: Navigation + E
 
 ---
 
-## Evaluation Metrics (5-Metric Stack)
+## Evaluation Metrics (TAMRS Stack)
 
-| Metric | Role               | Threshold      |
-| ------ | ------------------ | -------------- |
-| Kelly  | Primary ranker     | > 0            |
-| Omega  | Distribution shape | > 1.0          |
-| DSR    | Multiple testing   | > 0.95 (N-adj) |
-| MinBTL | Data sufficiency   | n >= MinBTL    |
-| PBO    | Overfitting detect | < 0.50         |
+TAMRS replaces Kelly as primary ranker ([Issue #16](https://github.com/terrylica/rangebar-patterns/issues/16)).
+
+| Metric | Role               | Threshold      | Module         |
+| ------ | ------------------ | -------------- | -------------- |
+| TAMRS  | Primary ranker     | > 0            | tamrs.py       |
+| Rachev | Tail asymmetry     | > 0.30 (T2)    | rachev.py      |
+| CDaR   | Clustered losses   | (via SL/CDaR)  | cdar.py        |
+| OU     | Mean-reversion fit | > 0.30 (T2)    | ou_barriers.py |
+| Omega  | Distribution shape | > 1.0          | omega.py       |
+| DSR    | Multiple testing   | > 0.95 (N-adj) | dsr.py         |
+| MinBTL | Data sufficiency   | n >= MinBTL    | minbtl.py      |
+| PBO    | Overfitting detect | < 0.50         | cscv.py        |
+
+**TAMRS formula**: `Rachev(0.05) * min(1, |SL_emp| / CDaR(0.95)) * min(1, TP_emp / TP_OU)`
 
 **Dropped** (r > 0.95 redundant with Omega): Sharpe, PSR, GROW, CF-ES
 
-**Dropped** (insufficient evidence): E-values (max=1.04, need >= 20)
-
-Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) | Code: `src/rangebar_patterns/eval/`
+Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) | [Issue #16](https://github.com/terrylica/rangebar-patterns/issues/16) | Code: `src/rangebar_patterns/eval/`
 
 ---
 
@@ -92,6 +97,8 @@ Decision: [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) 
 | Run tests          | `mise run test`                                         |
 | Eval full pipeline | `mise run eval:full`                                    |
 | Eval compute only  | `mise run eval:compute`                                 |
+| TAMRS only         | `mise run eval:tamrs`                                   |
+| TAMRS POC          | `mise run eval:tamrs-poc`                               |
 | List SQL files     | `mise run sql:list`                                     |
 | Run SQL (local)    | `mise run sql:run file=sql/gen111_true_nolookahead.sql` |
 | Reproduce champion | `mise run sql:reproduce`                                |
@@ -123,6 +130,11 @@ Queries run against ClickHouse (local or remote via SSH tunnel):
 | `designs/exp082-long-only-meanrev-nn.md`            | NN design using champion features       |
 | `src/rangebar_patterns/config.py`                   | Typed env reader for RBP\_\* vars       |
 | `src/rangebar_patterns/introspect.py`               | Atomic trade reconstruction (Issue #13) |
-| `src/rangebar_patterns/eval/`                       | Beyond-Kelly eval subpackage            |
+| `src/rangebar_patterns/eval/`                       | TAMRS eval subpackage (Issue #12, #16)  |
+| `src/rangebar_patterns/eval/tamrs.py`               | TAMRS composite score                   |
+| `src/rangebar_patterns/eval/rachev.py`              | Rachev ratio (tail asymmetry)           |
+| `src/rangebar_patterns/eval/cdar.py`                | CDaR (clustered loss detection)         |
+| `src/rangebar_patterns/eval/ou_barriers.py`         | OU calibration + barrier ratio          |
+| `results/eval/tamrs_rankings.jsonl`                 | TAMRS scores per config                 |
 | `results/eval/verdict.md`                           | Eval pipeline final verdict             |
 | `results/eval/rank_correlations.jsonl`              | Metric redundancy evidence (Spearman r) |

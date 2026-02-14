@@ -44,6 +44,32 @@ RBP_ALPHA = "0.05"
 # DSR pass threshold (Bailey & Lopez de Prado). 0.95 = strict, -1 = disabled
 RBP_DSR_THRESHOLD = "0.95"
 
+# ---- Research: TAMRS Parameters (Issue #16) ----
+# Rachev ratio tail percentile (5% = look at worst/best 5% of trades)
+RBP_RACHEV_ALPHA = "0.05"
+# CDaR confidence level (0.95 = worst 5% of drawdowns)
+RBP_CDAR_ALPHA = "0.95"
+# Minimum trades for stable Rachev ratio (= ceil(1/RACHEV_ALPHA))
+RBP_MIN_TRADES_RACHEV = "20"
+# Minimum trades for meaningful equity curve / CDaR
+RBP_MIN_TRADES_CDAR = "10"
+# CSCV ranker: "tamrs" (default) or "sharpe" (legacy fallback)
+RBP_CSCV_RANKER = "tamrs"
+# CSCV number of time blocks (C(N,N/2) combinations)
+RBP_CSCV_SPLITS = "8"
+
+# ---- Research: Screening Tier Thresholds (Issue #16) ----
+# Tier 1 (Exploratory) / Tier 2 (Balanced) / Tier 3 (Strict)
+RBP_SCREEN_TAMRS_MIN_T1 = "0.0"
+RBP_SCREEN_TAMRS_MIN_T2 = "0.05"
+RBP_SCREEN_TAMRS_MIN_T3 = "0.15"
+RBP_SCREEN_RACHEV_MIN_T1 = "0.0"
+RBP_SCREEN_RACHEV_MIN_T2 = "0.30"
+RBP_SCREEN_RACHEV_MIN_T3 = "0.50"
+RBP_SCREEN_OU_RATIO_MIN_T1 = "0.0"
+RBP_SCREEN_OU_RATIO_MIN_T2 = "0.30"
+RBP_SCREEN_OU_RATIO_MIN_T3 = "0.50"
+
 [task_config]
 includes = [
     ".mise/tasks/dev.toml",

@@ -3,8 +3,10 @@
 (a) e-BH procedure (Wang & Ramdas 2022) for FDR control using E-values
 (b) Romano-Wolf step-down (bootstrap FWER control)
 (c) Cross-metric comparison: Spearman correlations, redundancy, verdict
+(d) TAMRS vs Kelly rank divergence analysis (Issue #16)
 
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -115,7 +117,10 @@ def romano_wolf_stepdown(trade_returns: list[dict], n_bootstrap: int = N_BOOTSTR
 
 
 def cross_metric_comparison() -> dict:
-    """Compute Spearman rank correlations between all metric rankings."""
+    """Compute Spearman rank correlations between all metric rankings.
+
+    Includes TAMRS in the correlation matrix (Issue #16).
+    """
     rd = results_dir()
     moments = {r["config_id"]: r for r in load_jsonl(rd / "moments.jsonl")}
     dsr = {r["config_id"]: r for r in load_jsonl(rd / "dsr_rankings.jsonl")}
@@ -123,6 +128,10 @@ def cross_metric_comparison() -> dict:
     cf = {r["config_id"]: r for r in load_jsonl(rd / "cornish_fisher.jsonl")}
     omega = {r["config_id"]: r for r in load_jsonl(rd / "omega_rankings.jsonl")}
     evalues = {r["config_id"]: r for r in load_jsonl(rd / "evalues.jsonl")}
+
+    # TAMRS data (Issue #16)
+    tamrs_path = rd / "tamrs_rankings.jsonl"
+    tamrs = {r["config_id"]: r for r in load_jsonl(tamrs_path)} if tamrs_path.exists() else {}
 
     common_ids = sorted(
         set(moments.keys()) & set(dsr.keys()) & set(omega.keys()) & set(evalues.keys())
@@ -135,6 +144,7 @@ def cross_metric_comparison() -> dict:
         o = omega.get(cid, {})
         e = evalues.get(cid, {})
         c = cf.get(cid, {})
+        t = tamrs.get(cid, {})
 
         kelly = m.get("kelly_fraction")
         sr = d.get("sharpe_ratio")
@@ -143,6 +153,7 @@ def cross_metric_comparison() -> dict:
         omega_val = o.get("omega_L0")
         grow_val = e.get("grow_criterion")
         cf_es = c.get("mean_over_cf_es_05")
+        tamrs_val = t.get("tamrs")
 
         def _is_finite(v):
             return v is not None and (not isinstance(v, float) or math.isfinite(v))
@@ -154,11 +165,12 @@ def cross_metric_comparison() -> dict:
             ]:
                 vectors.setdefault(name, []).append(val)
             vectors.setdefault("cf_es_adj", []).append(cf_es if cf_es is not None else 0.0)
+            vectors.setdefault("tamrs", []).append(tamrs_val if tamrs_val is not None else 0.0)
 
     if not vectors or len(vectors.get("kelly", [])) < 10:
         return {"error": "Insufficient common configs for correlation"}
 
-    metric_names = ["kelly", "sharpe", "psr", "dsr", "omega", "grow", "cf_es_adj"]
+    metric_names = ["kelly", "sharpe", "psr", "dsr", "omega", "grow", "cf_es_adj", "tamrs"]
     n_metrics = len(metric_names)
     corr_matrix = np.zeros((n_metrics, n_metrics))
 
@@ -200,6 +212,22 @@ def cross_metric_comparison() -> dict:
                 "minbtl_passes": btl.get("passes_gate", False),
             })
 
+    # TAMRS vs Kelly divergence (Issue #16)
+    patho_kelly_tamrs = []
+    for cid in common_ids:
+        m = moments.get(cid, {})
+        t = tamrs.get(cid, {})
+        kelly = m.get("kelly_fraction")
+        tamrs_val = t.get("tamrs")
+        if (kelly is not None and kelly > 0
+                and tamrs_val is not None and tamrs_val < 0.05):
+            patho_kelly_tamrs.append({
+                "config_id": cid,
+                "kelly": round(kelly, 6),
+                "tamrs": round(tamrs_val, 6),
+                "n_trades": m.get("n_trades", 0),
+            })
+
     return {
         "n_common_configs": len(vectors.get("kelly", [])),
         "correlations": corr_dict,
@@ -207,6 +235,8 @@ def cross_metric_comparison() -> dict:
         "complementary_pairs": complementary,
         "pathological_kelly_dsr": patho_kelly_dsr[:20],
         "n_pathological": len(patho_kelly_dsr),
+        "pathological_kelly_tamrs": patho_kelly_tamrs[:20],
+        "n_pathological_kelly_tamrs": len(patho_kelly_tamrs),
     }
 
 
@@ -283,6 +313,27 @@ def write_verdict(ebh: dict, rw: dict, corr: dict, cscv: dict) -> None:
             lines.append(
                 f"| {p['config_id'][:40]} | {p['kelly']:.4f} | "
                 f"{p['dsr']:.4f} | {p['n_trades']} | {p['minbtl_passes']} |"
+            )
+
+    # TAMRS vs Kelly divergence (Issue #16)
+    lines.extend([
+        "",
+        "## 4b. TAMRS vs Kelly Divergence (Kelly > 0 but TAMRS < 0.05)",
+        "",
+        f"**Total**: {corr.get('n_pathological_kelly_tamrs', 0)} configs",
+        "",
+    ])
+
+    patho_tamrs = corr.get("pathological_kelly_tamrs", [])
+    if patho_tamrs:
+        lines.extend([
+            "| config_id | Kelly | TAMRS | N trades |",
+            "|-----------|-------|-------|----------|",
+        ])
+        for p in patho_tamrs[:10]:
+            lines.append(
+                f"| {p['config_id'][:40]} | {p['kelly']:.4f} | "
+                f"{p['tamrs']:.4f} | {p['n_trades']} |"
             )
 
     lines.extend([

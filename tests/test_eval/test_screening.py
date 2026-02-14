@@ -1,6 +1,7 @@
 """Test multi-tier screening logic.
 
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
 """
 
 from rangebar_patterns.eval.screening import TIERS, individual_gate_pass, passes_tier
@@ -19,6 +20,9 @@ def test_passes_tier_exploratory():
         "dsr": 0.3,
         "headroom": 0.5,
         "n_trades": 100,
+        "tamrs": 0.10,
+        "rachev": 1.5,
+        "ou_ratio": 0.7,
     }
     result = passes_tier(cfg, TIERS["tier1_exploratory"])
     assert result is True
@@ -31,6 +35,9 @@ def test_passes_tier_strict_fails_weak():
         "dsr": 0.3,
         "headroom": 0.5,
         "n_trades": 100,
+        "tamrs": 0.10,
+        "rachev": 1.5,
+        "ou_ratio": 0.7,
     }
     result = passes_tier(cfg, TIERS["tier3_strict"])
     assert result is False  # Kelly too low for strict (min 0.05)
@@ -43,11 +50,17 @@ def test_individual_gate_pass_returns_dict():
         "dsr": 0.3,
         "headroom": 0.5,
         "n_trades": 100,
+        "tamrs": 0.10,
+        "rachev": 1.5,
+        "ou_ratio": 0.7,
     }
     result = individual_gate_pass(cfg, TIERS["tier1_exploratory"])
     assert isinstance(result, dict)
     assert result["kelly"] is True
     assert result["omega"] is True
+    assert result["tamrs"] is True
+    assert result["rachev"] is True
+    assert result["ou_ratio"] is True
 
 
 def test_individual_gate_fails_on_none():
@@ -57,7 +70,12 @@ def test_individual_gate_fails_on_none():
         "dsr": None,
         "headroom": 0.0,
         "n_trades": 0,
+        "tamrs": None,
+        "rachev": None,
+        "ou_ratio": None,
     }
     result = individual_gate_pass(cfg, TIERS["tier1_exploratory"])
     assert result["kelly"] is False
     assert result["omega"] is False
+    assert result["tamrs"] is False
+    assert result["rachev"] is False
