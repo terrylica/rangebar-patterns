@@ -46,6 +46,7 @@ TAMRS (Tail-Adjusted Mean Reversion Score) replaces Kelly as primary ranker (Iss
 | `signal_regularity.py` | KDE temporal regularity (Issue #17)           | `compute_signal_regularity()`                                        |
 | `screening.py`         | Multi-tier screening (TAMRS + regularity)     | `passes_tier()`, `compute_composite_scores()`                        |
 | `ranking.py`           | Per-metric percentile cutoffs + intersection  | `percentile_ranks()`, `apply_cutoff()`, `run_ranking_with_cutoffs()` |
+| `cross_asset.py`       | Gen500 cross-asset robustness metrics         | `compute_cross_asset_metrics()`, `load_gen500_data()`                |
 
 ---
 
@@ -105,8 +106,9 @@ mise run eval:regularity       # KDE signal regularity
 mise run eval:evalues
 mise run eval:synthesize
 mise run eval:screen
+mise run eval:cross-asset       # Gen500 cross-asset robustness metrics
 mise run eval:rank             # Per-metric percentile ranking
-mise run eval:rank-optimize    # Optuna cutoff optimization
+mise run eval:rank-optimize    # Optuna cutoff optimization (NSGA-II Pareto)
 
 # Pipeline orchestration
 mise run eval:compute          # Phase 1: all parallel local metrics
@@ -147,23 +149,26 @@ Output goes to `results/eval/` (repo root, git-tracked):
 | lenient_verdict.md               | screening.py         |
 | rankings.jsonl                   | ranking.py           |
 | ranking_report.md                | ranking.py           |
+| cross_asset_rankings.jsonl       | cross_asset.py       |
 | rank_optimization.jsonl          | rank_optimize.py     |
 
 ---
 
 ## Key Results (SOLUSDT @500dbps, 1,008 configs)
 
-| Check                           | Value                                            |
-| ------------------------------- | ------------------------------------------------ |
-| e-BH discoveries                | **0** / 961                                      |
-| Romano-Wolf rejections          | **0** / 939                                      |
-| DSR > 0.95                      | **0** / 961                                      |
-| PBO (TAMRS ranker)              | **0.3714** (marginal)                            |
-| Kelly > 0 configs               | 220 / 1,008                                      |
-| Pathological (Kelly>0, DSR<0.5) | 218                                              |
-| Expected max SR (null)          | 3.2574                                           |
-| TAMRS range (rolling 1000-bar)  | [0.009, 0.379]                                   |
-| OU method                       | Rolling 1000-bar lookback per signal             |
-| OU ratio range                  | [0.215, 0.664] (median 0.388)                    |
-| Spearman(TAMRS, Kelly)          | -0.010 (uncorrelated)                            |
-| T1 / T2 / T3 pass               | 298 / **69** / 0 (Kelly removed, binding: Omega) |
+| Check                           | Value                                                                        |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| e-BH discoveries                | **0** / 961                                                                  |
+| Romano-Wolf rejections          | **0** / 939                                                                  |
+| DSR > 0.95                      | **0** / 961                                                                  |
+| PBO (TAMRS ranker)              | **0.3714** (marginal)                                                        |
+| Kelly > 0 configs               | 220 / 1,008                                                                  |
+| Pathological (Kelly>0, DSR<0.5) | 218                                                                          |
+| Expected max SR (null)          | 3.2574                                                                       |
+| TAMRS range (rolling 1000-bar)  | [0.009, 0.379]                                                               |
+| OU method                       | Rolling 1000-bar lookback per signal                                         |
+| OU ratio range                  | [0.215, 0.664] (median 0.388)                                                |
+| Spearman(TAMRS, Kelly)          | -0.010 (uncorrelated)                                                        |
+| T1 / T2 / T3 pass               | 298 / **69** / 0 (Kelly removed, binding: Omega)                             |
+| Pareto front (NSGA-II)          | 76 solutions (11 metrics + cross-asset, Kelly excluded)                      |
+| XA consistency (#1)             | `price_impact_lt_p10__volume_per_trade_gt_p75` (91.7% PF>1 across 12 assets) |

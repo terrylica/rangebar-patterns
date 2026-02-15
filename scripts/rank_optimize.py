@@ -21,6 +21,8 @@ from rangebar_patterns import config
 from rangebar_patterns.eval._io import results_dir
 from rangebar_patterns.eval.ranking import (
     DEFAULT_METRICS,
+    filter_discriminating_metrics,
+    get_all_metrics,
     load_metric_data,
     run_ranking_with_cutoffs,
 )
@@ -98,10 +100,14 @@ OBJECTIVES = {
 }
 
 
-def suggest_cutoffs(trial: optuna.Trial) -> dict[str, int]:
+def suggest_cutoffs(
+    trial: optuna.Trial, specs: tuple | None = None
+) -> dict[str, int]:
     """Suggest cutoff values for each metric."""
+    if specs is None:
+        specs = DEFAULT_METRICS
     cutoffs = {}
-    for spec in DEFAULT_METRICS:
+    for spec in specs:
         cutoffs[spec.name] = trial.suggest_int(spec.name, 5, 100, step=5)
     return cutoffs
 
@@ -131,49 +137,75 @@ def main():
     print(f"  Target N:  {config.RANK_TARGET_N}")
 
     # Pre-load metric data once (shared across all trials)
+    # Use get_all_metrics() to auto-include cross-asset metrics when available
     rd = results_dir()
-    metric_data = load_metric_data(rd, DEFAULT_METRICS)
+    all_specs_raw = get_all_metrics(rd)
+    metric_data = load_metric_data(rd, all_specs_raw)
     n_configs = len({cid for values in metric_data.values() for cid in values})
+    xa_active = len(all_specs_raw) > len(DEFAULT_METRICS)
+
+    # Filter out degenerate metrics (e.g. DSR where 99.7% of values are identical)
+    all_specs = filter_discriminating_metrics(all_specs_raw, metric_data)
+    n_excluded = len(all_specs_raw) - len(all_specs)
+    if n_excluded > 0:
+        excluded = set(s.name for s in all_specs_raw) - set(s.name for s in all_specs)
+        print(f"  Excluded:  {n_excluded} degenerate metrics ({', '.join(sorted(excluded))})")
+
+    print(f"  Metrics:   {len(all_specs)} ({'+ cross-asset' if xa_active else 'single-asset only'})")
     print(f"  Configs:   {n_configs}")
     print()
 
     if objective_name == "pareto_efficiency":
-        # Multi-objective: maximize survivors, minimize mean cutoff
+        # Multi-objective NSGA-II: maximize survivors, maximize avg quality, minimize mean cutoff
         study = optuna.create_study(
-            directions=["maximize", "minimize"],
+            directions=["maximize", "maximize", "minimize"],
             sampler=optuna.samplers.NSGAIISampler(seed=42),
         )
 
-        def pareto_objective(trial: optuna.Trial) -> tuple[float, float]:
-            cutoffs = suggest_cutoffs(trial)
-            result = run_ranking_with_cutoffs(cutoffs, rd=rd, metric_data=metric_data)
-            return float(result["n_intersection"]), sum(cutoffs.values()) / len(cutoffs)
+        def pareto_objective(trial: optuna.Trial) -> tuple[float, float, float]:
+            cutoffs = suggest_cutoffs(trial, specs=all_specs)
+            result = run_ranking_with_cutoffs(
+                cutoffs, specs=all_specs, rd=rd, metric_data=metric_data
+            )
+            return (
+                float(result["n_intersection"]),
+                result["avg_percentile"],
+                sum(cutoffs.values()) / len(cutoffs),
+            )
 
         study.optimize(pareto_objective, n_trials=n_trials)
 
         # Collect Pareto front
         pareto_front = []
         for t in study.best_trials:
-            cutoffs = {spec.name: t.params[spec.name] for spec in DEFAULT_METRICS}
+            cutoffs = {spec.name: t.params[spec.name] for spec in all_specs}
             pareto_front.append({
                 "number": t.number,
                 "n_survivors": int(t.values[0]),
-                "mean_cutoff": round(t.values[1], 2),
+                "avg_quality": round(t.values[1], 2),
+                "mean_cutoff": round(t.values[2], 2),
                 "cutoffs": cutoffs,
             })
 
-        pareto_front.sort(key=lambda x: (-x["n_survivors"], x["mean_cutoff"]))
+        pareto_front.sort(key=lambda x: (-x["n_survivors"], -x["avg_quality"], x["mean_cutoff"]))
 
         print(f"Pareto front: {len(pareto_front)} solutions")
         for pf in pareto_front[:10]:
-            print(f"  Survivors={pf['n_survivors']} MeanCut={pf['mean_cutoff']:.1f}")
+            print(
+                f"  Survivors={pf['n_survivors']} "
+                f"AvgQuality={pf['avg_quality']:.1f} "
+                f"MeanCut={pf['mean_cutoff']:.1f}"
+            )
 
         record = {
             "objective": objective_name,
             "n_trials": n_trials,
+            "n_metrics": len(all_specs),
+            "cross_asset_active": xa_active,
             "best_value": None,
             "best_cutoffs": pareto_front[0]["cutoffs"] if pareto_front else None,
             "best_n_survivors": pareto_front[0]["n_survivors"] if pareto_front else 0,
+            "best_avg_quality": pareto_front[0]["avg_quality"] if pareto_front else None,
             "best_mean_cutoff": pareto_front[0]["mean_cutoff"] if pareto_front else None,
             "env_vars": _cutoffs_to_env(pareto_front[0]["cutoffs"]) if pareto_front else "",
             "pareto_front": pareto_front,
@@ -189,15 +221,19 @@ def main():
         )
 
         def objective(trial: optuna.Trial) -> float:
-            cutoffs = suggest_cutoffs(trial)
-            result = run_ranking_with_cutoffs(cutoffs, rd=rd, metric_data=metric_data)
+            cutoffs = suggest_cutoffs(trial, specs=all_specs)
+            result = run_ranking_with_cutoffs(
+                cutoffs, specs=all_specs, rd=rd, metric_data=metric_data
+            )
             return obj_fn(result, cutoffs)
 
         study.optimize(objective, n_trials=n_trials)
 
         best = study.best_trial
-        best_cutoffs = {spec.name: best.params[spec.name] for spec in DEFAULT_METRICS}
-        best_result = run_ranking_with_cutoffs(best_cutoffs, rd=rd, metric_data=metric_data)
+        best_cutoffs = {spec.name: best.params[spec.name] for spec in all_specs}
+        best_result = run_ranking_with_cutoffs(
+            best_cutoffs, specs=all_specs, rd=rd, metric_data=metric_data
+        )
 
         print(f"\nBest trial #{best.number}: value={best.value:.4f}")
         print(f"  Survivors:    {best_result['n_intersection']}")

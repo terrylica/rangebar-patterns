@@ -765,7 +765,7 @@ wheels = [
 
 [[package]]
 name = "rangebar-patterns"
-version = "1.7.0"
+version = "1.10.0"
 source = { editable = "." }
 dependencies = [
     { name = "clickhouse-connect" },

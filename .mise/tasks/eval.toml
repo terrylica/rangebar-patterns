@@ -72,8 +72,12 @@ run = "uv run -p 3.13 python -m rangebar_patterns.eval.signal_regularity"
 description = "Compute per-metric percentile rankings and intersection at configurable cutoffs. Each metric has its own RBP_RANK_CUT_<METRIC> env var (default 100 = no filter). Intersection = configs passing all cutoffs. Writes results/eval/rankings.jsonl + ranking_report.md. Independent of screening (Issue #17)."
 run = "uv run -p 3.13 python -m rangebar_patterns.eval.ranking"
 
+["eval:cross-asset"]
+description = "Compute cross-asset robustness metrics from Gen500 sweep data (logs/gen500/*.jsonl). Aggregates per-config: n_positive_assets, avg_kelly, total_signals, consistency fraction. Writes results/eval/cross_asset_rankings.jsonl. No ClickHouse needed (local only). See Issue #17."
+run = "uv run -p 3.13 python -m rangebar_patterns.eval.cross_asset"
+
 ["eval:rank-optimize"]
-description = "Run Optuna evolutionary optimization to find best per-metric percentile cutoffs. Objective from RBP_RANK_OBJECTIVE (default: max_survivors_min_cutoff). N trials from RBP_RANK_N_TRIALS (default: 200). Writes results/eval/rank_optimization.jsonl with best cutoffs and trial history. See Issue #17."
+description = "Run Optuna evolutionary optimization to find best per-metric percentile cutoffs. Auto-includes cross-asset metrics when cross_asset_rankings.jsonl exists. Objective from RBP_RANK_OBJECTIVE (default: max_survivors_min_cutoff). Pareto mode uses NSGA-II with 3 objectives (survivors, quality, selectivity). N trials from RBP_RANK_N_TRIALS (default: 200). Writes results/eval/rank_optimization.jsonl. See Issue #17."
 run = "uv run -p 3.13 python scripts/rank_optimize.py"
 
 # ---- Pipeline orchestration ----

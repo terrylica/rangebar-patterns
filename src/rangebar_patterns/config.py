@@ -82,7 +82,14 @@ RANK_CUT_EVALUE: int = int(os.environ.get("RBP_RANK_CUT_EVALUE", "100"))
 RANK_CUT_REGULARITY_CV: int = int(os.environ.get("RBP_RANK_CUT_REGULARITY_CV", "100"))
 RANK_CUT_COVERAGE: int = int(os.environ.get("RBP_RANK_CUT_COVERAGE", "100"))
 RANK_CUT_N_TRADES: int = int(os.environ.get("RBP_RANK_CUT_N_TRADES", "100"))
-RANK_CUT_KELLY: int = int(os.environ.get("RBP_RANK_CUT_KELLY", "100"))
+# Kelly removed from ranking per Issue #17 (contradictory with TAMRS)
+
+# ---- Cross-Asset Ranking Cutoffs ----
+RANK_CUT_XA_N_POSITIVE: int = int(os.environ.get("RBP_RANK_CUT_XA_N_POSITIVE", "100"))
+RANK_CUT_XA_AVG_PF: int = int(os.environ.get("RBP_RANK_CUT_XA_AVG_PF", "100"))
+RANK_CUT_XA_TOTAL_SIGNALS: int = int(os.environ.get("RBP_RANK_CUT_XA_TOTAL_SIGNALS", "100"))
+RANK_CUT_XA_CONSISTENCY: int = int(os.environ.get("RBP_RANK_CUT_XA_CONSISTENCY", "100"))
+
 RANK_TOP_N: int = int(os.environ.get("RBP_RANK_TOP_N", "50"))
 RANK_OBJECTIVE: str = os.environ.get("RBP_RANK_OBJECTIVE", "max_survivors_min_cutoff")
 RANK_N_TRIALS: int = int(os.environ.get("RBP_RANK_N_TRIALS", "200"))

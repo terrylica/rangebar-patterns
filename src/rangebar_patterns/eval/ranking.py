@@ -1,3 +1,4 @@
+# FILE-SIZE-OK
 """Per-metric percentile ranking with configurable cutoffs and intersection.
 
 Independent from screening.py — reads the same JSONL result files but computes
@@ -34,6 +35,8 @@ class MetricSpec:
     source_field: str
 
 
+# Kelly formally removed as metric per Issue #17 (contradictory with TAMRS,
+# rewards temporal clustering, pathological false positives). See commit 4ee7980.
 DEFAULT_METRICS: tuple[MetricSpec, ...] = (
     MetricSpec("tamrs", "TAMRS", True, 100, "tamrs_rankings.jsonl", "tamrs"),
     MetricSpec("rachev", "Rachev", True, 100, "tamrs_rankings.jsonl", "rachev_ratio"),
@@ -46,8 +49,54 @@ DEFAULT_METRICS: tuple[MetricSpec, ...] = (
     MetricSpec("regularity_cv", "Regularity CV", False, 100, "signal_regularity_rankings.jsonl", "kde_peak_cv"),
     MetricSpec("coverage", "Coverage", True, 100, "signal_regularity_rankings.jsonl", "temporal_coverage"),
     MetricSpec("n_trades", "Trade Count", True, 100, "moments.jsonl", "n_trades"),
-    MetricSpec("kelly", "Kelly", True, 100, "moments.jsonl", "kelly_fraction"),
 )
+
+# Cross-asset metrics from Gen500 sweep (logs/gen500/*.jsonl)
+# Appended to DEFAULT_METRICS when cross_asset_rankings.jsonl exists.
+# Uses profit_factor (≈ Omega at L=0) instead of Kelly per Issue #17 decision.
+CROSS_ASSET_METRICS: tuple[MetricSpec, ...] = (
+    MetricSpec("xa_n_positive", "XA Positive Assets", True, 100, "cross_asset_rankings.jsonl", "xa_n_positive"),
+    MetricSpec("xa_avg_pf", "XA Avg PF", True, 100, "cross_asset_rankings.jsonl", "xa_avg_pf"),
+    MetricSpec("xa_total_signals", "XA Total Signals", True, 100, "cross_asset_rankings.jsonl", "xa_total_signals"),
+    MetricSpec("xa_consistency", "XA Consistency", True, 100, "cross_asset_rankings.jsonl", "xa_consistency"),
+)
+
+
+def get_all_metrics(rd: Path | None = None) -> tuple[MetricSpec, ...]:
+    """Return DEFAULT_METRICS + CROSS_ASSET_METRICS if cross-asset data exists."""
+    if rd is None:
+        rd = results_dir()
+    xa_path = rd / "cross_asset_rankings.jsonl"
+    if xa_path.exists():
+        return DEFAULT_METRICS + CROSS_ASSET_METRICS
+    return DEFAULT_METRICS
+
+
+def filter_discriminating_metrics(
+    specs: tuple[MetricSpec, ...],
+    metric_data: dict[str, dict[str, float | None]],
+    min_unique_ratio: float = 0.05,
+) -> tuple[MetricSpec, ...]:
+    """Remove metrics with poor discriminating power.
+
+    A metric is degenerate if the fraction of unique non-None values
+    relative to total non-None values is below min_unique_ratio.
+    Example: DSR where 960/961 values are 0.0 → ratio = 2/961 = 0.002 → excluded.
+
+    Returns filtered tuple of MetricSpecs. Degenerate metrics get cutoff=100
+    (no filter) automatically since they aren't in the returned specs.
+    """
+    kept = []
+    for spec in specs:
+        values = metric_data.get(spec.name, {})
+        non_none = [v for v in values.values() if v is not None]
+        if not non_none:
+            continue
+        n_unique = len(set(round(v, 8) for v in non_none))
+        ratio = n_unique / len(non_none)
+        if ratio >= min_unique_ratio:
+            kept.append(spec)
+    return tuple(kept)
 
 
 def _safe_float(v) -> float | None:
@@ -202,7 +251,11 @@ def resolve_cutoffs(specs: tuple[MetricSpec, ...] = DEFAULT_METRICS) -> dict[str
         "regularity_cv": config.RANK_CUT_REGULARITY_CV,
         "coverage": config.RANK_CUT_COVERAGE,
         "n_trades": config.RANK_CUT_N_TRADES,
-        "kelly": config.RANK_CUT_KELLY,
+        # Cross-asset cutoffs
+        "xa_n_positive": config.RANK_CUT_XA_N_POSITIVE,
+        "xa_avg_pf": config.RANK_CUT_XA_AVG_PF,
+        "xa_total_signals": config.RANK_CUT_XA_TOTAL_SIGNALS,
+        "xa_consistency": config.RANK_CUT_XA_CONSISTENCY,
     }
     return {spec.name: cutoff_map.get(spec.name, spec.default_cutoff) for spec in specs}
 
