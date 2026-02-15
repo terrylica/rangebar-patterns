@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/terrylica/rangebar-patterns/compare/v1.8.0...v1.9.0) (2026-02-15)
+
+
+### Features
+
+* champion oracle validation — ALL 5 GATES PASS, SQN=3.44, WR=78.8% (Issue [#26](https://github.com/terrylica/rangebar-patterns/issues/26)) ([918d8a8](https://github.com/terrylica/rangebar-patterns/commit/918d8a8c99c31aaf27fbee68aa0ca9525bd1bb8d)), closes [#27](https://github.com/terrylica/rangebar-patterns/issues/27)
+
 # [1.8.0](https://github.com/terrylica/rangebar-patterns/compare/v1.7.0...v1.8.0) (2026-02-14)
 
 
