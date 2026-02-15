@@ -1,0 +1,11 @@
+["gen710:generate"]
+description = "Generate 48 SQL files (4 phase1_bars x 3 sl_tight x 4 max_bars)"
+run = "bash scripts/gen710/generate.sh"
+
+["gen710:poc"]
+description = "Fail-fast POC: 3 barrier combos on BigBlack"
+run = "bash scripts/gen710/poc.sh"
+
+["gen710:submit"]
+description = "Submit 48 time-decay barrier configs to BigBlack pueue"
+run = "bash scripts/gen710/submit.sh"
