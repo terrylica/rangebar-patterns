@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/terrylica/rangebar-patterns/compare/v1.9.0...v1.10.0) (2026-02-15)
+
+
+### Features
+
+* Gen710 time-decay SL sweep — 48/48 positive Kelly, best +0.410 (8x baseline) ([f0d4976](https://github.com/terrylica/rangebar-patterns/commit/f0d4976b5b65c34112c61d30b07b8a0abe5c528d))
+
 # [1.9.0](https://github.com/terrylica/rangebar-patterns/compare/v1.8.0...v1.9.0) (2026-02-15)
 
 
