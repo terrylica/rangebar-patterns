@@ -711,16 +711,42 @@ def build_stability_matrix(
     return matrix, sets, barrier_ids
 
 
+def _vorob_worker(neg_matrix, sets, ref, result_dict):
+    """Worker function for Vorob'ev computation (runs in subprocess).
+
+    Writes results to a shared dict (multiprocessing.Manager) since
+    multiprocessing.Process does not return values.
+    """
+    import moocore
+
+    vt = moocore.vorob_t(neg_matrix, sets, ref=ref)
+    vd = moocore.vorob_dev(neg_matrix, sets, ref=ref)
+    hv_per_fold = moocore.apply_within_sets(
+        neg_matrix, sets, moocore.hypervolume, ref=ref,
+    )
+    result_dict["vt"] = dict(vt)  # Convert moocore result to plain dict
+    result_dict["vd"] = float(vd)
+    result_dict["hv_list"] = hv_per_fold.tolist()
+
+
 def compute_vorob_stability(
     matrix: np.ndarray,
     sets: np.ndarray,
     ref: np.ndarray | None = None,
+    timeout: int = 60,
 ) -> dict:
     """Compute Vorob'ev stability metrics across WFO folds.
 
     CRITICAL: moocore assumes minimization. All 3 columns (omega, rachev,
     total_return) are benefit metrics → must negate before calling moocore.
     moocore EAF/Vorob'ev supports at most 3D datasets.
+
+    The moocore EAF computation (eaf3d → find_all_promoters) can degenerate
+    on certain input configurations, hanging indefinitely. A timeout guard
+    runs the computation in a subprocess that can be killed (SIGTERM) if it
+    exceeds the time limit. multiprocessing.Process is used instead of
+    ProcessPoolExecutor because executor.shutdown(wait=True) blocks on stuck
+    C-level code — Process.terminate() sends SIGTERM immediately.
 
     Parameters
     ----------
@@ -731,12 +757,19 @@ def compute_vorob_stability(
     ref : np.ndarray or None
         Reference point for hypervolume. If None, uses zeros (which after
         negation = worst possible performance).
+    timeout : int
+        Maximum seconds for moocore computation. Default 60.
 
     Returns
     -------
     dict with: vorob_threshold, vorob_deviation, hv_per_fold, hv_cv, avg_hyp.
+
+    Raises
+    ------
+    TimeoutError
+        If moocore computation exceeds timeout.
     """
-    import moocore
+    import multiprocessing
 
     from rangebar_patterns.eval.ranking import _flip_to_minimize
 
@@ -747,12 +780,44 @@ def compute_vorob_stability(
     if ref is None:
         ref = np.zeros(matrix.shape[1])
 
-    vt = moocore.vorob_t(neg_matrix, sets, ref=ref)
-    vd = moocore.vorob_dev(neg_matrix, sets, ref=ref)
-
-    hv_per_fold = moocore.apply_within_sets(
-        neg_matrix, sets, moocore.hypervolume, ref=ref,
+    # Run moocore in a subprocess with timeout — the C code in
+    # find_all_promoters can hang indefinitely on degenerate inputs
+    # and cannot be interrupted by Python signal handlers.
+    # multiprocessing.Process + terminate() guarantees cleanup.
+    mgr = multiprocessing.Manager()
+    result_dict = mgr.dict()
+    proc = multiprocessing.Process(
+        target=_vorob_worker,
+        args=(neg_matrix, sets, ref, result_dict),
     )
+    proc.start()
+    proc.join(timeout=timeout)
+
+    if proc.is_alive():
+        proc.terminate()
+        proc.join(timeout=5)
+        if proc.is_alive():
+            proc.kill()
+            proc.join(timeout=5)
+        mgr.shutdown()
+        raise TimeoutError(
+            f"moocore Vorob'ev computation timed out after {timeout}s "
+            f"(matrix shape={matrix.shape}, n_sets={len(np.unique(sets))})"
+        )
+
+    # Read results from Manager proxy BEFORE shutdown — accessing proxy
+    # objects after mgr.shutdown() raises FileNotFoundError because the
+    # Manager's Unix socket is already removed.
+    has_result = "vt" in result_dict
+    if has_result:
+        vt = dict(result_dict["vt"])  # Copy from proxy to plain dict
+        vd = float(result_dict["vd"])
+        hv_per_fold = np.array(list(result_dict["hv_list"]))
+
+    mgr.shutdown()
+
+    if not has_result:
+        raise RuntimeError("Vorob'ev worker failed without producing results")
 
     hv_mean = float(np.mean(hv_per_fold))
     hv_std = float(np.std(hv_per_fold))

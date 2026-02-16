@@ -183,7 +183,7 @@ def run_combo_wfo(
             matrix, sets, _bids = build_stability_matrix(fold_results)
             if matrix.shape[0] >= 3:
                 vorob_result = compute_vorob_stability(matrix, sets)
-        except (ValueError, RuntimeError) as e:
+        except (ValueError, RuntimeError, TimeoutError) as e:
             print(f"    Vorob'ev failed: {e}")
     t_vorob = time.monotonic() - t_vorob_start
 
@@ -451,12 +451,19 @@ def run_knee_and_topsis(combo_summaries: list[dict]) -> tuple[dict, list[dict]]:
     bids = sorted(barrier_stats.keys())
     matrix = np.array([
         [
-            float(np.mean(barrier_stats[bid]["omegas"])),
-            float(np.mean(barrier_stats[bid]["consistencies"])),
-            float(np.mean(barrier_stats[bid]["cvs"])),
+            float(np.nanmean(barrier_stats[bid]["omegas"])),
+            float(np.nanmean(barrier_stats[bid]["consistencies"])),
+            float(np.nanmean(barrier_stats[bid]["cvs"])),
         ]
         for bid in bids
     ])
+
+    # Filter out rows with NaN/Inf (from combos with 0 folds)
+    finite_mask = np.all(np.isfinite(matrix), axis=1)
+    if finite_mask.sum() < 3:
+        return {"n_knee_points": 0, "knee_barrier_ids": [], "epsilon": config.RANK_KNEE_EPSILON}, []
+    matrix = matrix[finite_mask]
+    bids = [b for b, m in zip(bids, finite_mask) if m]
 
     # Types: omega=benefit(1), consistency=benefit(1), cv=cost(-1)
     types = np.array([1, 1, -1])
@@ -470,8 +477,9 @@ def run_knee_and_topsis(combo_summaries: list[dict]) -> tuple[dict, list[dict]]:
         "epsilon": config.RANK_KNEE_EPSILON,
     }
 
-    # TOPSIS ranking
-    topsis_scores = topsis_rank(matrix, types)
+    # TOPSIS ranking (equal weights for 3 criteria)
+    weights = np.ones(matrix.shape[1]) / matrix.shape[1]
+    topsis_scores = topsis_rank(matrix, weights, types)
     topsis_ranking = []
     ranked_indices = np.argsort(-topsis_scores)
     for rank, idx in enumerate(ranked_indices[:20], 1):
@@ -484,158 +492,21 @@ def run_knee_and_topsis(combo_summaries: list[dict]) -> tuple[dict, list[dict]]:
     return knee_analysis, topsis_ranking
 
 
-# ---- Main Orchestrator ----
+def _run_aggregation(
+    direction: str,
+    combo_summaries: list[dict],
+    n_processed: int,
+    t_start: float,
+    t_wf: float,
+    out_dir: Path,
+    agg_jsonl_name: str,
+    parquet_name: str = "long_folds.parquet",
+    combo_jsonl_name: str = "long_combos.jsonl",
+) -> None:
+    """Run Tier 3 aggregation: cross-formation, cross-asset, knee, TOPSIS.
 
-
-def _fetch_remote_tsv(remote_spec: str, tsv_name: str, local_path: Path) -> bool:
-    """Fetch a single TSV from remote host via rsync. Returns True if successful.
-
-    Args:
-        remote_spec: "host:/remote/dir" (e.g., "bigblack:/tmp/gen720_tsv")
-        tsv_name: filename (e.g., "exh_l_SOLUSDT_500.tsv")
-        local_path: local destination path
+    Extracted so both normal pipeline completion and --aggregate-only can call it.
     """
-    result = subprocess.run(
-        ["rsync", "-q", f"{remote_spec}/{tsv_name}", str(local_path)],
-        capture_output=True, timeout=300, check=False,
-    )
-    return result.returncode == 0 and local_path.exists() and local_path.stat().st_size > 0
-
-
-def run_direction(direction: str, remote: str | None = None) -> None:
-    """Run full WFO pipeline for one direction (LONG or SHORT).
-
-    If remote is set (e.g., "bigblack:/tmp/gen720_tsv"), fetch TSVs from remote
-    host one at a time, process, then delete the local copy to save disk space.
-    """
-    out_dir = _get_output_dir()
-
-    if direction == "long":
-        formations = LONG_FORMATIONS
-        strategy_map = {f: "standard" for f in formations}
-        parquet_name = "long_folds.parquet"
-        combo_jsonl_name = "long_combos.jsonl"
-        agg_jsonl_name = "gen720_long.jsonl"
-    else:
-        formations = SHORT_FORMATIONS_A + SHORT_FORMATIONS_B
-        strategy_map = {}
-        for f in SHORT_FORMATIONS_A:
-            strategy_map[f] = "A_mirrored"
-        for f in SHORT_FORMATIONS_B:
-            strategy_map[f] = "B_reverse"
-        parquet_name = "short_folds.parquet"
-        combo_jsonl_name = "short_combos.jsonl"
-        agg_jsonl_name = "gen720_short.jsonl"
-
-    print(f"Gen720 Walk-Forward Barrier Optimization: {direction.upper()}")
-    print(f"  Formations: {len(formations)}")
-    print(f"  Symbols: {len(SYMBOLS)}")
-    print(f"  Thresholds: {THRESHOLDS}")
-    print(f"  Max combos: {len(formations) * len(SYMBOLS) * len(THRESHOLDS)}")
-    if remote:
-        print(f"  Remote streaming: {remote}")
-    print()
-
-    t_start = time.monotonic()
-
-    # Subprocess isolation: each combo runs in a child process to prevent
-    # memory fragmentation from large TSV loads (300MB-1.6GB each).
-    # Child writes fold Parquet chunk + combo JSON, then exits — OS fully
-    # reclaims memory. Parent collects results from disk.
-    folds_dir = out_dir / "folds"
-    combos_dir = out_dir / "combos"
-    folds_dir.mkdir(parents=True, exist_ok=True)
-    combos_dir.mkdir(parents=True, exist_ok=True)
-
-    combo_summaries = []
-    n_processed = 0
-    n_skipped = 0
-
-    python_exe = str(Path(sys.executable))
-    script_path = str(Path(__file__))
-
-    for fmt in formations:
-        for sym in SYMBOLS:
-            for thr in THRESHOLDS:
-                strategy = strategy_map[fmt]
-                print(f"  [{n_processed + n_skipped + 1}] {fmt} {sym}@{thr} ({strategy})...", end="", flush=True)
-
-                # Run combo in subprocess for memory isolation
-                cmd = [
-                    python_exe, script_path,
-                    "--direction", direction,
-                    "--single-combo", f"{fmt},{sym},{thr}",
-                ]
-                if remote:
-                    cmd.extend(["--remote", remote])
-
-                result = subprocess.run(
-                    cmd, capture_output=True, text=True, timeout=600,
-                    check=False,  # We handle exit codes below
-                )
-
-                # Parse subprocess output (last line: "OK|..." or "FAIL|...")
-                stdout_lines = result.stdout.strip().splitlines()
-                last_line = stdout_lines[-1] if stdout_lines else ""
-
-                if last_line.startswith("OK|"):
-                    msg = last_line[3:]
-                    print(f" {msg}")
-                    n_processed += 1
-
-                    # Read combo summary from disk
-                    combo_json_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
-                    if combo_json_path.exists():
-                        with open(combo_json_path) as f:
-                            combo_summaries.append(json.loads(f.read()))
-                elif last_line.startswith("FAIL|"):
-                    msg = last_line[5:]
-                    if msg.startswith("SKIP:"):
-                        n_skipped += 1
-                        # Don't print for skips — too noisy
-                    else:
-                        print(f" {msg}")
-                        n_skipped += 1
-                else:
-                    # Unexpected output or crash
-                    stderr_tail = result.stderr[-200:] if result.stderr else ""
-                    print(f" CRASH (exit={result.returncode}): {stderr_tail}")
-                    n_skipped += 1
-
-    t_wf = time.monotonic() - t_start
-    print(f"\nProcessed {n_processed} combos, skipped {n_skipped}, in {t_wf:.1f}s")
-
-    if not combo_summaries:
-        print("ERROR: No combos processed. Check results/eval/gen720/raw/ for TSV files.")
-        sys.exit(1)
-
-    # ---- Tier 1: Merge per-combo Parquet chunks ----
-    parquet_path = folds_dir / parquet_name
-    chunk_files = sorted(folds_dir.glob("_chunk_*.parquet"))
-    if chunk_files:
-        chunk_dfs = [pl.read_parquet(p) for p in chunk_files]
-        full_fold_df = pl.concat(chunk_dfs)
-        full_fold_df.write_parquet(parquet_path, compression="zstd")
-        print(f"Tier 1 Parquet: {parquet_path} ({len(full_fold_df)} rows)")
-        del full_fold_df, chunk_dfs
-        gc.collect()
-        # Clean up chunk files
-        for p in chunk_files:
-            p.unlink(missing_ok=True)
-    else:
-        print("WARNING: No fold data to write to Parquet")
-
-    # ---- Tier 2: Write combo JSONL (merge individual JSON files) ----
-    combo_path = combos_dir / combo_jsonl_name
-    with open(combo_path, "w") as f:
-        for combo in combo_summaries:
-            f.write(json.dumps(combo, default=str) + "\n")
-    print(f"Tier 2 JSONL: {combo_path} ({len(combo_summaries)} combos)")
-    # Clean up individual combo JSON files
-    for p in combos_dir.glob("_combo_*.json"):
-        p.unlink(missing_ok=True)
-
-    # ---- Tier 3: Aggregation ----
     t_agg_start = time.monotonic()
 
     # Cross-formation
@@ -712,7 +583,7 @@ def run_direction(direction: str, remote: str | None = None) -> None:
     # ---- Summary ----
     print(f"\n{'='*60}")
     print(f"Gen720-{'L' if direction == 'long' else 'S'} Summary:")
-    print(f"  Combos: {n_processed} processed, {n_skipped} skipped")
+    print(f"  Combos: {n_processed} processed ({len(combo_summaries)} total)")
     print(f"  XA consistency: {xa['xa_consistency']:.1%} positive OOS")
     print(f"  XF universal barriers: {len(xf.get('barriers_universal', []))}")
     print(f"  Knee points: {knee_analysis['n_knee_points']}")
@@ -720,6 +591,210 @@ def run_direction(direction: str, remote: str | None = None) -> None:
         print(f"  TOPSIS #1: {topsis_ranking[0]['barrier_id']} "
               f"(score={topsis_ranking[0]['topsis_score']:.4f})")
     print(f"  Total time: {t_total:.1f}s")
+
+
+# ---- Main Orchestrator ----
+
+
+def _fetch_remote_tsv(remote_spec: str, tsv_name: str, local_path: Path) -> bool:
+    """Fetch a single TSV from remote host via rsync. Returns True if successful.
+
+    Args:
+        remote_spec: "host:/remote/dir" (e.g., "bigblack:/tmp/gen720_tsv")
+        tsv_name: filename (e.g., "exh_l_SOLUSDT_500.tsv")
+        local_path: local destination path
+    """
+    result = subprocess.run(
+        ["rsync", "-q", f"{remote_spec}/{tsv_name}", str(local_path)],
+        capture_output=True, timeout=300, check=False,
+    )
+    return result.returncode == 0 and local_path.exists() and local_path.stat().st_size > 0
+
+
+def run_direction(direction: str, remote: str | None = None, *, aggregate_only: bool = False) -> None:
+    """Run full WFO pipeline for one direction (LONG or SHORT).
+
+    If remote is set (e.g., "bigblack:/tmp/gen720_tsv"), fetch TSVs from remote
+    host one at a time, process, then delete the local copy to save disk space.
+
+    If aggregate_only is True, skip all WFO processing and load combo summaries
+    from existing Tier 2 JSONL, then run Tier 3 aggregation only.
+    """
+    out_dir = _get_output_dir()
+
+    if direction == "long":
+        formations = LONG_FORMATIONS
+        strategy_map = {f: "standard" for f in formations}
+        parquet_name = "long_folds.parquet"
+        combo_jsonl_name = "long_combos.jsonl"
+        agg_jsonl_name = "gen720_long.jsonl"
+    else:
+        formations = SHORT_FORMATIONS_A + SHORT_FORMATIONS_B
+        strategy_map = {}
+        for f in SHORT_FORMATIONS_A:
+            strategy_map[f] = "A_mirrored"
+        for f in SHORT_FORMATIONS_B:
+            strategy_map[f] = "B_reverse"
+        parquet_name = "short_folds.parquet"
+        combo_jsonl_name = "short_combos.jsonl"
+        agg_jsonl_name = "gen720_short.jsonl"
+
+    print(f"Gen720 Walk-Forward Barrier Optimization: {direction.upper()}")
+    print(f"  Formations: {len(formations)}")
+    print(f"  Symbols: {len(SYMBOLS)}")
+    print(f"  Thresholds: {THRESHOLDS}")
+    print(f"  Max combos: {len(formations) * len(SYMBOLS) * len(THRESHOLDS)}")
+    if remote:
+        print(f"  Remote streaming: {remote}")
+    if aggregate_only:
+        print("  Mode: AGGREGATE-ONLY (Tier 3 from existing Tier 2 JSONL)")
+    print()
+
+    t_start = time.monotonic()
+
+    # ---- Aggregate-only mode: load from existing Tier 2 JSONL ----
+    if aggregate_only:
+        combo_path = out_dir / "combos" / combo_jsonl_name
+        if not combo_path.exists():
+            print(f"ERROR: {combo_path} not found. Run full pipeline first.")
+            sys.exit(1)
+
+        combo_summaries = []
+        with open(combo_path) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    combo_summaries.append(json.loads(line))
+
+        n_processed = len(combo_summaries)
+        print(f"Loaded {n_processed} combo summaries from {combo_path}")
+
+        # Jump to Tier 3 aggregation (skip Tier 1+2 which already exist)
+        t_wf = 0.0  # No WFO processing time
+        # (fall through to Tier 3 code below)
+        # We need to skip the combo processing loop and Tier 1/2 writing.
+        return _run_aggregation(
+            direction, combo_summaries, n_processed, t_start, t_wf,
+            out_dir, agg_jsonl_name,
+        )
+
+    # Subprocess isolation: each combo runs in a child process to prevent
+    # memory fragmentation from large TSV loads (300MB-1.6GB each).
+    # Child writes fold Parquet chunk + combo JSON, then exits — OS fully
+    # reclaims memory. Parent collects results from disk.
+    folds_dir = out_dir / "folds"
+    combos_dir = out_dir / "combos"
+    folds_dir.mkdir(parents=True, exist_ok=True)
+    combos_dir.mkdir(parents=True, exist_ok=True)
+
+    combo_summaries = []
+    n_processed = 0
+    n_skipped = 0
+
+    python_exe = str(Path(sys.executable))
+    script_path = str(Path(__file__))
+
+    for fmt in formations:
+        for sym in SYMBOLS:
+            for thr in THRESHOLDS:
+                strategy = strategy_map[fmt]
+                combo_idx = n_processed + n_skipped + 1
+
+                # Resume: skip combos that already have output files
+                combo_json_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
+                if combo_json_path.exists():
+                    with open(combo_json_path) as f:
+                        combo_summaries.append(json.loads(f.read()))
+                    n_processed += 1
+                    continue
+
+                print(f"  [{combo_idx}] {fmt} {sym}@{thr} ({strategy})...", end="", flush=True)
+
+                # Run combo in subprocess for memory isolation
+                cmd = [
+                    python_exe, script_path,
+                    "--direction", direction,
+                    "--single-combo", f"{fmt},{sym},{thr}",
+                ]
+                if remote:
+                    cmd.extend(["--remote", remote])
+
+                try:
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, timeout=1800,
+                        check=False,  # We handle exit codes below
+                    )
+                except subprocess.TimeoutExpired:
+                    print(" TIMEOUT (>1800s)")
+                    n_skipped += 1
+                    continue
+
+                # Parse subprocess output (last line: "OK|..." or "FAIL|...")
+                stdout_lines = result.stdout.strip().splitlines()
+                last_line = stdout_lines[-1] if stdout_lines else ""
+
+                if last_line.startswith("OK|"):
+                    msg = last_line[3:]
+                    print(f" {msg}")
+                    n_processed += 1
+
+                    # Read combo summary from disk
+                    combo_json_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
+                    if combo_json_path.exists():
+                        with open(combo_json_path) as f:
+                            combo_summaries.append(json.loads(f.read()))
+                elif last_line.startswith("FAIL|"):
+                    msg = last_line[5:]
+                    if msg.startswith("SKIP:"):
+                        n_skipped += 1
+                        # Don't print for skips — too noisy
+                    else:
+                        print(f" {msg}")
+                        n_skipped += 1
+                else:
+                    # Unexpected output or crash
+                    stderr_tail = result.stderr[-200:] if result.stderr else ""
+                    print(f" CRASH (exit={result.returncode}): {stderr_tail}")
+                    n_skipped += 1
+
+    t_wf = time.monotonic() - t_start
+    print(f"\nProcessed {n_processed} combos, skipped {n_skipped}, in {t_wf:.1f}s")
+
+    if not combo_summaries:
+        print("ERROR: No combos processed. Check results/eval/gen720/raw/ for TSV files.")
+        sys.exit(1)
+
+    # ---- Tier 1: Merge per-combo Parquet chunks ----
+    parquet_path = folds_dir / parquet_name
+    chunk_files = sorted(folds_dir.glob("_chunk_*.parquet"))
+    if chunk_files:
+        chunk_dfs = [pl.read_parquet(p) for p in chunk_files]
+        full_fold_df = pl.concat(chunk_dfs)
+        full_fold_df.write_parquet(parquet_path, compression="zstd")
+        print(f"Tier 1 Parquet: {parquet_path} ({len(full_fold_df)} rows)")
+        del full_fold_df, chunk_dfs
+        gc.collect()
+        # Clean up chunk files
+        for p in chunk_files:
+            p.unlink(missing_ok=True)
+    else:
+        print("WARNING: No fold data to write to Parquet")
+
+    # ---- Tier 2: Write combo JSONL (merge individual JSON files) ----
+    combo_path = combos_dir / combo_jsonl_name
+    with open(combo_path, "w") as f:
+        for combo in combo_summaries:
+            f.write(json.dumps(combo, default=str) + "\n")
+    print(f"Tier 2 JSONL: {combo_path} ({len(combo_summaries)} combos)")
+    # Clean up individual combo JSON files
+    for p in combos_dir.glob("_combo_*.json"):
+        p.unlink(missing_ok=True)
+
+    # ---- Tier 3: Aggregation ----
+    _run_aggregation(
+        direction, combo_summaries, n_processed, t_start, t_wf,
+        out_dir, agg_jsonl_name, parquet_name, combo_jsonl_name,
+    )
 
 
 def _run_single_combo(
@@ -782,6 +857,11 @@ def main():
              "Fetches one at a time, processes, deletes local copy.",
     )
     parser.add_argument(
+        "--aggregate-only", action="store_true",
+        help="Skip WFO processing; read existing combo JSONL and run Tier 3 aggregation only. "
+             "Use after pipeline completed Tier 1+2 but crashed during aggregation.",
+    )
+    parser.add_argument(
         "--single-combo", default=None,
         help="Process a single combo: FMT,SYM,THR (e.g., wl1d,BTCUSDT,750). "
              "Used internally for subprocess isolation.",
@@ -816,7 +896,7 @@ def main():
         print(f"{'OK' if ok else 'FAIL'}|{msg}")
         sys.exit(0 if ok else 1)
 
-    run_direction(args.direction, remote=args.remote)
+    run_direction(args.direction, remote=args.remote, aggregate_only=args.aggregate_only)
 
 
 if __name__ == "__main__":

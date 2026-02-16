@@ -12,5 +12,8 @@ outputs/
 # Large result files (decompressed from .br)
 results/eval/trade_returns.jsonl
 
+# Gen720 raw TSVs (collected from BigBlack, too large for git)
+results/eval/gen720/raw/
+
 # Node.js (semantic-release only)
 node_modules/
