@@ -23,7 +23,7 @@ dependencies = [
 [project.optional-dependencies]
 backtesting = ["backtesting>=0.3"]
 nautilus = ["nautilus_trader>=1.200"]
-optimize = ["optuna>=4.7"]
+optimize = ["optuna>=4.7", "pymcdm>=1.2", "pymoo>=0.6"]
 dev = ["pytest>=7.0", "ruff>=0.1"]
 
 [tool.ruff]
