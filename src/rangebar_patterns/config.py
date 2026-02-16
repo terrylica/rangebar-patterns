@@ -94,3 +94,17 @@ RANK_TOP_N: int = int(os.environ.get("RBP_RANK_TOP_N", "50"))
 RANK_OBJECTIVE: str = os.environ.get("RBP_RANK_OBJECTIVE", "max_survivors_min_cutoff")
 RANK_N_TRIALS: int = int(os.environ.get("RBP_RANK_N_TRIALS", "200"))
 RANK_TARGET_N: int = int(os.environ.get("RBP_RANK_TARGET_N", "10"))
+
+# ---- Knee Detection (Issue #28) ----
+RANK_KNEE_EPSILON: float = float(os.environ.get("RBP_RANK_KNEE_EPSILON", "0.125"))
+
+# ---- Walk-Forward Optimization (Issue #28) ----
+WF_MIN_TRAIN_SPLITS: int = int(os.environ.get("RBP_WF_MIN_TRAIN_SPLITS", "3"))
+WF_MAX_TRAIN_SPLITS: int = int(os.environ.get("RBP_WF_MAX_TRAIN_SPLITS", "5"))
+WF_CPCV_N_TEST_FOLDS: int = int(os.environ.get("RBP_WF_CPCV_N_TEST_FOLDS", "2"))
+WF_CPCV_EMBARGO_BARS: int = int(os.environ.get("RBP_WF_CPCV_EMBARGO_BARS", "10"))
+WF_BOOTSTRAP_RESAMPLES: int = int(os.environ.get("RBP_WF_BOOTSTRAP_RESAMPLES", "10000"))
+WF_BOOTSTRAP_BLOCK_SIZE: int = int(os.environ.get("RBP_WF_BOOTSTRAP_BLOCK_SIZE", "20"))
+WF_SCREEN_TOP_K: int = int(os.environ.get("RBP_WF_SCREEN_TOP_K", "50"))
+WF_INNER_K: int = int(os.environ.get("RBP_WF_INNER_K", "10"))
+WF_N_REGIMES: int = int(os.environ.get("RBP_WF_N_REGIMES", "3"))

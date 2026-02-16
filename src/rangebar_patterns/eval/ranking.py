@@ -367,6 +367,90 @@ def topsis_rank(
     return d_nadir / denom
 
 
+def _flip_to_minimize(matrix: np.ndarray, types: np.ndarray) -> np.ndarray:
+    """Flip maximization objectives to minimization (negate benefit columns).
+
+    pymoo and moocore assume minimization. This negates columns where
+    types==1 (benefit, higher=better) so they become cost objectives.
+
+    Args:
+        matrix: Decision matrix (n_alternatives x n_criteria).
+        types: +1 for benefit (will be negated), -1 for cost (unchanged).
+
+    Returns:
+        Copy of matrix with benefit columns negated.
+    """
+    flipped = matrix.copy()
+    for j in range(matrix.shape[1]):
+        if types[j] == 1:
+            flipped[:, j] = -flipped[:, j]
+    return flipped
+
+
+def knee_detect(
+    matrix: np.ndarray,
+    types: np.ndarray,
+    epsilon: float = 0.125,
+) -> np.ndarray:
+    """Detect knee points on a Pareto front via tradeoff outlier analysis.
+
+    Bypasses pymoo's buggy ``HighTradeoffPoints`` (hardcodes epsilon=0.125
+    in ``_do()`` instead of using ``self.epsilon``).  Extracts the tradeoff
+    calculation inline and delegates outlier detection to
+    ``pymoo.core.decision_making.find_outliers_upper_tail``.
+
+    Args:
+        matrix: Decision matrix (n_alternatives x n_criteria).
+        types: +1 for benefit (higher=better), -1 for cost (lower=better).
+        epsilon: Radius for neighbour queries (passed to ``NeighborFinder``).
+
+    Returns:
+        Integer indices of knee points.  Empty array if <3 points or if
+        pymoo is unavailable.
+    """
+    if matrix.shape[0] < 3:
+        return np.array([], dtype=int)
+
+    try:
+        from pymoo.core.decision_making import (
+            NeighborFinder,
+            find_outliers_upper_tail,
+        )
+    except ImportError:
+        return np.array([], dtype=int)
+
+    # 1. Flip to minimisation convention (pymoo assumes minimisation)
+    F = _flip_to_minimize(matrix, types)
+
+    # 2. Normalise to [0, 1] per column (required for epsilon-radius queries)
+    col_min = F.min(axis=0)
+    col_max = F.max(axis=0)
+    col_range = col_max - col_min
+    col_range[col_range == 0] = 1.0
+    F_norm = (F - col_min) / col_range
+
+    # 3. Per-point tradeoff: min sacrifice/gain ratio to all neighbours
+    n = F_norm.shape[0]
+    neighbors_finder = NeighborFinder(
+        F_norm, epsilon=epsilon, n_min_neigbors="auto", consider_2d=False,
+    )
+    mu = np.full(n, -np.inf)
+    for i in range(n):
+        neighbors = neighbors_finder.find(i)
+        diff = F_norm[neighbors] - F_norm[i]
+        sacrifice = np.maximum(0, diff).sum(axis=1)
+        gain = np.maximum(0, -diff).sum(axis=1)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            tradeoff = sacrifice / gain
+        mu[i] = np.nanmin(tradeoff)
+
+    # 4. Outlier detection (indices >= 2σ above mean)
+    result = find_outliers_upper_tail(mu)
+    if result is None:
+        return np.array([], dtype=int)
+    return np.asarray(result, dtype=int)
+
+
 def build_report(
     cutoffs: dict[str, int],
     all_pct_ranks: dict[str, dict[str, float]],

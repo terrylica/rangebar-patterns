@@ -21,19 +21,7 @@ from pathlib import Path
 import numpy as np
 
 from rangebar_patterns.eval._io import provenance_dict
-from rangebar_patterns.eval.ranking import topsis_rank
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _flip_to_minimize(matrix: np.ndarray, types: np.ndarray) -> np.ndarray:
-    """Flip maximization objectives to minimization (negate benefit columns)."""
-    flipped = matrix.copy()
-    for j in range(matrix.shape[1]):
-        if types[j] == 1:
-            flipped[:, j] = -flipped[:, j]
-    return flipped
+from rangebar_patterns.eval.ranking import _flip_to_minimize, topsis_rank
 
 
 def _scale_timing_record(method: str, n_strategies: int, n_metrics: int,

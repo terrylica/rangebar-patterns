@@ -1,0 +1,15 @@
+# Gen720: Walk-Forward Barrier Optimization (Issue #28)
+# 15 templates × 15 symbols × 3 thresholds = 675 SQL queries
+# 434 barrier combos per query (8 phase1_bars × 7 sl_tight × 9 max_bars)
+
+["gen720:generate"]
+description = "Generate 675 SQL files (15 formations × 15 symbols × 3 thresholds)"
+run = "bash scripts/gen720/generate.sh"
+
+["gen720:submit"]
+description = "Submit Gen720 queries to BigBlack pueue. Args: [FORMATION] [SYMBOL] [THRESHOLD]"
+run = "bash scripts/gen720/submit.sh"
+
+["gen720:collect"]
+description = "Collect Gen720 TSV results from BigBlack to results/eval/gen720/raw/"
+run = "bash scripts/gen720/collect.sh"

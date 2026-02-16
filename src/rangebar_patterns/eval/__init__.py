@@ -18,7 +18,12 @@ from rangebar_patterns.eval.evalues import compute_evalues
 from rangebar_patterns.eval.minbtl import compute_minbtl
 from rangebar_patterns.eval.omega import compute_omega
 from rangebar_patterns.eval.rachev import compute_rachev
-from rangebar_patterns.eval.ranking import apply_cutoff, percentile_ranks, run_ranking_with_cutoffs
+from rangebar_patterns.eval.ranking import (
+    apply_cutoff,
+    knee_detect,
+    percentile_ranks,
+    run_ranking_with_cutoffs,
+)
 from rangebar_patterns.eval.signal_regularity import compute_signal_regularity
 from rangebar_patterns.eval.tamrs import compute_tamrs
 
@@ -33,6 +38,7 @@ __all__ = [
     "compute_signal_regularity",
     "compute_tamrs",
     "expected_max_sr",
+    "knee_detect",
     "percentile_ranks",
     "run_ranking_with_cutoffs",
     "sr_standard_error",

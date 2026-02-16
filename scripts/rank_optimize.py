@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -22,6 +23,7 @@ from rangebar_patterns.eval.ranking import (
     DEFAULT_METRICS,
     filter_discriminating_metrics,
     get_all_metrics,
+    knee_detect,
     load_metric_data,
     run_ranking_with_cutoffs,
     topsis_rank,
@@ -180,17 +182,45 @@ def main():
             for i, pf in enumerate(pareto_front):
                 pf["topsis_score"] = round(float(topsis_scores[i]), 6)
 
+        # Time TOPSIS (retroactive — already computed above)
+        t0 = time.perf_counter_ns()
+        _ = topsis_rank(topsis_matrix, topsis_weights, topsis_types) if pareto_front else None
+        topsis_us = (time.perf_counter_ns() - t0) / 1000
+
+        # Knee detection on Pareto front (Issue #28)
+        knee_indices: list[int] = []
+        knee_error: str | None = None
+        t0 = time.perf_counter_ns()
+        if pareto_front:
+            try:
+                ki = knee_detect(
+                    topsis_matrix, topsis_types, epsilon=config.RANK_KNEE_EPSILON,
+                )
+                knee_indices = ki.tolist()
+            except (ImportError, ValueError, RuntimeError) as exc:
+                knee_error = str(exc)[:200]
+        knee_us = (time.perf_counter_ns() - t0) / 1000
+
+        # Annotate each Pareto solution
+        knee_set = set(knee_indices)
+        for i, pf in enumerate(pareto_front):
+            pf["is_knee"] = i in knee_set
+
         # Sort by TOPSIS score (best first), fallback to old sort for empty scores
         pareto_front.sort(key=lambda x: -x.get("topsis_score", 0))
 
         print(f"Pareto front: {len(pareto_front)} solutions (TOPSIS-ranked)")
         for pf in pareto_front[:10]:
+            knee_marker = " [KNEE]" if pf.get("is_knee") else ""
             print(
                 f"  TOPSIS={pf.get('topsis_score', 0):.4f} "
                 f"Survivors={pf['n_survivors']} "
                 f"AvgQuality={pf['avg_quality']:.1f} "
                 f"MeanCut={pf['mean_cutoff']:.1f}"
+                f"{knee_marker}"
             )
+        n_knees = sum(1 for pf in pareto_front if pf.get("is_knee"))
+        print(f"  Knee points: {n_knees} (epsilon={config.RANK_KNEE_EPSILON})")
 
         record = {
             "objective": objective_name,
@@ -204,6 +234,17 @@ def main():
             "best_mean_cutoff": pareto_front[0]["mean_cutoff"] if pareto_front else None,
             "env_vars": _cutoffs_to_env(pareto_front[0]["cutoffs"]) if pareto_front else "",
             "pareto_front": pareto_front,
+            "knee_analysis": {
+                "n_knee_points": n_knees,
+                "knee_indices": knee_indices,
+                "epsilon": config.RANK_KNEE_EPSILON,
+                "error": knee_error,
+            },
+            "timing": {
+                "topsis_us": round(topsis_us, 1),
+                "knee_us": round(knee_us, 1),
+                "total_mcdm_us": round(topsis_us + knee_us, 1),
+            },
             "provenance": provenance,
         }
 

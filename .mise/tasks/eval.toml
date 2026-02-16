@@ -93,3 +93,17 @@ depends = ["eval:compute", "eval:tamrs", "eval:cscv"]
 ["eval:full"]
 description = "Full eval pipeline: extract + OU + compute + synthesize + screen. Runs ClickHouse extraction, all metric modules, cross-metric synthesis, and multi-tier screening. Override any parameter via RBP_* env vars. See Issue #12, #16."
 depends = ["eval:extract", "eval:ou", "eval:compute", "eval:compute-phase2", "eval:synthesize", "eval:screen", "eval:rank"]
+
+# ---- Walk-Forward Barrier Optimization (Issue #28) ----
+
+["eval:walk-forward-long"]
+description = "Run 4-stage WFO on LONG formations: WFO screening → CPCV → Bootstrap → Stability. Reads results/eval/gen720/raw/*.tsv. Writes Tier 1 Parquet + Tier 2/3 JSONL. Uses RBP_WF_* config vars. See Issue #28."
+run = "uv run -p 3.13 python scripts/walk_forward_barriers.py --direction long"
+
+["eval:walk-forward-short"]
+description = "Run 4-stage WFO on SHORT formations (Strategy A + B): WFO screening → CPCV → Bootstrap → Stability. Reads results/eval/gen720/raw/*.tsv. Writes Tier 1 Parquet + Tier 2/3 JSONL. Uses RBP_WF_* config vars. See Issue #28."
+run = "uv run -p 3.13 python scripts/walk_forward_barriers.py --direction short"
+
+["eval:walk-forward"]
+description = "Run both LONG and SHORT WFO analyses (strictly isolated). See Issue #28."
+depends = ["eval:walk-forward-long", "eval:walk-forward-short"]

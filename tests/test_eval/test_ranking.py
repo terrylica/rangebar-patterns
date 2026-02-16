@@ -12,8 +12,10 @@ import numpy as np
 from rangebar_patterns.eval.ranking import (
     DEFAULT_METRICS,
     MetricSpec,
+    _flip_to_minimize,
     apply_cutoff,
     intersection,
+    knee_detect,
     load_metric_data,
     overlap_count,
     percentile_ranks,
@@ -196,3 +198,54 @@ def test_topsis_rank_equal_alternatives():
     types = np.array([1.0, 1.0])
     scores = topsis_rank(matrix, weights, types)
     np.testing.assert_allclose(scores, scores[0])
+
+
+# ---- Knee Detection Tests (Issue #28) ----
+
+
+def test_flip_to_minimize():
+    """Benefit columns negated, cost columns unchanged."""
+    matrix = np.array([[10.0, 5.0], [3.0, 8.0]])
+    types = np.array([1.0, -1.0])  # col0=benefit, col1=cost
+    flipped = _flip_to_minimize(matrix, types)
+    np.testing.assert_array_equal(flipped[:, 0], -matrix[:, 0])
+    np.testing.assert_array_equal(flipped[:, 1], matrix[:, 1])
+
+
+def test_knee_detect_basic():
+    """L-shaped Pareto front has at least one knee at the bend."""
+    matrix = np.array([
+        [10.0, 1.0],
+        [8.0, 2.0],
+        [5.0, 5.0],
+        [2.0, 8.0],
+        [1.0, 10.0],
+    ])
+    types = np.array([1.0, 1.0])
+    knees = knee_detect(matrix, types, epsilon=0.125)
+    assert len(knees) >= 1
+    assert all(0 <= k < matrix.shape[0] for k in knees)
+
+
+def test_knee_detect_too_few():
+    """Fewer than 3 points returns empty array."""
+    matrix = np.array([[10.0, 1.0], [1.0, 10.0]])
+    types = np.array([1.0, 1.0])
+    knees = knee_detect(matrix, types)
+    assert len(knees) == 0
+
+
+def test_knee_detect_three_objectives():
+    """Knee detection works on 3D Pareto front."""
+    matrix = np.array([
+        [10, 1, 1],
+        [5, 5, 5],
+        [1, 10, 1],
+        [1, 1, 10],
+        [3, 3, 8],
+        [8, 3, 3],
+    ], dtype=float)
+    types = np.array([1.0, 1.0, 1.0])
+    knees = knee_detect(matrix, types, epsilon=0.25)
+    assert isinstance(knees, np.ndarray)
+    assert knees.dtype == int
