@@ -397,14 +397,69 @@ Plaintext
 
 **Would you like me to map out how you might ingest those resulting JSON telemetry logs into your Rust core's actual production database once the benchmark proves out the architecture?**
 
-[Google Privacy Policy Opens in a new window](https://policies.google.com/privacy)
-[Google Terms of Service Opens in a new window](https://policies.google.com/terms)
-[Your privacy & Gemini Apps Opens in a new window](https://support.google.com/gemini?p=privacy_notice)
+---
 
-Gemini may display inaccurate info, including about people, so double-check its responses.
+## Benchmark POC Results (Claude Code Opus 4.6 execution)
 
-Sign in
+<!-- SSoT-OK: versions below are benchmark observations, not dependency pins -->
 
-Copy public link
+**Commit**: 9acae06 | **Script**: `scripts/mcdm_benchmark.py` | **Telemetry**: `results/eval/mcdm_benchmark.jsonl`
 
-Report
+### Phase 1: Real Pareto Front (75 solutions x 3 metrics)
+
+| Method                   | Latency (us) | Best Solution | Role                                    |
+| ------------------------ | ------------ | ------------- | --------------------------------------- |
+| pymoo PseudoWeights      | 33           | trial_925     | Compromise selector                     |
+| NumPy TOPSIS             | 38           | trial_845     | Primary ranker (standard normalization) |
+| moocore Hypervolume      | 337          | N/A (scalar)  | Pareto quality metric                   |
+| pymcdm TOPSIS            | 779          | trial_785     | REJECTED (non-standard default)         |
+| pymoo HighTradeoffPoints | 1,840        | trial_785     | Knee-point detection                    |
+
+### Phase 2: Scale (50K strategies x 11 metrics)
+
+| Method                   | Median (us) | Scaling         | WFO-Viable?  |
+| ------------------------ | ----------- | --------------- | ------------ |
+| pymoo PseudoWeights      | 3,348       | O(N)            | YES          |
+| NumPy TOPSIS             | 5,084       | O(N)            | YES          |
+| pymcdm TOPSIS            | 180,748     | O(N) 36x slower | Marginal     |
+| pymoo HighTradeoffPoints | skipped     | O(N^2)          | NO           |
+| moocore Hypervolume      | skipped     | Exp(dims)       | NO (3D only) |
+
+### Critical Finding: TOPSIS Normalization Disagreement
+
+**pymcdm vs NumPy TOPSIS: 0/5 top-5 overlap on identical data.**
+
+Root cause: pymcdm defaults to min-max normalization (`pymcdm/normalizations.py:19-40`)
+but Hwang & Yoon (1981) specify vector normalization (L2 norm).
+
+Verified in fork: `~/fork-tools/pymcdm/pymcdm/methods/topsis.py:59` —
+`def __init__(self, normalization_function=normalizations.minmax_normalization)`
+
+NumPy implementation uses the standard: `norms = np.sqrt((matrix ** 2).sum(axis=0))`
+
+### Architectural Recommendation
+
+1. **Primary ranker**: NumPy TOPSIS (5ms at 50K, zero dependencies, standard vector normalization)
+2. **Secondary validation**: pymoo PseudoWeights (3.3ms, weights-aware compromise)
+3. **Pareto quality metric**: moocore hypervolume (at 3D objectives only)
+4. **Eliminated**: pymcdm TOPSIS (non-standard default), pymoo knee-point (O(N^2))
+5. **Rust mcdm crate**: Not benchmarked (premature — Python speed sufficient for WFO scale)
+
+### Agent Workability Assessment
+
+| Library               | Install   | API Clarity  | Error Messages                                     | Claude Code Experience          |
+| --------------------- | --------- | ------------ | -------------------------------------------------- | ------------------------------- |
+| NumPy (manual TOPSIS) | Zero deps | N/A (custom) | N/A                                                | Excellent — full control        |
+| pymoo                 | Clean     | Good         | Weak (CompromiseProgramming returns None silently) | Good with workarounds           |
+| pymcdm                | Clean     | Good         | Good                                               | Good (but non-standard default) |
+| moocore               | Clean     | Minimal docs | Good                                               | Good (C++ bindings fast)        |
+
+**pymoo trap**: `CompromiseProgramming._do()` returns `None` — use `PseudoWeights` instead.
+
+### Forks for Deep-Dive
+
+| Repository        | Local Path           | Purpose                    |
+| ----------------- | -------------------- | -------------------------- |
+| terrylica/pymcdm  | ~/fork-tools/pymcdm  | Normalization source audit |
+| terrylica/pymoo   | ~/fork-tools/pymoo   | MCDM module internals      |
+| terrylica/moocore | ~/fork-tools/moocore | Hypervolume algorithm      |
