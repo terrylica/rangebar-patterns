@@ -6,7 +6,33 @@ GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
+from datetime import UTC, datetime
 from pathlib import Path
+
+
+def git_commit_short() -> str:
+    """Return short git commit hash, or 'unknown' on failure."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def provenance_dict() -> dict:
+    """Build standard provenance metadata for telemetry records."""
+    return {
+        "git_commit": git_commit_short(),
+        "timestamp": datetime.now(tz=UTC).isoformat(),
+        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
+    }
 
 
 def results_dir() -> Path:

@@ -14,29 +14,40 @@ GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 import time
-from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
 
+from rangebar_patterns.eval._io import provenance_dict
+from rangebar_patterns.eval.ranking import topsis_rank
+
 # ---------------------------------------------------------------------------
-# Provenance (copied from tamrs_poc.py pattern)
+# Helpers
 # ---------------------------------------------------------------------------
 
-def _git_commit() -> str:
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return result.stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
+def _flip_to_minimize(matrix: np.ndarray, types: np.ndarray) -> np.ndarray:
+    """Flip maximization objectives to minimization (negate benefit columns)."""
+    flipped = matrix.copy()
+    for j in range(matrix.shape[1]):
+        if types[j] == 1:
+            flipped[:, j] = -flipped[:, j]
+    return flipped
+
+
+def _scale_timing_record(method: str, n_strategies: int, n_metrics: int,
+                         n_repeats: int, timings: list[float]) -> dict:
+    """Build a scale benchmark result dict from timing measurements."""
+    return {
+        "method": method,
+        "n_strategies": n_strategies,
+        "n_metrics": n_metrics,
+        "n_repeats": n_repeats,
+        "median_us": round(float(np.median(timings)), 1),
+        "p95_us": round(float(np.percentile(timings, 95)), 1),
+        "min_us": round(float(np.min(timings)), 1),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -116,11 +127,7 @@ def bench_pymoo_knee(matrix: np.ndarray, types: np.ndarray) -> dict:
     from pymoo.mcdm.high_tradeoff import HighTradeoffPoints
 
     # pymoo expects minimization — flip maximization objectives
-    # types: 1 = maximize (benefit), -1 = minimize (cost)
-    flipped = matrix.copy()
-    for j in range(matrix.shape[1]):
-        if types[j] == 1:  # maximize → flip to minimize
-            flipped[:, j] = -flipped[:, j]
+    flipped = _flip_to_minimize(matrix, types)
 
     # Normalize to [0,1] for knee detection
     mins = flipped.min(axis=0)
@@ -200,31 +207,11 @@ def bench_pymoo_pseudo_weights(matrix: np.ndarray, weights: np.ndarray, types: n
 # ---------------------------------------------------------------------------
 
 def bench_numpy_topsis(matrix: np.ndarray, weights: np.ndarray, types: np.ndarray) -> dict:
-    """Benchmark pure NumPy TOPSIS implementation."""
+    """Benchmark canonical NumPy TOPSIS from ranking.py."""
     t0 = time.perf_counter_ns()
-
-    # Step 1: Normalize (vector normalization)
-    norms = np.sqrt((matrix ** 2).sum(axis=0))
-    norms[norms == 0] = 1.0
-    normalized = matrix / norms
-
-    # Step 2: Weighted normalized
-    weighted = normalized * weights
-
-    # Step 3: Ideal and Nadir points
-    ideal = np.where(types == 1, weighted.max(axis=0), weighted.min(axis=0))
-    nadir = np.where(types == 1, weighted.min(axis=0), weighted.max(axis=0))
-
-    # Step 4: Euclidean distances
-    d_ideal = np.sqrt(((weighted - ideal) ** 2).sum(axis=1))
-    d_nadir = np.sqrt(((weighted - nadir) ** 2).sum(axis=1))
-
-    # Step 5: Closeness coefficient
-    denom = d_ideal + d_nadir
-    denom[denom == 0] = 1.0
-    scores = d_nadir / denom
-
+    scores = topsis_rank(matrix, weights, types)
     t1 = time.perf_counter_ns()
+
     elapsed_us = (t1 - t0) / 1000
     best_idx = int(np.argmax(scores))
 
@@ -235,8 +222,6 @@ def bench_numpy_topsis(matrix: np.ndarray, weights: np.ndarray, types: np.ndarra
         "best_score": round(float(scores[best_idx]), 6),
         "top5_indices": [int(i) for i in np.argsort(scores)[-5:][::-1]],
         "top5_scores": [round(float(scores[i]), 6) for i in np.argsort(scores)[-5:][::-1]],
-        "ideal_point": [round(float(v), 6) for v in ideal],
-        "nadir_point": [round(float(v), 6) for v in nadir],
         "all_scores": [round(float(s), 6) for s in scores],
     }
 
@@ -253,10 +238,7 @@ def bench_moocore_hypervolume(matrix: np.ndarray, types: np.ndarray) -> dict:
         return {"method": "moocore_hypervolume", "error": "moocore not installed", "elapsed_us": 0}
 
     # moocore expects minimization
-    flipped = matrix.copy()
-    for j in range(matrix.shape[1]):
-        if types[j] == 1:
-            flipped[:, j] = -flipped[:, j]
+    flipped = _flip_to_minimize(matrix, types)
 
     # Reference point: worst value per objective + margin
     ref_point = flipped.max(axis=0) + 1.0
@@ -305,16 +287,7 @@ def run_scale_benchmark(n_strategies: int, n_metrics: int, n_repeats: int = 5) -
         for _ in range(n_repeats):
             r = func()
             timings.append(r["elapsed_us"])
-
-        results.append({
-            "method": method_name,
-            "n_strategies": n_strategies,
-            "n_metrics": n_metrics,
-            "n_repeats": n_repeats,
-            "median_us": round(float(np.median(timings)), 1),
-            "p95_us": round(float(np.percentile(timings, 95)), 1),
-            "min_us": round(float(np.min(timings)), 1),
-        })
+        results.append(_scale_timing_record(method_name, n_strategies, n_metrics, n_repeats, timings))
 
     # pymoo knee-point only on smaller data (too slow at 50K)
     if n_strategies <= 10000:
@@ -322,30 +295,14 @@ def run_scale_benchmark(n_strategies: int, n_metrics: int, n_repeats: int = 5) -
         for _ in range(n_repeats):
             r = bench_pymoo_knee(matrix, types)
             timings.append(r["elapsed_us"])
-        results.append({
-            "method": "pymoo_knee_point",
-            "n_strategies": n_strategies,
-            "n_metrics": n_metrics,
-            "n_repeats": n_repeats,
-            "median_us": round(float(np.median(timings)), 1),
-            "p95_us": round(float(np.percentile(timings, 95)), 1),
-            "min_us": round(float(np.min(timings)), 1),
-        })
+        results.append(_scale_timing_record("pymoo_knee_point", n_strategies, n_metrics, n_repeats, timings))
 
     # pymoo PseudoWeights
     timings = []
     for _ in range(n_repeats):
         r = bench_pymoo_pseudo_weights(matrix, weights, types)
         timings.append(r["elapsed_us"])
-    results.append({
-        "method": "pymoo_pseudo_weights",
-        "n_strategies": n_strategies,
-        "n_metrics": n_metrics,
-        "n_repeats": n_repeats,
-        "median_us": round(float(np.median(timings)), 1),
-        "p95_us": round(float(np.percentile(timings, 95)), 1),
-        "min_us": round(float(np.min(timings)), 1),
-    })
+    results.append(_scale_timing_record("pymoo_pseudo_weights", n_strategies, n_metrics, n_repeats, timings))
 
     return results
 
@@ -360,13 +317,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / "mcdm_benchmark.jsonl"
 
-    git_commit = _git_commit()
-    timestamp = datetime.now(tz=UTC).isoformat()
-    provenance = {
-        "git_commit": git_commit,
-        "timestamp": timestamp,
-        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
-    }
+    provenance = provenance_dict()
 
     telemetry = []
 
@@ -408,8 +359,6 @@ def main():
     best_label = labels[r2["best_idx"]]
     print(f"  NumPy TOPSIS:   {r2['elapsed_us']:>10.1f} µs  →  best={best_label} (score={r2['best_score']:.4f})")
     print(f"    Top 5: {[labels[i] for i in r2['top5_indices']]}")
-    print(f"    Ideal: {r2['ideal_point']}")
-    print(f"    Nadir: {r2['nadir_point']}")
 
     # Method 3: pymoo knee-point
     r3 = bench_pymoo_knee(matrix, types)

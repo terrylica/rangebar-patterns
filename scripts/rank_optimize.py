@@ -10,16 +10,14 @@ GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
 import optuna
 
 from rangebar_patterns import config
-from rangebar_patterns.eval._io import results_dir
+from rangebar_patterns.eval._io import provenance_dict, results_dir
 from rangebar_patterns.eval.ranking import (
     DEFAULT_METRICS,
     filter_discriminating_metrics,
@@ -31,19 +29,6 @@ from rangebar_patterns.eval.ranking import (
 
 # Silence Optuna's verbose logging
 optuna.logging.set_verbosity(optuna.logging.WARNING)
-
-
-def _git_commit() -> str:
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return result.stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
 
 
 # ---- Objective Functions ----
@@ -120,13 +105,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / "rank_optimization.jsonl"
 
-    git_commit = _git_commit()
-    timestamp = datetime.now(tz=UTC).isoformat()
-    provenance = {
-        "git_commit": git_commit,
-        "timestamp": timestamp,
-        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
-    }
+    provenance = provenance_dict()
 
     objective_name = config.RANK_OBJECTIVE
     n_trials = config.RANK_N_TRIALS
