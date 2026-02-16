@@ -330,6 +330,43 @@ def run_ranking_with_cutoffs(
     }
 
 
+def topsis_rank(
+    matrix: np.ndarray,
+    weights: np.ndarray,
+    types: np.ndarray,
+) -> np.ndarray:
+    """Rank alternatives using TOPSIS with vector normalization (Hwang & Yoon, 1981).
+
+    Args:
+        matrix: Decision matrix (n_alternatives x n_criteria), raw values.
+        weights: Importance weight per criterion (sums to 1 recommended).
+        types: +1 for benefit (higher=better), -1 for cost (lower=better).
+
+    Returns:
+        Closeness coefficients [0, 1] per alternative (higher = better).
+    """
+    # Vector normalization (L2 norm per column — standard TOPSIS)
+    norms = np.sqrt((matrix ** 2).sum(axis=0))
+    norms[norms == 0] = 1.0
+    normalized = matrix / norms
+
+    # Weighted normalized decision matrix
+    weighted = normalized * weights
+
+    # Ideal and nadir points
+    ideal = np.where(types == 1, weighted.max(axis=0), weighted.min(axis=0))
+    nadir = np.where(types == 1, weighted.min(axis=0), weighted.max(axis=0))
+
+    # Euclidean distances
+    d_ideal = np.sqrt(((weighted - ideal) ** 2).sum(axis=1))
+    d_nadir = np.sqrt(((weighted - nadir) ** 2).sum(axis=1))
+
+    # Closeness coefficient
+    denom = d_ideal + d_nadir
+    denom[denom == 0] = 1.0
+    return d_nadir / denom
+
+
 def build_report(
     cutoffs: dict[str, int],
     all_pct_ranks: dict[str, dict[str, float]],

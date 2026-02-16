@@ -15,6 +15,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+import numpy as np
 import optuna
 
 from rangebar_patterns import config
@@ -25,6 +26,7 @@ from rangebar_patterns.eval.ranking import (
     get_all_metrics,
     load_metric_data,
     run_ranking_with_cutoffs,
+    topsis_rank,
 )
 
 # Silence Optuna's verbose logging
@@ -187,12 +189,26 @@ def main():
                 "cutoffs": cutoffs,
             })
 
-        pareto_front.sort(key=lambda x: (-x["n_survivors"], -x["avg_quality"], x["mean_cutoff"]))
+        # TOPSIS ranking of Pareto front (threshold-free, Issue #28)
+        if pareto_front:
+            topsis_matrix = np.array([
+                [pf["n_survivors"], pf["avg_quality"], pf["mean_cutoff"]]
+                for pf in pareto_front
+            ], dtype=float)
+            topsis_weights = np.array([1.0 / 3, 1.0 / 3, 1.0 / 3])
+            topsis_types = np.array([1.0, 1.0, -1.0])  # survivors↑, quality↑, cutoff↓
+            topsis_scores = topsis_rank(topsis_matrix, topsis_weights, topsis_types)
+            for i, pf in enumerate(pareto_front):
+                pf["topsis_score"] = round(float(topsis_scores[i]), 6)
 
-        print(f"Pareto front: {len(pareto_front)} solutions")
+        # Sort by TOPSIS score (best first), fallback to old sort for empty scores
+        pareto_front.sort(key=lambda x: -x.get("topsis_score", 0))
+
+        print(f"Pareto front: {len(pareto_front)} solutions (TOPSIS-ranked)")
         for pf in pareto_front[:10]:
             print(
-                f"  Survivors={pf['n_survivors']} "
+                f"  TOPSIS={pf.get('topsis_score', 0):.4f} "
+                f"Survivors={pf['n_survivors']} "
                 f"AvgQuality={pf['avg_quality']:.1f} "
                 f"MeanCut={pf['mean_cutoff']:.1f}"
             )

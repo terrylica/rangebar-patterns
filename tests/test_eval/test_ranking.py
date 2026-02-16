@@ -7,6 +7,8 @@ import importlib
 import os
 from unittest.mock import patch
 
+import numpy as np
+
 from rangebar_patterns.eval.ranking import (
     DEFAULT_METRICS,
     MetricSpec,
@@ -17,6 +19,7 @@ from rangebar_patterns.eval.ranking import (
     percentile_ranks,
     resolve_cutoffs,
     tightening_analysis,
+    topsis_rank,
 )
 
 
@@ -152,3 +155,44 @@ def test_load_metric_data_missing_file(tmp_path):
     )
     result = load_metric_data(tmp_path, specs)
     assert result["fake"] == {}
+
+
+def test_topsis_rank_basic():
+    """TOPSIS ranks alternative closest to ideal highest."""
+    # 3 alternatives x 2 criteria (both benefit)
+    matrix = np.array([
+        [10.0, 5.0],   # moderate
+        [1.0, 1.0],    # worst
+        [9.0, 10.0],   # best
+    ])
+    weights = np.array([0.5, 0.5])
+    types = np.array([1.0, 1.0])
+    scores = topsis_rank(matrix, weights, types)
+    assert scores[2] > scores[0] > scores[1]  # best > moderate > worst
+
+
+def test_topsis_rank_cost_criterion():
+    """Cost criterion (lower=better) inverts ranking direction."""
+    # criterion 1: benefit, criterion 2: cost
+    matrix = np.array([
+        [10.0, 100.0],  # high benefit, high cost
+        [10.0, 1.0],    # high benefit, low cost -> best
+        [1.0, 100.0],   # low benefit, high cost -> worst
+    ])
+    weights = np.array([0.5, 0.5])
+    types = np.array([1.0, -1.0])
+    scores = topsis_rank(matrix, weights, types)
+    assert scores[1] > scores[0] > scores[2]
+
+
+def test_topsis_rank_equal_alternatives():
+    """Identical alternatives get equal scores."""
+    matrix = np.array([
+        [5.0, 5.0],
+        [5.0, 5.0],
+        [5.0, 5.0],
+    ])
+    weights = np.array([0.5, 0.5])
+    types = np.array([1.0, 1.0])
+    scores = topsis_rank(matrix, weights, types)
+    np.testing.assert_allclose(scores, scores[0])
