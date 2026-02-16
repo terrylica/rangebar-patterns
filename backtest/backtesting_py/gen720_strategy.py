@@ -16,12 +16,21 @@ GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
 
 import numpy as np
 from backtesting import Strategy
-from gen600_strategy import (
-    EXHAUSTION_PATTERNS,
-    PATTERN_DETECTORS,
-    _rolling_p75,
-    _rolling_p95,
-)
+
+try:
+    from gen600_strategy import (
+        EXHAUSTION_PATTERNS,
+        PATTERN_DETECTORS,
+        _rolling_p75,
+        _rolling_p95,
+    )
+except ModuleNotFoundError:
+    from backtest.backtesting_py.gen600_strategy import (
+        EXHAUSTION_PATTERNS,
+        PATTERN_DETECTORS,
+        _rolling_p75,
+        _rolling_p95,
+    )
 
 
 class Gen720Strategy(Strategy):
