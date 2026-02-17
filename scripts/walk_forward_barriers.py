@@ -36,6 +36,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 _INF_NAN_RE = re.compile(r"\b(Infinity|-Infinity|NaN)\b")
 
 
+def _nn(val: object, default: float = 0.0) -> float:
+    """Return val if not None, else default. For None-safe numeric comparisons."""
+    return float(val) if val is not None else default
+
+
 def _json_safe(obj: object) -> str:
     """Serialize to RFC 8259-compliant JSON (no Infinity/NaN)."""
     raw = json.dumps(obj, default=str)
@@ -500,7 +505,7 @@ def aggregate_cross_formation(combo_summaries: list[dict]) -> dict:
             bid = b["barrier_id"]
             if bid not in barrier_xf:
                 barrier_xf[bid] = {"formations_positive": []}
-            if b["avg_oos_omega"] > 1.0 and b["consistency"] > 0.5:
+            if _nn(b.get("avg_oos_omega")) > 1.0 and _nn(b.get("consistency")) > 0.5:
                 barrier_xf[bid]["formations_positive"].append(combo["formation"])
 
     # Deduplicate formation lists (barrier may appear in multiple combos of same formation)
@@ -533,7 +538,7 @@ def aggregate_cross_asset(combo_summaries: list[dict]) -> dict:
     n_total = len(combo_summaries)
     n_positive = sum(
         1 for c in combo_summaries
-        if any(b["avg_oos_omega"] > 1.0 for b in c.get("top_barriers", []))
+        if any(_nn(b.get("avg_oos_omega")) > 1.0 for b in c.get("top_barriers", []))
     )
 
     # Per-formation summary
@@ -543,8 +548,8 @@ def aggregate_cross_asset(combo_summaries: list[dict]) -> dict:
         if fmt not in per_formation:
             per_formation[fmt] = {"n_tamrs_viable": 0, "n_total": 0, "omegas": [], "rachevs": []}
         per_formation[fmt]["n_total"] += 1
-        top_omega = max((b["avg_oos_omega"] for b in combo.get("top_barriers", [])), default=0)
-        top_rachev = max((b["avg_oos_rachev"] for b in combo.get("top_barriers", [])), default=0)
+        top_omega = max((_nn(b.get("avg_oos_omega")) for b in combo.get("top_barriers", [])), default=0)
+        top_rachev = max((_nn(b.get("avg_oos_rachev")) for b in combo.get("top_barriers", [])), default=0)
         per_formation[fmt]["omegas"].append(top_omega)
         per_formation[fmt]["rachevs"].append(top_rachev)
         if top_omega > 1.0:
@@ -590,14 +595,14 @@ def aggregate_short_strategies(combo_summaries: list[dict]) -> dict:
         for strat_name, combos in strategies.items():
             n_positive = sum(
                 1 for c in combos
-                if any(b["avg_oos_omega"] > 1.0 for b in c.get("top_barriers", []))
+                if any(_nn(b.get("avg_oos_omega")) > 1.0 for b in c.get("top_barriers", []))
             )
             avg_oos = float(np.mean([
-                max((b["avg_oos_omega"] for b in c.get("top_barriers", [])), default=0)
+                max((_nn(b.get("avg_oos_omega")) for b in c.get("top_barriers", [])), default=0)
                 for c in combos
             ])) if combos else 0.0
             avg_consistency = float(np.mean([
-                max((b["consistency"] for b in c.get("top_barriers", [])), default=0)
+                max((_nn(b.get("consistency")) for b in c.get("top_barriers", [])), default=0)
                 for c in combos
             ])) if combos else 0.0
 
@@ -627,10 +632,14 @@ def run_knee_and_topsis(combo_summaries: list[dict]) -> tuple[dict, list[dict]]:
             bid = b["barrier_id"]
             if bid not in barrier_stats:
                 barrier_stats[bid] = {"omegas": [], "rachevs": [], "consistencies": [], "cvs": []}
-            barrier_stats[bid]["omegas"].append(b["avg_oos_omega"])
-            barrier_stats[bid]["rachevs"].append(b["avg_oos_rachev"])
-            barrier_stats[bid]["consistencies"].append(b["consistency"])
-            barrier_stats[bid]["cvs"].append(b["omega_cv"])
+            if b.get("avg_oos_omega") is not None:
+                barrier_stats[bid]["omegas"].append(b["avg_oos_omega"])
+            if b.get("avg_oos_rachev") is not None:
+                barrier_stats[bid]["rachevs"].append(b["avg_oos_rachev"])
+            if b.get("consistency") is not None:
+                barrier_stats[bid]["consistencies"].append(b["consistency"])
+            if b.get("omega_cv") is not None:
+                barrier_stats[bid]["cvs"].append(b["omega_cv"])
 
     if len(barrier_stats) < 3:
         return {"n_knee_points": 0, "knee_barrier_ids": [], "epsilon": config.RANK_KNEE_EPSILON}, []
@@ -875,8 +884,11 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
             print(f"Loaded {len(combo_summaries)} combos from {combo_path}")
         else:
             # Load from individual _combo_*.json files (pueue --single-combo mode)
-            # Filter by formation prefix to match this direction
-            json_files = sorted(combos_dir.glob("_combo_*.json"))
+            # Use direction-prefixed filenames first, fall back to formation filtering
+            json_files = sorted(combos_dir.glob(f"_combo_{direction}_*.json"))
+            if not json_files:
+                # Backward compat: try unprefixed files filtered by formation
+                json_files = sorted(combos_dir.glob("_combo_*.json"))
             if not json_files:
                 print(f"ERROR: No combo data in {combos_dir}. Run pipeline first.")
                 sys.exit(1)
@@ -900,7 +912,10 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
         # Merge Parquet chunks if merged file doesn't exist yet
         parquet_path = folds_dir / parquet_name
         if not parquet_path.exists():
-            chunk_files = sorted(folds_dir.glob("_chunk_*.parquet"))
+            chunk_files = sorted(folds_dir.glob(f"_chunk_{direction}_*.parquet"))
+            if not chunk_files:
+                # Backward compat: try unprefixed chunks
+                chunk_files = sorted(folds_dir.glob("_chunk_*.parquet"))
             if chunk_files:
                 chunk_dfs = [pl.read_parquet(p) for p in chunk_files]
                 full_fold_df = pl.concat(chunk_dfs)
@@ -944,8 +959,8 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
                 strategy = strategy_map[fmt]
                 combo_idx = n_processed + n_skipped + 1
 
-                # Resume: skip combos that already have output files
-                combo_json_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
+                # Resume: skip combos that already have output files (direction-prefixed)
+                combo_json_path = combos_dir / f"_combo_{direction}_{fmt}_{sym}_{thr}.json"
                 if combo_json_path.exists():
                     with open(combo_json_path) as f:
                         combo_summaries.append(json.loads(f.read()))
@@ -1008,9 +1023,9 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
         print("ERROR: No combos processed. Check results/eval/gen720/raw/ for TSV files.")
         sys.exit(1)
 
-    # ---- Tier 1: Merge per-combo Parquet chunks ----
+    # ---- Tier 1: Merge per-combo Parquet chunks (direction-scoped) ----
     parquet_path = folds_dir / parquet_name
-    chunk_files = sorted(folds_dir.glob("_chunk_*.parquet"))
+    chunk_files = sorted(folds_dir.glob(f"_chunk_{direction}_*.parquet"))
     if chunk_files:
         chunk_dfs = [pl.read_parquet(p) for p in chunk_files]
         full_fold_df = pl.concat(chunk_dfs)
@@ -1018,7 +1033,7 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
         print(f"Tier 1 Parquet: {parquet_path} ({len(full_fold_df)} rows)")
         del full_fold_df, chunk_dfs
         gc.collect()
-        # Clean up chunk files
+        # Clean up chunk files (only this direction's chunks)
         for p in chunk_files:
             p.unlink(missing_ok=True)
     else:
@@ -1030,8 +1045,8 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
         for combo in combo_summaries:
             f.write(_json_safe(combo) + "\n")
     print(f"Tier 2 JSONL: {combo_path} ({len(combo_summaries)} combos)")
-    # Clean up individual combo JSON files
-    for p in combos_dir.glob("_combo_*.json"):
+    # Clean up individual combo JSON files (only this direction)
+    for p in combos_dir.glob(f"_combo_{direction}_*.json"):
         p.unlink(missing_ok=True)
 
     # ---- Tier 3: Aggregation ----
@@ -1042,13 +1057,17 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
 
 
 def _run_single_combo(
-    fmt: str, sym: str, thr: int, strategy: str,
+    fmt: str, sym: str, thr: int, strategy: str, direction: str,
     remote: str | None, raw_dir: Path, folds_dir: Path, combos_dir: Path,
 ) -> tuple[bool, str]:
     """Process a single combo in isolation.
 
     Writes fold Parquet chunk + combo JSONL. Returns (success, message).
     Called by parent via subprocess to ensure full memory reclamation.
+
+    Chunk and combo filenames are prefixed with direction (long/short) to
+    prevent cross-direction contamination when both directions write to the
+    same folds/ and combos/ directories.
     """
     tsv_name = f"{fmt}_{sym}_{thr}.tsv"
     tsv_path = raw_dir / tsv_name
@@ -1068,13 +1087,13 @@ def _run_single_combo(
         fold_df, combo = run_combo_wfo(df, fmt, sym, thr, strategy, tsv_path)
         del df
 
-        # Write fold Parquet chunk
-        chunk_path = folds_dir / f"_chunk_{fmt}_{sym}_{thr}.parquet"
+        # Write fold Parquet chunk (direction-prefixed to avoid cross-contamination)
+        chunk_path = folds_dir / f"_chunk_{direction}_{fmt}_{sym}_{thr}.parquet"
         if not fold_df.is_empty():
             fold_df.write_parquet(chunk_path, compression="zstd")
 
-        # Write combo summary as single JSONL line
-        combo_line_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
+        # Write combo summary as single JSONL line (direction-prefixed)
+        combo_line_path = combos_dir / f"_combo_{direction}_{fmt}_{sym}_{thr}.json"
         with open(combo_line_path, "w") as f:
             f.write(_json_safe(combo))
 
@@ -1154,7 +1173,7 @@ def main():
         combos_dir.mkdir(parents=True, exist_ok=True)
 
         ok, msg = _run_single_combo(
-            fmt, sym, thr, strategy, args.remote,
+            fmt, sym, thr, strategy, direction, args.remote,
             raw_dir, folds_dir, combos_dir,
         )
         # Write result to stdout for parent to parse
