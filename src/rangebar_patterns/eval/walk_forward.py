@@ -75,6 +75,13 @@ def build_wfo_folds(
     # Data-driven fold sizing: ~200 signals per test fold
     n_splits = max(5, n_signals // 200)
     test_size = max(1, n_signals // n_splits)
+
+    # Gate: need at least train + purge + test to fit one fold.
+    # Without this, WalkForward raises ValueError when n_signals is too small.
+    min_required = purge_bars + test_size * 2  # at least 1x test for train + 1x for test
+    if n_signals < min_required:
+        return []
+
     # Ensure train + purge + test fits within data
     max_train = n_signals - purge_bars - test_size
     train_size = min(test_size * max_train_splits, max(test_size, max_train))
