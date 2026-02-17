@@ -13,7 +13,26 @@ from pathlib import Path
 
 
 def git_commit_short() -> str:
-    """Return short git commit hash, or 'unknown' on failure."""
+    """Return short git commit hash, or 'unknown' on failure.
+
+    Resolution order:
+    1. ``RBP_GIT_COMMIT`` environment variable — for rsync-deployed
+       environments (e.g., BigBlack) where ``.git/`` is absent. The
+       generate/submit scripts capture ``git rev-parse --short HEAD``
+       locally and thread it through as an env var.
+    2. ``git rev-parse --short HEAD`` — direct git invocation.
+    3. ``"unknown"`` — fallback when neither is available.
+
+    The sidecar metadata.json pattern (Gen600 submit.sh) writes the commit
+    SHA alongside SQL files at rsync time. This env-var approach is the
+    complementary mechanism for Python-side provenance capture.
+    """
+    import os
+
+    env_commit = os.environ.get("RBP_GIT_COMMIT", "").strip()
+    if env_commit:
+        return env_commit
+
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],

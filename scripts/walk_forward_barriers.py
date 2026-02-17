@@ -19,6 +19,7 @@ import argparse
 import gc
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import time
@@ -29,11 +30,22 @@ import polars as pl
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from rangebar_patterns import config
-from rangebar_patterns.eval._io import provenance_dict, results_dir
-from rangebar_patterns.eval._schemas import WFAggregationV1
-from rangebar_patterns.eval.ranking import knee_detect, topsis_rank
-from rangebar_patterns.eval.walk_forward import (
+
+# Python json.dumps outputs Infinity/NaN as bare tokens — not valid JSON (RFC 8259).
+# Replace with null for downstream tool compatibility (DuckDB, jq, etc.).
+_INF_NAN_RE = re.compile(r"\b(Infinity|-Infinity|NaN)\b")
+
+
+def _json_safe(obj: object) -> str:
+    """Serialize to RFC 8259-compliant JSON (no Infinity/NaN)."""
+    raw = json.dumps(obj, default=str)
+    return _INF_NAN_RE.sub("null", raw)
+
+from rangebar_patterns import config  # noqa: E402
+from rangebar_patterns.eval._io import provenance_dict, results_dir  # noqa: E402
+from rangebar_patterns.eval._schemas import WFAggregationV1  # noqa: E402
+from rangebar_patterns.eval.ranking import knee_detect, topsis_rank  # noqa: E402
+from rangebar_patterns.eval.walk_forward import (  # noqa: E402
     build_cpcv_folds,
     build_fold_metadata,
     build_stability_matrix,
@@ -185,16 +197,38 @@ def run_combo_wfo(
     t_eval = time.monotonic() - t_eval_start
 
     # Vorob'ev stability
+    # When Vorob'ev cannot be computed, emit an explicit skip marker (not bare None)
+    # so downstream tools can distinguish "not computed" from "computed as null".
+    # Common skip reasons:
+    #   - "insufficient_data": <3 rows in stability matrix (too few barriers × folds)
+    #   - "missing_columns": fold_results lacks required metric columns
+    #   - "timeout": moocore C code hung on degenerate input (see timeout guard)
+    #   - "error:<message>": unexpected failure during computation
     t_vorob_start = time.monotonic()
     vorob_result = None
+    vorob_skip_reason = None
     required_cols = {"barrier_id", "fold_id", "omega", "rachev", "total_return"}
-    if required_cols.issubset(set(fold_results.columns)):
+    if not required_cols.issubset(set(fold_results.columns)):
+        vorob_skip_reason = "missing_columns"
+    else:
         try:
             matrix, sets, _bids = build_stability_matrix(fold_results)
             if matrix.shape[0] >= 3:
                 vorob_result = compute_vorob_stability(matrix, sets)
-        except (ValueError, RuntimeError, TimeoutError) as e:
+            else:
+                vorob_skip_reason = "insufficient_data"
+        except TimeoutError:
+            vorob_skip_reason = "timeout"
+            print("    Vorob'ev timed out")
+        except (ValueError, RuntimeError) as e:
+            vorob_skip_reason = f"error:{e}"
             print(f"    Vorob'ev failed: {e}")
+
+    # If computed, flag extreme deviations (VD > 10.0) as unstable
+    # (see compute_vorob_stability docstring for interpretation guidance)
+    if vorob_result is not None:
+        vorob_result["vorob_unstable"] = vorob_result.get("vorob_deviation", 0) > 10.0
+
     t_vorob = time.monotonic() - t_vorob_start
 
     # Stage 1: Top barriers by median OOS Omega
@@ -359,7 +393,9 @@ def run_combo_wfo(
         "n_barriers_tested": df.select("barrier_id").n_unique(),
         "low_power": len(folds) < 3,
         "fold_metadata": fold_meta,
-        "vorob_stability": vorob_result,
+        "vorob_stability": vorob_result if vorob_result is not None else {
+            "skipped": vorob_skip_reason or "unknown",
+        },
         "top_barriers": top_barriers,
         "stage2_cpcv": {
             "n_cpcv_folds": len(cpcv_folds),
@@ -430,7 +466,7 @@ def _empty_combo_summary(
         "n_barriers_tested": 0,
         "low_power": True,
         "fold_metadata": [],
-        "vorob_stability": None,
+        "vorob_stability": {"skipped": "no_folds"},
         "top_barriers": [],
         "environment": {
             "sql_template": f"gen720_wf_{formation}_template.sql",
@@ -698,8 +734,11 @@ def _run_aggregation(
                 "n_signals": c["n_signals"],
                 "n_wf_folds": c["n_wf_folds"],
                 "low_power": c["low_power"],
-                "vorob_deviation": (c["vorob_stability"]["vorob_deviation"]
-                                    if c.get("vorob_stability") else None),
+                "vorob_deviation": (
+                    c["vorob_stability"].get("vorob_deviation")
+                    if c.get("vorob_stability") and "skipped" not in c["vorob_stability"]
+                    else None
+                ),
                 "top_barrier": c["top_barriers"][0]["barrier_id"] if c.get("top_barriers") else None,
                 "top_barrier_consistency": c["top_barriers"][0]["consistency"] if c.get("top_barriers") else None,
                 # Stage 2/3/4 summaries
@@ -738,7 +777,7 @@ def _run_aggregation(
 
     agg_path = out_dir / agg_jsonl_name
     with open(agg_path, "w") as f:
-        f.write(json.dumps(agg, default=str) + "\n")
+        f.write(_json_safe(agg) + "\n")
     print(f"Tier 3 JSONL: {agg_path}")
 
     # ---- Summary ----
@@ -855,7 +894,7 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
             # Merge direction-specific JSONs into Tier 2 JSONL
             with open(combo_path, "w") as f:
                 for combo in combo_summaries:
-                    f.write(json.dumps(combo, default=str) + "\n")
+                    f.write(_json_safe(combo) + "\n")
             print(f"Wrote Tier 2 JSONL: {combo_path}")
 
         # Merge Parquet chunks if merged file doesn't exist yet
@@ -989,7 +1028,7 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
     combo_path = combos_dir / combo_jsonl_name
     with open(combo_path, "w") as f:
         for combo in combo_summaries:
-            f.write(json.dumps(combo, default=str) + "\n")
+            f.write(_json_safe(combo) + "\n")
     print(f"Tier 2 JSONL: {combo_path} ({len(combo_summaries)} combos)")
     # Clean up individual combo JSON files
     for p in combos_dir.glob("_combo_*.json"):
@@ -1037,7 +1076,7 @@ def _run_single_combo(
         # Write combo summary as single JSONL line
         combo_line_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
         with open(combo_line_path, "w") as f:
-            f.write(json.dumps(combo, default=str))
+            f.write(_json_safe(combo))
 
         n_folds = combo["n_wf_folds"]
         t = combo["timing"]["total_s"]
@@ -1062,7 +1101,7 @@ def _run_single_combo(
                 )
                 stub["error"] = str(e)
                 with open(combo_line_path, "w") as f:
-                    f.write(json.dumps(stub, default=str))
+                    f.write(_json_safe(stub))
             except (OSError, TypeError) as write_err:
                 print(f"    Could not write stub combo JSON: {write_err}")
         return False, f"ERROR:{e}"

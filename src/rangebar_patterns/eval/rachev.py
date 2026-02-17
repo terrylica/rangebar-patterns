@@ -17,8 +17,30 @@ from rangebar_patterns.config import MIN_TRADES_RACHEV, RACHEV_ALPHA
 from rangebar_patterns.eval._io import load_jsonl, results_dir
 
 
-def compute_rachev(returns: list[float], alpha: float = RACHEV_ALPHA) -> float | None:
-    """CVaR(upper alpha) / CVaR(lower alpha). None if n < MIN_TRADES_RACHEV."""
+def compute_rachev(
+    returns: list[float],
+    alpha: float = RACHEV_ALPHA,
+    max_rachev: float = 10.0,
+) -> float | None:
+    """CVaR(upper alpha) / CVaR(lower alpha). None if n < MIN_TRADES_RACHEV.
+
+    Capped at ``max_rachev`` (default 10.0) because extreme values (>100)
+    are CVaR estimation artifacts from near-zero tail observations.
+    At alpha=0.05 with n=20, only 1 trade determines CVaR_lower —
+    a single scratch exit (near-zero loss) produces Rachev > 1000.
+    Biglova et al. (2004) assume large samples; for small samples,
+    capping prevents these artifacts from dominating TAMRS/TOPSIS rankings.
+
+    Parameters
+    ----------
+    returns : list[float]
+        Per-trade returns.
+    alpha : float
+        Tail quantile (default 0.05 = 5th percentile).
+    max_rachev : float
+        Cap for the ratio. Values above this are estimation artifacts
+        from near-zero CVaR_lower denominators.
+    """
     arr = np.asarray(returns, dtype=float)
     if len(arr) < MIN_TRADES_RACHEV:
         return None
@@ -28,7 +50,7 @@ def compute_rachev(returns: list[float], alpha: float = RACHEV_ALPHA) -> float |
     cvar_lower_abs = float(np.abs(np.mean(sorted_ret[:n_tail])))
     if cvar_lower_abs < 1e-12:
         return None
-    return cvar_upper / cvar_lower_abs
+    return min(cvar_upper / cvar_lower_abs, max_rachev)
 
 
 def main():

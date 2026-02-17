@@ -399,6 +399,27 @@ def knee_detect(
     calculation inline and delegates outlier detection to
     ``pymoo.core.decision_making.find_outliers_upper_tail``.
 
+    WHEN 0 KNEE POINTS ARE FOUND
+    ----------------------------
+    ``find_outliers_upper_tail`` uses 2σ above mean as the outlier threshold
+    (Deb & Gupta 2010). On narrow Pareto fronts (e.g., TOPSIS scores
+    spanning 0.61–0.85), all tradeoff values cluster near the mean and
+    none exceeds the 2σ threshold. This is *correct behaviour* — it means
+    the front has no single pronounced "elbow" where sacrificing one
+    objective yields disproportionate gains elsewhere.
+
+    When ``knee_detect`` returns an empty array, the recommended fallback
+    is to use TOPSIS rank #1 as the final selection. This is documented
+    and expected — the orchestrator (walk_forward_barriers.py) already
+    handles this by proceeding with TOPSIS ranking when n_knee_points=0.
+
+    Alternative knee detection methods (not yet implemented, for future
+    consideration if narrow fronts are common):
+    - **Kneedle algorithm** (Satopaa et al. 2011): curvature-based,
+      better for smooth 2D fronts. Less sensitive to score clustering.
+    - **Gradient-based**: Second derivative of sorted TOPSIS scores.
+    - **IQR-based**: Outliers > Q3 + 1.5*IQR (more lenient than 2σ).
+
     Args:
         matrix: Decision matrix (n_alternatives x n_criteria).
         types: +1 for benefit (higher=better), -1 for cost (lower=better).

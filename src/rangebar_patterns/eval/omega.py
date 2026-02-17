@@ -4,6 +4,16 @@ Computes Omega(L=0) = sum(max(r-L,0)) / sum(max(L-r,0)) for each config
 using full per-trade return arrays. Omega considers the entire return
 distribution, not just the first two moments.
 
+KNOWN REDUNDANCY: At threshold L=0, Omega is mathematically identical
+to Profit Factor (Bernardo & Ledoit 2000, "Gain, Loss, and Asset Pricing").
+Both equal sum(gains) / sum(losses). To make Omega genuinely distinct,
+use a non-zero threshold (e.g., L=risk-free rate or L=MAR). This is
+tracked as a future improvement — the current L=0 default means Omega
+adds no information beyond PF in the TAMRS stack.
+See also: Keating & Shadwick (2002) recommend L=risk-free as default;
+Kapsos et al. (2014) "On the (Ab)use of Omega?" warn that Omega-optimal
+portfolios can violate second-order stochastic dominance.
+
 GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
 """
 

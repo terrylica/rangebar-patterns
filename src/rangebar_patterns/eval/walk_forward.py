@@ -145,11 +145,25 @@ def evaluate_barriers_in_fold(
         drawdowns = running_max - cum
         mdd = float(np.max(drawdowns)) if len(drawdowns) > 0 else 0.0
 
+        # PF division cases:
+        #   gross_loss > 0: normal PF = profit/loss, capped at PF_CAP
+        #   gross_loss ≈ 0, gross_profit > 0: 100% WR → capped at PF_CAP
+        #     (inf poisons aggregation; cap=10 matches institutional practice)
+        #   gross_loss ≈ 0, gross_profit ≈ 0: all zero returns → NaN
+        #     (0/0 is undefined, not infinity — see test_evaluate_barriers_zero_return_pf_nan)
+        PF_CAP = 10.0  # Anything above 10 in a single fold is a small-sample artifact
+        if gross_loss > 1e-12:
+            pf = min(gross_profit / gross_loss, PF_CAP)
+        elif gross_profit > 1e-12:
+            pf = PF_CAP
+        else:
+            pf = float("nan")
+
         rows.append({
             "barrier_id": bid,
             "n_trades": n,
             "win_rate": wins / n,
-            "profit_factor": gross_profit / gross_loss if gross_loss > 1e-12 else float("inf"),
+            "profit_factor": pf,
             "omega": compute_omega(returns),
             "rachev": compute_rachev(returns) or 0.0,
             "cdar": compute_cdar(returns) or 0.0,
@@ -747,6 +761,34 @@ def compute_vorob_stability(
     exceeds the time limit. multiprocessing.Process is used instead of
     ProcessPoolExecutor because executor.shutdown(wait=True) blocks on stuck
     C-level code — Process.terminate() sends SIGTERM immediately.
+
+    INTERPRETING VOROB'EV DEVIATION (VD)
+    ------------------------------------
+    VD measures the expected hypervolume of the symmetric difference between
+    the Vorob'ev expectation and each fold's attained set (Binois et al. 2015,
+    "Quantifying uncertainty on Pareto fronts with Gaussian process conditional
+    simulations"). It is reported in *raw objective-space units* — so its
+    absolute scale depends on the magnitude of the objective columns.
+
+    Extreme VD values (>100 or >1000) arise from:
+    1. **Non-overlapping fold fronts**: Folds with disjoint Pareto regions
+       produce large symmetric-difference hypervolume. Common with small
+       n_trades per fold or highly regime-dependent barrier performance.
+    2. **Objective magnitude**: If omega ranges [0.5, 5.0] and total_return
+       ranges [−0.01, 0.01], the raw VD reflects the unbounded omega axis.
+    3. **Sparse fold coverage**: Few barriers surviving per fold means few
+       front points, producing noisy hypervolume estimates.
+
+    NORMALIZATION (FUTURE IMPROVEMENT): Normalize objectives to [0, 1]
+    before computing VD to make deviations comparable across combos and
+    directions. Use ``_flip_to_minimize()`` + per-column min/max scaling.
+    Currently tracked as a known improvement — the raw VD still correctly
+    rank-orders combos within the same analysis run because all combos
+    share the same objective scales.
+
+    For combo-level diagnostics, VD > 10.0 is flagged as ``vorob_unstable``
+    in Tier 2 JSONL summaries. This does not disqualify a combo but signals
+    that its fold-to-fold Pareto stability is poor.
 
     Parameters
     ----------

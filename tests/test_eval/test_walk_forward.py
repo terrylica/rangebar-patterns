@@ -294,3 +294,31 @@ def test_parse_barrier_id_zero():
 
     with pytest.raises(ValueError, match="Invalid barrier_id"):
         parse_barrier_id("invalid_format")
+
+
+def test_evaluate_barriers_zero_return_pf_nan():
+    """Barrier with all zero-return trades → PF=NaN (not inf)."""
+    # Build signal_data where all returns are exactly 0.0
+    n = 20
+    df = pl.DataFrame({
+        "signal_idx": list(range(n)),
+        "signal_bar_idx": list(range(n)),
+        "barrier_id": ["p5_slt000_mb50"] * n,
+        "return_pct": [0.0] * n,
+        "exit_bar": [1] * n,
+        "exit_type": ["TIME"] * n,
+        "entry_price": [100.0] * n,
+        "exit_price": [100.0] * n,
+        "signal_ts_ms": list(range(n)),
+    })
+    test_idx = np.arange(n)
+    result = evaluate_barriers_in_fold(df, test_idx)
+
+    assert len(result) == 1
+    row = result.to_dicts()[0]
+    assert row["n_trades"] == n
+    assert row["win_rate"] == 0.0
+    # 0 wins AND 0 losses → PF must be NaN (not inf)
+    assert np.isnan(row["profit_factor"]), (
+        f"Expected NaN for 0/0 PF, got {row['profit_factor']}"
+    )
