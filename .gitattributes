@@ -2,3 +2,4 @@
 logs/**/*.jsonl.br filter=lfs diff=lfs merge=lfs -text
 # Gen720 WFO Parquet results (binary, LFS-tracked)
 results/eval/gen720/folds/*.parquet filter=lfs diff=lfs merge=lfs -text
+results/eval/gen720/combos/*.jsonl.br filter=lfs diff=lfs merge=lfs -text
