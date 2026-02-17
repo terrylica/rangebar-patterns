@@ -16,6 +16,8 @@ def load_range_bars(
     end: str = "2026-01-01",
     ssh_alias: str | None = None,
     extra_columns: list[str] | None = None,
+    end_ts_ms: int | None = None,
+    bar_count: int | None = None,
 ):
     """Load range bars with microstructure features from ClickHouse.
 
@@ -25,6 +27,10 @@ def load_range_bars(
     Args:
         extra_columns: Additional columns to SELECT beyond the default set.
             Example: ["volume_per_trade", "lookback_price_range"]
+        end_ts_ms: Explicit end timestamp (milliseconds). Overrides ``end``.
+            Use for oracle alignment with SQL queries that use a precise cutoff.
+        bar_count: Trim to the last N bars after loading. Matches SQL's
+            ``ORDER BY timestamp_ms DESC LIMIT N`` alignment pattern.
 
     Returns DataFrame with DatetimeIndex + OHLCV + trade_intensity + kyle_lambda_proxy.
     Compatible with backtesting.py (requires capitalized OHLCV columns).
@@ -36,7 +42,7 @@ def load_range_bars(
     from backtest.backtesting_py.ssh_tunnel import SSHTunnel, _is_port_open
 
     start_ts = int(pd.Timestamp(start).timestamp() * 1000)
-    end_ts = int(pd.Timestamp(end).timestamp() * 1000)
+    end_ts = end_ts_ms if end_ts_ms is not None else int(pd.Timestamp(end).timestamp() * 1000)
 
     extra_sql = ""
     if extra_columns:
@@ -54,25 +60,34 @@ def load_range_bars(
     """
 
     # Try local ClickHouse first
+    df = None
     if _is_port_open("localhost", 8123, timeout=1.0):
         client = clickhouse_connect.get_client(host="localhost", port=8123)
         result = client.query_arrow(query)
         if result.num_rows > 0:
             print(f"  [local] {result.num_rows} rows from localhost:8123")
-            return _to_backtest_df(result, pl, pd)
+            df = _to_backtest_df(result, pl, pd)
 
     # Fall back to SSH tunnel
-    import os
-    if ssh_alias is None:
-        ssh_alias = os.environ.get("RANGEBAR_CH_HOST", "localhost")
-    print(f"  [tunnel] No local data, connecting via SSH tunnel to {ssh_alias}...")
-    tunnel = SSHTunnel(ssh_alias)
-    with tunnel as local_port:
-        client = clickhouse_connect.get_client(host="localhost", port=local_port)
-        result = client.query_arrow(query)
-        print(f"  [tunnel] {result.num_rows} rows via {ssh_alias}")
+    if df is None:
+        import os
+        if ssh_alias is None:
+            ssh_alias = os.environ.get("RANGEBAR_CH_HOST", "localhost")
+        print(f"  [tunnel] No local data, connecting via SSH tunnel to {ssh_alias}...")
+        tunnel = SSHTunnel(ssh_alias)
+        with tunnel as local_port:
+            client = clickhouse_connect.get_client(host="localhost", port=local_port)
+            result = client.query_arrow(query)
+            print(f"  [tunnel] {result.num_rows} rows via {ssh_alias}")
+        df = _to_backtest_df(result, pl, pd)
 
-    return _to_backtest_df(result, pl, pd)
+    # Trim to last N bars for oracle alignment (matches SQL LIMIT pattern)
+    if bar_count is not None and len(df) > bar_count:
+        n_trimmed = len(df) - bar_count
+        df = df.iloc[-bar_count:]
+        print(f"  [align] Trimmed to last {bar_count} bars (removed {n_trimmed} early bars)")
+
+    return df
 
 
 def _to_backtest_df(arrow_table, pl, pd):

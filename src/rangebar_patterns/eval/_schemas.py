@@ -56,6 +56,15 @@ class BarrierSummary(BaseModel):
     omega_cv: float = Field(ge=0)
     n_tamrs_viable_folds: int = Field(ge=0)
     n_total_folds: int = Field(ge=0)
+    # Stage 2/3/4 annotations (optional — backward compatible)
+    pbo: float | None = None
+    pbo_pass: bool | None = None
+    bootstrap_rejected: bool | None = None
+    survived_all_stages: bool | None = None
+    gt_composite: float | None = None
+    omega_ci_lower: float | None = None
+    omega_ci_upper: float | None = None
+    rachev_ci_lower: float | None = None
 
 
 class ComboEnvironment(BaseModel):
@@ -76,6 +85,8 @@ class ComboTiming(BaseModel):
     fold_build_s: float = Field(ge=0)
     barrier_eval_s: float = Field(ge=0)
     vorob_s: float = Field(ge=0)
+    cpcv_s: float = Field(ge=0, default=0)
+    bootstrap_s: float = Field(ge=0, default=0)
     total_s: float = Field(ge=0)
 
 
@@ -97,6 +108,10 @@ class WFComboV1(BaseModel):
     fold_metadata: list[FoldMetadata] = Field(default=[])  # noqa: fake-data
     vorob_stability: VorobStability | None = None
     top_barriers: list[BarrierSummary] = Field(default=[])  # noqa: fake-data
+    # Stage 2/3/4 summaries (optional — backward compatible)
+    stage2_cpcv: dict | None = None
+    stage3_bootstrap: dict | None = None
+    stage4_ranking: dict | None = None
     environment: ComboEnvironment | None = None
     timing: ComboTiming | None = None
     provenance: dict = Field(default={})  # noqa: fake-data

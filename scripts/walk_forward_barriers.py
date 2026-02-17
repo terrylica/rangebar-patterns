@@ -34,11 +34,16 @@ from rangebar_patterns.eval._io import provenance_dict, results_dir
 from rangebar_patterns.eval._schemas import WFAggregationV1
 from rangebar_patterns.eval.ranking import knee_detect, topsis_rank
 from rangebar_patterns.eval.walk_forward import (
+    build_cpcv_folds,
     build_fold_metadata,
     build_stability_matrix,
     build_wfo_folds,
+    compute_gt_composite,
+    compute_pbo_from_cpcv,
     compute_vorob_stability,
     evaluate_barriers_in_fold,
+    run_bootstrap_validation,
+    run_nested_cpcv,
     screen_top_k_barriers,
 )
 
@@ -127,7 +132,12 @@ def run_combo_wfo(
     strategy: str,
     tsv_path: Path,
 ) -> tuple[pl.DataFrame, dict]:
-    """Run Stage 1 WFO for a single combo.
+    """Run 4-stage WFO pipeline for a single combo.
+
+    Stage 1: WFO screening (all 434 barriers → top K by median Omega)
+    Stage 2: CPCV validation + nested barrier selection + PBO estimation
+    Stage 3: Bootstrap CIs on surviving barriers (PBO < 0.50)
+    Stage 4: GT-composite ranking (Omega × DSR × (1-PBO) × DD penalty)
 
     Returns (fold_results_df, combo_summary_dict).
     """
@@ -187,9 +197,98 @@ def run_combo_wfo(
             print(f"    Vorob'ev failed: {e}")
     t_vorob = time.monotonic() - t_vorob_start
 
-    # Top barriers by median OOS Omega
-    top_bids = screen_top_k_barriers(fold_results, k=10)
+    # Stage 1: Top barriers by median OOS Omega
+    top_bids = screen_top_k_barriers(fold_results, k=config.WF_SCREEN_TOP_K)
 
+    # Stage 2: CPCV validation + nested barrier selection + PBO
+    t_cpcv_start = time.monotonic()
+    pbo_scores: dict[str, float] = {}
+    cpcv_results_df = pl.DataFrame()
+    cpcv_folds = []
+
+    if len(top_bids) >= 3 and n_unique_signals >= 100:
+        try:
+            cpcv_n_folds = max(6, min(12, n_unique_signals // 200))
+            cpcv_folds = build_cpcv_folds(
+                n_unique_signals,
+                n_folds=cpcv_n_folds,
+                purge_bars=purge_bars,
+            )
+            if len(cpcv_folds) >= 3:
+                cpcv_results_df = run_nested_cpcv(
+                    df, cpcv_folds, top_bids,
+                )
+                if not cpcv_results_df.is_empty():
+                    pbo_scores = compute_pbo_from_cpcv(cpcv_results_df)
+        except (ValueError, RuntimeError, ImportError) as e:
+            print(f"    Stage 2 (CPCV) failed: {e}")
+    t_cpcv = time.monotonic() - t_cpcv_start
+
+    # Stage 2 → Stage 3 filter: barriers with PBO < 0.50
+    surviving_bids = [
+        bid for bid in top_bids
+        if pbo_scores.get(bid, 0.5) < 0.50
+    ]
+
+    # Stage 3: Bootstrap CIs on surviving barriers
+    t_boot_start = time.monotonic()
+    bootstrap_df = pl.DataFrame()
+
+    if surviving_bids and cpcv_folds and n_unique_signals >= 100:
+        try:
+            bootstrap_df = run_bootstrap_validation(
+                df, cpcv_folds, surviving_bids,
+            )
+        except (ValueError, RuntimeError, ImportError) as e:
+            print(f"    Stage 3 (Bootstrap) failed: {e}")
+    t_boot = time.monotonic() - t_boot_start
+
+    # Build bootstrap rejection map
+    bootstrap_rejected: dict[str, bool] = {}
+    if not bootstrap_df.is_empty():
+        for row in bootstrap_df.to_dicts():
+            bootstrap_rejected[row["barrier_id"]] = row.get("rejected", False)
+
+    # Final surviving barriers: passed PBO AND bootstrap
+    final_bids = [
+        bid for bid in surviving_bids
+        if not bootstrap_rejected.get(bid, False)
+    ]
+
+    # Stage 4: GT-composite ranking for final survivors
+    gt_scores: dict[str, float] = {}
+    if final_bids:
+        from scipy.stats import kurtosis, skew
+
+        from rangebar_patterns.eval.dsr import compute_psr, expected_max_sr, sr_standard_error
+
+        for bid in final_bids:
+            bid_fold_df = fold_results.filter(pl.col("barrier_id") == bid)
+            returns = bid_fold_df["avg_return"].to_list()
+            arr = np.array(returns, dtype=float)
+            n = len(arr)
+            if n < 3:
+                gt_scores[bid] = 0.0
+                continue
+
+            # Compute DSR from OOS fold-level returns
+            sr_val = float(np.mean(arr) / np.std(arr)) if np.std(arr) > 1e-12 else 0.0
+            skew_val = float(skew(arr))
+            kurt_val = float(kurtosis(arr, fisher=False))  # excess=False → raw kurtosis
+            se = sr_standard_error(sr_val, n, skew_val, kurt_val)
+            sr_star = expected_max_sr(n_trials=434, var_sr=1.0)
+            dsr_val = compute_psr(sr_val, sr_star, se)
+
+            # Median OOS Omega and MaxDD
+            omega_val = float(bid_fold_df["omega"].median())
+            mdd_val = float(bid_fold_df["max_drawdown"].median())
+            pbo_val = pbo_scores.get(bid, 0.5)
+
+            gt_scores[bid] = compute_gt_composite(
+                omega=omega_val, dsr=dsr_val, pbo=pbo_val, max_drawdown=mdd_val,
+            )
+
+    # Build top_barriers list with Stage 2/3/4 annotations
     top_barriers = []
     for bid in top_bids:
         bid_df = fold_results.filter(pl.col("barrier_id") == bid)
@@ -202,7 +301,7 @@ def run_combo_wfo(
         n_viable = int((bid_df["omega"] > 1.0).sum())
         consistency = n_viable / n_folds if n_folds > 0 else 0.0
 
-        top_barriers.append({
+        barrier_info = {
             "barrier_id": bid,
             "consistency": round(consistency, 4),
             "avg_oos_omega": round(avg_omega, 4),
@@ -211,7 +310,23 @@ def run_combo_wfo(
             "omega_cv": round(omega_cv, 4),
             "n_tamrs_viable_folds": n_viable,
             "n_total_folds": n_folds,
-        })
+            "pbo": round(pbo_scores.get(bid, -1.0), 4),
+            "pbo_pass": pbo_scores.get(bid, 0.5) < 0.50,
+            "bootstrap_rejected": bootstrap_rejected.get(bid, False),
+            "survived_all_stages": bid in final_bids,
+            "gt_composite": round(gt_scores.get(bid, 0.0), 6) if bid in final_bids else None,
+        }
+
+        # Add bootstrap CI details if available
+        if not bootstrap_df.is_empty():
+            boot_row = bootstrap_df.filter(pl.col("barrier_id") == bid)
+            if not boot_row.is_empty():
+                boot_dict = boot_row.to_dicts()[0]
+                barrier_info["omega_ci_lower"] = round(boot_dict.get("omega_ci_lower", 0.0), 4)
+                barrier_info["omega_ci_upper"] = round(boot_dict.get("omega_ci_upper", 0.0), 4)
+                barrier_info["rachev_ci_lower"] = round(boot_dict.get("rachev_ci_lower", 0.0), 4)
+
+        top_barriers.append(barrier_info)
 
     # Fold metadata
     fold_meta = build_fold_metadata(folds, signal_df, purge_bars=purge_bars)
@@ -233,6 +348,26 @@ def run_combo_wfo(
         "fold_metadata": fold_meta,
         "vorob_stability": vorob_result,
         "top_barriers": top_barriers,
+        "stage2_cpcv": {
+            "n_cpcv_folds": len(cpcv_folds),
+            "n_top_k_screened": len(top_bids),
+            "n_pbo_pass": sum(1 for v in pbo_scores.values() if v < 0.50),
+            "n_pbo_fail": sum(1 for v in pbo_scores.values() if v >= 0.50),
+            "pbo_scores": {k: round(v, 4) for k, v in pbo_scores.items()},
+        } if pbo_scores else None,
+        "stage3_bootstrap": {
+            "n_surviving_barriers": len(surviving_bids),
+            "n_bootstrap_pass": sum(1 for v in bootstrap_rejected.values() if not v),
+            "n_bootstrap_reject": sum(1 for v in bootstrap_rejected.values() if v),
+            "n_final_survivors": len(final_bids),
+            "final_barrier_ids": final_bids,
+        } if surviving_bids else None,
+        "stage4_ranking": {
+            "n_gt_scored": len(gt_scores),
+            "gt_scores": {k: round(v, 6) for k, v in sorted(gt_scores.items(), key=lambda x: -x[1])},
+            "top_gt_barrier": max(gt_scores, key=gt_scores.get) if gt_scores else None,
+            "regime_detection": "skipped:no_lookback_features_in_tsv",
+        } if gt_scores else None,
         "environment": {
             "sql_template": f"gen720_wf_{formation}_template.sql",
             "sql_template_sha256": _sha256_file(tsv_path) if tsv_path.exists() else "",
@@ -246,6 +381,8 @@ def run_combo_wfo(
             "fold_build_s": round(t_fold, 2),
             "barrier_eval_s": round(t_eval, 2),
             "vorob_s": round(t_vorob, 2),
+            "cpcv_s": round(t_cpcv, 2),
+            "bootstrap_s": round(t_boot, 2),
             "total_s": round(t_total, 2),
         },
         "provenance": provenance_dict(include_env=True),
@@ -551,6 +688,13 @@ def _run_aggregation(
                                     if c.get("vorob_stability") else None),
                 "top_barrier": c["top_barriers"][0]["barrier_id"] if c.get("top_barriers") else None,
                 "top_barrier_consistency": c["top_barriers"][0]["consistency"] if c.get("top_barriers") else None,
+                # Stage 2/3/4 summaries
+                "n_pbo_pass": c["stage2_cpcv"]["n_pbo_pass"] if c.get("stage2_cpcv") else None,
+                "n_bootstrap_pass": c["stage3_bootstrap"]["n_bootstrap_pass"] if c.get("stage3_bootstrap") else None,
+                "n_final_survivors": c["stage3_bootstrap"]["n_final_survivors"] if c.get("stage3_bootstrap") else None,
+                "top_gt_composite": c["stage4_ranking"]["gt_scores"].get(
+                    c["stage4_ranking"]["top_gt_barrier"], 0.0
+                ) if c.get("stage4_ranking") and c["stage4_ranking"].get("top_gt_barrier") else None,
             }
             for c in combo_summaries
         ],
@@ -836,7 +980,11 @@ def _run_single_combo(
 
         n_folds = combo["n_wf_folds"]
         t = combo["timing"]["total_s"]
-        return True, f"{n_folds} folds, {t:.1f}s"
+        s2 = combo.get("stage2_cpcv")
+        s3 = combo.get("stage3_bootstrap")
+        pbo_info = f" PBO:{s2['n_pbo_pass']}/{s2['n_top_k_screened']}" if s2 else ""
+        boot_info = f" Boot:{s3['n_final_survivors']}/{s3['n_surviving_barriers']}" if s3 else ""
+        return True, f"{n_folds} folds{pbo_info}{boot_info}, {t:.1f}s"
 
     except (ValueError, RuntimeError, OSError) as e:
         return False, f"ERROR:{e}"

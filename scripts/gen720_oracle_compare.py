@@ -134,13 +134,23 @@ def run_backtesting_py(symbol, threshold, *, config):
     elif config["pattern"] == "hvd":
         extra_columns = ["volume"]
 
-    print(f"Loading {symbol}@{threshold} range bars...")
+    end_ts_ms = config.get("end_ts_ms")
+    bar_count = config.get("bar_count")
+    align_msg = ""
+    if end_ts_ms:
+        align_msg += f" end_ts={end_ts_ms}"
+    if bar_count:
+        align_msg += f" bar_count={bar_count}"
+
+    print(f"Loading {symbol}@{threshold} range bars...{align_msg}")
     df = load_range_bars(
         symbol=symbol,
         threshold=threshold,
         start="2017-01-01",
         end="2026-03-01",
         extra_columns=extra_columns,
+        end_ts_ms=end_ts_ms,
+        bar_count=bar_count,
     )
     print(f"  Loaded {len(df)} bars ({df.index[0]} to {df.index[-1]})")
 
@@ -242,6 +252,11 @@ def main():
     parser.add_argument("--sl-mult", type=float, default=0.50, help="Wide SL multiplier")
     parser.add_argument("--max-bars", type=int, default=None,
                         help="Max bars time barrier (overrides barrier-id)")
+    # Data alignment (match SQL's aligned bar window)
+    parser.add_argument("--end-ts", type=int, default=None, dest="end_ts_ms",
+                        help="End timestamp in ms (overrides end date for SQL alignment)")
+    parser.add_argument("--bar-count", type=int, default=None,
+                        help="Trim to last N bars (matches SQL ORDER BY DESC LIMIT N)")
     # Gate threshold
     parser.add_argument("--pf-gate", type=float, default=0.08,
                         help="Gate 5 PF difference threshold (default 0.08)")
@@ -267,6 +282,8 @@ def main():
         "sl_tight_mult": sl_tight_mult,
         "phase1_bars": phase1_bars,
         "max_bars": max_bars,
+        "end_ts_ms": args.end_ts_ms,
+        "bar_count": args.bar_count,
     }
 
     print(f"Gen720 Oracle: {args.pattern} {args.symbol}@{args.threshold}")

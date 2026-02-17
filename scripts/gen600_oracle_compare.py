@@ -81,13 +81,23 @@ def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
     tp_mult = config["tp_mult"]
     sl_mult = config["sl_mult"]
 
-    print(f"Loading {symbol}@{threshold} range bars (start=2017-01-01, end={end_date})...")
+    bar_count = config.get("bar_count")
+    align_end_ts_ms = config.get("end_ts_ms")
+    align_msg = ""
+    if align_end_ts_ms:
+        align_msg += f" end_ts={align_end_ts_ms}"
+    if bar_count:
+        align_msg += f" bar_count={bar_count}"
+
+    print(f"Loading {symbol}@{threshold} range bars (start=2017-01-01, end={end_date})...{align_msg}")
     df = load_range_bars(
         symbol=symbol,
         threshold=threshold,
         start="2017-01-01",
         end=end_date,
         extra_columns=config.get("extra_columns"),
+        end_ts_ms=align_end_ts_ms,
+        bar_count=bar_count,
     )
     print(f"  Loaded {len(df)} bars ({df.index[0]} to {df.index[-1]})")
 
@@ -216,6 +226,8 @@ def _build_config(args):
         "sl_mult": args.sl_mult,
         "max_bars": args.max_bars,
         "extra_columns": extra,
+        "end_ts_ms": getattr(args, "end_ts_ms", None),
+        "bar_count": getattr(args, "bar_count", None),
     }
 
 
@@ -249,6 +261,11 @@ def main():
     parser.add_argument("--max-bars", type=int, default=50, help="Max bars time barrier")
     parser.add_argument("--extra-columns", default="volume_per_trade,lookback_price_range",
                         help="Comma-separated extra columns for data loader")
+    # Data alignment (match SQL's aligned bar window)
+    parser.add_argument("--end-ts", type=int, default=None, dest="end_ts_ms",
+                        help="End timestamp in ms (overrides end date for SQL alignment)")
+    parser.add_argument("--bar-count", type=int, default=None,
+                        help="Trim to last N bars (matches SQL ORDER BY DESC LIMIT N)")
     args = parser.parse_args()
 
     config = _build_config(args)
