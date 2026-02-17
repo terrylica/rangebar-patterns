@@ -997,8 +997,8 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
                     print(f" {msg}")
                     n_processed += 1
 
-                    # Read combo summary from disk
-                    combo_json_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
+                    # Read combo summary from disk (direction-prefixed)
+                    combo_json_path = combos_dir / f"_combo_{direction}_{fmt}_{sym}_{thr}.json"
                     if combo_json_path.exists():
                         with open(combo_json_path) as f:
                             combo_summaries.append(json.loads(f.read()))
@@ -1107,7 +1107,7 @@ def _run_single_combo(
 
     except (ValueError, RuntimeError, OSError) as e:
         # Write low_power combo JSON stub so aggregation knows about this combo
-        combo_line_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
+        combo_line_path = combos_dir / f"_combo_{direction}_{fmt}_{sym}_{thr}.json"
         if not combo_line_path.exists():
             n_sig = 0
             try:
