@@ -704,7 +704,10 @@ def _run_aggregation(
                 "top_barrier_consistency": c["top_barriers"][0]["consistency"] if c.get("top_barriers") else None,
                 # Stage 2/3/4 summaries
                 "n_pbo_pass": c["stage2_cpcv"]["n_pbo_pass"] if c.get("stage2_cpcv") else None,
-                "n_bootstrap_pass": c["stage3_bootstrap"]["n_bootstrap_pass"] if c.get("stage3_bootstrap") else None,
+                "n_bootstrap_pass": (
+                    c["stage3_bootstrap"]["n_bootstrap_accepted"]
+                    if c.get("stage3_bootstrap") else None
+                ),
                 "n_final_survivors": c["stage3_bootstrap"]["n_final_survivors"] if c.get("stage3_bootstrap") else None,
                 "top_gt_composite": c["stage4_ranking"]["gt_scores"].get(
                     c["stage4_ranking"]["top_gt_barrier"], 0.0
@@ -810,30 +813,74 @@ def run_direction(direction: str, remote: str | None = None, *, aggregate_only: 
 
     t_start = time.monotonic()
 
-    # ---- Aggregate-only mode: load from existing Tier 2 JSONL ----
+    # ---- Aggregate-only mode: load from existing combo data ----
     if aggregate_only:
-        combo_path = out_dir / "combos" / combo_jsonl_name
-        if not combo_path.exists():
-            print(f"ERROR: {combo_path} not found. Run full pipeline first.")
-            sys.exit(1)
+        combos_dir = out_dir / "combos"
+        folds_dir = out_dir / "folds"
+        combo_path = combos_dir / combo_jsonl_name
 
         combo_summaries = []
-        with open(combo_path) as f:
-            for line in f:
-                line = line.strip()
-                if line:
-                    combo_summaries.append(json.loads(line))
+
+        # Build set of valid formation names for this direction
+        valid_formations = set(formations)
+
+        # Try JSONL first, then fall back to individual JSON files
+        if combo_path.exists():
+            with open(combo_path) as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        rec = json.loads(line)
+                        if rec.get("formation") in valid_formations:
+                            combo_summaries.append(rec)
+            print(f"Loaded {len(combo_summaries)} combos from {combo_path}")
+        else:
+            # Load from individual _combo_*.json files (pueue --single-combo mode)
+            # Filter by formation prefix to match this direction
+            json_files = sorted(combos_dir.glob("_combo_*.json"))
+            if not json_files:
+                print(f"ERROR: No combo data in {combos_dir}. Run pipeline first.")
+                sys.exit(1)
+            skipped = 0
+            for jf in json_files:
+                with open(jf) as f:
+                    rec = json.loads(f.read())
+                if rec.get("formation") in valid_formations:
+                    combo_summaries.append(rec)
+                else:
+                    skipped += 1
+            print(f"Loaded {len(combo_summaries)} combos from JSON files"
+                  f" (skipped {skipped} other-direction)")
+
+            # Merge direction-specific JSONs into Tier 2 JSONL
+            with open(combo_path, "w") as f:
+                for combo in combo_summaries:
+                    f.write(json.dumps(combo, default=str) + "\n")
+            print(f"Wrote Tier 2 JSONL: {combo_path}")
+
+        # Merge Parquet chunks if merged file doesn't exist yet
+        parquet_path = folds_dir / parquet_name
+        if not parquet_path.exists():
+            chunk_files = sorted(folds_dir.glob("_chunk_*.parquet"))
+            if chunk_files:
+                chunk_dfs = [pl.read_parquet(p) for p in chunk_files]
+                full_fold_df = pl.concat(chunk_dfs)
+                full_fold_df.write_parquet(parquet_path, compression="zstd")
+                print(f"Merged {len(chunk_files)} chunks → {parquet_path} ({len(full_fold_df)} rows)")
+                del full_fold_df, chunk_dfs
+                gc.collect()
+                for p in chunk_files:
+                    p.unlink(missing_ok=True)
+            else:
+                print("WARNING: No fold Parquet chunks to merge")
 
         n_processed = len(combo_summaries)
-        print(f"Loaded {n_processed} combo summaries from {combo_path}")
 
-        # Jump to Tier 3 aggregation (skip Tier 1+2 which already exist)
-        t_wf = 0.0  # No WFO processing time
-        # (fall through to Tier 3 code below)
-        # We need to skip the combo processing loop and Tier 1/2 writing.
+        # Jump to Tier 3 aggregation
+        t_wf = 0.0
         return _run_aggregation(
             direction, combo_summaries, n_processed, t_start, t_wf,
-            out_dir, agg_jsonl_name,
+            out_dir, agg_jsonl_name, parquet_name, combo_jsonl_name,
         )
 
     # Subprocess isolation: each combo runs in a child process to prevent
@@ -997,10 +1044,27 @@ def _run_single_combo(
         s2 = combo.get("stage2_cpcv")
         s3 = combo.get("stage3_bootstrap")
         pbo_info = f" PBO:{s2['n_pbo_pass']}/{s2['n_top_k_screened']}" if s2 else ""
-        boot_info = f" Boot:{s3['n_final_survivors']}/{s3['n_surviving_barriers']}" if s3 else ""
+        boot_info = f" Boot:{s3['n_final_survivors']}/{s3['n_pbo_survivors_in']}" if s3 else ""
         return True, f"{n_folds} folds{pbo_info}{boot_info}, {t:.1f}s"
 
     except (ValueError, RuntimeError, OSError) as e:
+        # Write low_power combo JSON stub so aggregation knows about this combo
+        combo_line_path = combos_dir / f"_combo_{fmt}_{sym}_{thr}.json"
+        if not combo_line_path.exists():
+            n_sig = 0
+            try:
+                n_sig = load_tsv(tsv_path).select("signal_ts_ms").n_unique()
+            except (ValueError, OSError, pl.exceptions.ComputeError):
+                print(f"    Could not count signals from {tsv_path.name}")
+            try:
+                stub = _empty_combo_summary(
+                    fmt, sym, thr, strategy, n_sig, tsv_path,
+                )
+                stub["error"] = str(e)
+                with open(combo_line_path, "w") as f:
+                    f.write(json.dumps(stub, default=str))
+            except (OSError, TypeError) as write_err:
+                print(f"    Could not write stub combo JSON: {write_err}")
         return False, f"ERROR:{e}"
     finally:
         if fetched_remote and tsv_path.exists():
