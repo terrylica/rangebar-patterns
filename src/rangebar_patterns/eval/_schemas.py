@@ -54,6 +54,8 @@ class BarrierSummary(BaseModel):
     avg_oos_rachev: float
     avg_oos_pf: float
     omega_cv: float = Field(ge=0)
+    median_max_drawdown: float | None = None
+    fold_sharpe: float | None = None
     n_tamrs_viable_folds: int = Field(ge=0)
     n_total_folds: int = Field(ge=0)
     # Stage 2/3/4 annotations (optional — backward compatible)

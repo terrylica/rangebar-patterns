@@ -902,7 +902,8 @@ def compute_gt_composite(
 
     Components:
     - Omega: distribution shape (from OOS evaluation)
-    - DSR: Deflated Sharpe Ratio (correcting for selection bias, n_trials=434)
+    - DSR: Deflated Sharpe Ratio. n_trials = number of Stage 4 survivors
+      (NOT 434 barrier grid — CPCV already filtered to survivors).
     - PBO: Probability of Backtest Overfitting (from Stage 2 CPCV)
     - MaxDD: SEQUENTIAL metric — empirical per-fold, NOT bootstrapped
 

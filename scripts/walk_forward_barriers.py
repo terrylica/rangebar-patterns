@@ -272,11 +272,16 @@ def run_combo_wfo(
                 continue
 
             # Compute DSR from OOS fold-level returns
+            # n_trials = number of Stage 4 survivors (NOT 434 grid size).
+            # CPCV already filtered from 434 → final_bids — these are the
+            # surviving hypotheses. Using 434 here double-penalizes, producing
+            # SR* ~ 3.01 which floors DSR to 0 for all realistic fold-level SR.
             sr_val = float(np.mean(arr) / np.std(arr)) if np.std(arr) > 1e-12 else 0.0
             skew_val = float(skew(arr))
             kurt_val = float(kurtosis(arr, fisher=False))  # excess=False → raw kurtosis
             se = sr_standard_error(sr_val, n, skew_val, kurt_val)
-            sr_star = expected_max_sr(n_trials=434, var_sr=1.0)
+            n_survivors = max(len(final_bids), 2)  # at least 2 to avoid degenerate SR*
+            sr_star = expected_max_sr(n_trials=n_survivors, var_sr=1.0)
             dsr_val = compute_psr(sr_val, sr_star, se)
 
             # Median OOS Omega and MaxDD
@@ -301,6 +306,12 @@ def run_combo_wfo(
         n_viable = int((bid_df["omega"] > 1.0).sum())
         consistency = n_viable / n_folds if n_folds > 0 else 0.0
 
+        # Compute per-barrier fold-level metrics for post-hoc recomputation
+        avg_returns = bid_df["avg_return"].to_numpy()
+        mdd_median = float(bid_df["max_drawdown"].median()) if n_folds > 0 else 0.0
+        std_r = float(np.std(avg_returns))
+        sr_val = float(np.mean(avg_returns) / std_r) if n_folds > 1 and std_r > 1e-12 else 0.0
+
         barrier_info = {
             "barrier_id": bid,
             "consistency": round(consistency, 4),
@@ -308,6 +319,8 @@ def run_combo_wfo(
             "avg_oos_rachev": round(avg_rachev, 4),
             "avg_oos_pf": round(avg_pf, 4),
             "omega_cv": round(omega_cv, 4),
+            "median_max_drawdown": round(mdd_median, 6),
+            "fold_sharpe": round(sr_val, 6),
             "n_tamrs_viable_folds": n_viable,
             "n_total_folds": n_folds,
             "pbo": round(pbo_scores.get(bid, -1.0), 4),
@@ -356,13 +369,14 @@ def run_combo_wfo(
             "pbo_scores": {k: round(v, 4) for k, v in pbo_scores.items()},
         } if pbo_scores else None,
         "stage3_bootstrap": {
-            "n_surviving_barriers": len(surviving_bids),
-            "n_bootstrap_pass": sum(1 for v in bootstrap_rejected.values() if not v),
-            "n_bootstrap_reject": sum(1 for v in bootstrap_rejected.values() if v),
-            "n_final_survivors": len(final_bids),
+            "n_pbo_survivors_in": len(surviving_bids),  # input: passed PBO < 0.50
+            "n_bootstrap_accepted": sum(1 for v in bootstrap_rejected.values() if not v),  # CI above threshold
+            "n_bootstrap_rejected": sum(1 for v in bootstrap_rejected.values() if v),  # CI below threshold
+            "n_final_survivors": len(final_bids),  # output: passed all stages
             "final_barrier_ids": final_bids,
         } if surviving_bids else None,
         "stage4_ranking": {
+            "n_trials_dsr": max(len(final_bids), 2),  # DSR n_trials = survivor count (not 434)
             "n_gt_scored": len(gt_scores),
             "gt_scores": {k: round(v, 6) for k, v in sorted(gt_scores.items(), key=lambda x: -x[1])},
             "top_gt_barrier": max(gt_scores, key=gt_scores.get) if gt_scores else None,
