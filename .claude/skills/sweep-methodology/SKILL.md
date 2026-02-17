@@ -292,6 +292,27 @@ The Gen300 expanding-window bug proved that results are meaningless without know
 
 **Compression**: Brotli `--quality=11` for files >1MB (14-21x ratio). Use `brotli --quality=11 -c file > file.br` — never `brotli -11` (silently corrupt).
 
+### Artifact Isolation by Discriminating Dimension (Gen720 Lesson)
+
+When a pipeline produces artifacts (Parquet chunks, JSONL combos, temp files) for multiple categories that share a directory, **every filename must include ALL discriminating dimensions**.
+
+**The Gen720 direction-mixing bug**: LONG and SHORT WFO wrote `_chunk_{formation}_{symbol}_{threshold}.parquet` to the same `folds/` directory. LONG aggregation ran first, globbed `_chunk_*.parquet`, consumed ALL chunks (both LONG and SHORT), merged them into `long_folds.parquet`, then deleted all chunks. SHORT aggregation found nothing.
+
+| Pattern                                        | Risk                         | Example                                   |
+| ---------------------------------------------- | ---------------------------- | ----------------------------------------- |
+| `_chunk_{fmt}_{sym}_{thr}.parquet`             | **COLLISION** — no direction | LONG glob eats SHORT files                |
+| `_chunk_{direction}_{fmt}_{sym}_{thr}.parquet` | **SAFE** — direction-scoped  | `_chunk_long_*.parquet` only matches LONG |
+
+**Rules**:
+
+1. **Prefix artifacts with ALL category dimensions** — direction, strategy, generation
+2. **Scope globs to the current category** — `f"_chunk_{direction}_*.parquet"` not `"_chunk_*.parquet"`
+3. **Cleanup must match scope** — only delete `_chunk_{direction}_*`, never `_chunk_*`
+4. **Backward-compat fallback** — try scoped glob first, fall back to unscoped for migration
+5. **Validate merged output** — after Parquet merge, assert expected values in category columns (e.g., `strategy == 'standard'` for LONG, `strategy in ['A_mirrored', 'B_reverse']` for SHORT)
+
+**Cross-reference**: `distributed-job-safety` INV-1 (Checkpoint File Isolation) — same principle for checkpoint files. INV-9 extends it to derived artifacts.
+
 ---
 
 ## Emerging Opportunities (Untested)

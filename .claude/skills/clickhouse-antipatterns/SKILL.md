@@ -160,3 +160,4 @@ After modifying ANY Gen200+ SQL file:
 - [ ] Query completes < 10s on any pattern density (AP-14 window approach)
 - [ ] `lagInFrame` direction lags are correct — current bar uses `direction` directly, not `lagInFrame(direction, 1)` (AP-15)
 - [ ] backtesting.py oracle uses `hedging=True, exclusive_orders=False` for multi-position SQL match (AP-16)
+- [ ] Derived artifacts (Parquet chunks, combo JSONs) include ALL category dimensions in filename — `_chunk_{direction}_{fmt}_{sym}_{thr}` not `_chunk_{fmt}_{sym}_{thr}` (INV-9)
