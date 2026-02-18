@@ -1,3 +1,41 @@
+# [2.0.0](https://github.com/terrylica/rangebar-patterns/compare/v1.10.0...v2.0.0) (2026-02-18)
+
+
+### Bug Fixes
+
+* correct GT-composite DSR calibration and normalize Stage 3 telemetry ([12a2cfe](https://github.com/terrylica/rangebar-patterns/commit/12a2cfe5cd0e7c00451418602e039b3dae507735))
+* direction-prefix error stub and parent subprocess reader paths ([d9eb5fd](https://github.com/terrylica/rangebar-patterns/commit/d9eb5fdd0d13e316f0ee41989b825dd73dca5c66))
+* direction-prefix telemetry filenames to prevent cross-contamination ([679f35b](https://github.com/terrylica/rangebar-patterns/commit/679f35ba6a6f3cf61c231c8819abbfc1127f8ff6))
+* **eval:** comprehensive Gen720 audit — PF cap, Rachev cap, Vorob'ev diagnostics, provenance ([7efd561](https://github.com/terrylica/rangebar-patterns/commit/7efd561c362edf1d726330e93756199b33429e0b))
+* **eval:** gate build_wfo_folds for insufficient signals ([13e731d](https://github.com/terrylica/rangebar-patterns/commit/13e731df0e1e15354488e5a68be6bf7b788ad256))
+* Gen720 production results — direction-split artifacts, aggregate-only robustness ([6240a7b](https://github.com/terrylica/rangebar-patterns/commit/6240a7b9b22f4f0abf74340788336538a18678b5))
+
+
+### Code Refactoring
+
+* **barriers:** align threshold units with rangebar-py (÷100,000) ([24ea724](https://github.com/terrylica/rangebar-patterns/commit/24ea724935912584cbef46ce79d56b8a3a53cf69))
+
+
+### Features
+
+* **eval:** cross-asset Pareto ranking + Kelly removal + MCDM research archival ([4a37472](https://github.com/terrylica/rangebar-patterns/commit/4a3747251caff9532b37b21616c1d5560e433587)), closes [16/#17](https://github.com/terrylica/rangebar-patterns/issues/17) [#28](https://github.com/terrylica/rangebar-patterns/issues/28)
+* **eval:** integrate NumPy TOPSIS into Pareto ranking pipeline ([c16cb2d](https://github.com/terrylica/rangebar-patterns/commit/c16cb2da6929d2e0d2d93d935957f4bcb5ba3823)), closes [#28](https://github.com/terrylica/rangebar-patterns/issues/28)
+* **eval:** MCDM benchmark POC — NumPy TOPSIS 36x faster, pymcdm uses non-standard normalization ([9acae06](https://github.com/terrylica/rangebar-patterns/commit/9acae066ce4ec62500c6c96fd486d75764322061)), closes [#28](https://github.com/terrylica/rangebar-patterns/issues/28)
+* **eval:** retrospective TOPSIS re-ranking of 75 Pareto solutions ([5fbd8dd](https://github.com/terrylica/rangebar-patterns/commit/5fbd8dd322932bee6822fa0a4365e1afd40261d7)), closes [#28](https://github.com/terrylica/rangebar-patterns/issues/28)
+* Gen720 walk-forward barrier optimization with subprocess isolation ([76ea346](https://github.com/terrylica/rangebar-patterns/commit/76ea34672e71eae592c75018498adc24433d38b8)), closes [#28](https://github.com/terrylica/rangebar-patterns/issues/28)
+* Gen720-L WFO results — 77.5% cross-asset positive OOS, 12 knee points ([b40da2f](https://github.com/terrylica/rangebar-patterns/commit/b40da2f2e4d173b2b8bf2d8809a7b9e2f65811bc)), closes [#28](https://github.com/terrylica/rangebar-patterns/issues/28)
+* Gen720-S SHORT WFO results — 93.1% cross-asset positive OOS, Strategy B dominant ([912449c](https://github.com/terrylica/rangebar-patterns/commit/912449c6a6ac4aaac0e6a429bf7992db0f3d1396)), closes [#28](https://github.com/terrylica/rangebar-patterns/issues/28)
+* wire 4-stage WFO pipeline (CPCV + bootstrap + GT-composite) into Gen720 ([fa42051](https://github.com/terrylica/rangebar-patterns/commit/fa420517b24e351aeee6ec6624e8dc737fb78560))
+
+
+### BREAKING CHANGES
+
+* **barriers:** threshold_pct removed, use bar_range instead.
+Barrier multipliers are now in bar-width units (2.5 = 2.5 bar-widths).
+
+SRED-Type: support-work
+SRED-Claim: RANGEBAR-PATTERNS
+
 # [1.10.0](https://github.com/terrylica/rangebar-patterns/compare/v1.9.0...v1.10.0) (2026-02-15)
 
 
