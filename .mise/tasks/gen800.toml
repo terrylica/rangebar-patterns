@@ -14,3 +14,7 @@ run = "uv run -p 3.13 python scripts/gen800_rank.py"
 description = "CPCV + bootstrap validation on Gen800 top-50"
 run = "uv run -p 3.13 python scripts/gen800_sweep.py --validate-top50"
 depends = ["gen800:rank"]
+
+["gen800:rolling-rdd"]
+description = "Rolling 90-day return/drawdown ratio distributions for cross-asset ranking"
+run = "uv run -p 3.13 python scripts/gen800_rolling_rdd.py"
