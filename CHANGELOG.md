@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/terrylica/rangebar-patterns/compare/v2.0.0...v2.1.0) (2026-02-18)
+
+
+### Features
+
+* **eval:** Gen720 MCDM ranking experiments — 5 methods + cross-round comparison ([aace940](https://github.com/terrylica/rangebar-patterns/commit/aace940340e4f3a68d79e6ec3e68021999cae98e)), closes [#37](https://github.com/terrylica/rangebar-patterns/issues/37)
+
 # [2.0.0](https://github.com/terrylica/rangebar-patterns/compare/v1.10.0...v2.0.0) (2026-02-18)
 
 
