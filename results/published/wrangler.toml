@@ -1,0 +1,8 @@
+# Cloudflare Workers Static Assets — rangebar-findings
+# Serves published HTML equity plots for direct browser viewing.
+# Deploy: mise run publish:findings (or bash scripts/publish_findings.sh)
+name = "rangebar-findings"
+compatibility_date = "2026-02-18"
+
+[assets]
+directory = "."

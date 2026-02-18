@@ -29,5 +29,9 @@ results/eval/gen800/*.html
 # Gen800 uncompressed sweep JSONL (use .br compressed version)
 results/eval/gen800/gen800_sweep.jsonl
 
+# Wrangler temp files (Cloudflare Workers deploy)
+.wrangler/
+results/published/.wrangler/
+
 # Node.js (semantic-release only)
 node_modules/

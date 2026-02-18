@@ -1,0 +1,3 @@
+["publish:findings"]
+description = "Deploy published findings to Cloudflare Workers (static)"
+run = "bash scripts/publish_findings.sh"
