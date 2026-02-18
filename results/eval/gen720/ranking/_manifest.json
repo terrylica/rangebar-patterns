@@ -1,0 +1,64 @@
+{
+  "experiment_set": "gen720_ranking",
+  "created": "2026-02-18T01:01:27.390653+00:00",
+  "n_rounds": 5,
+  "directions": [
+    "long",
+    "short"
+  ],
+  "baseline": {
+    "method": "equal_weight_topsis_3metric",
+    "metrics": [
+      "avg_oos_omega",
+      "xa_consistency",
+      "omega_cv"
+    ],
+    "long_rank1": "p15_slt050_mb200",
+    "short_rank1": "p10_slt025_mb75"
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "slug": "entropy_topsis",
+      "dir": "round1_entropy_topsis/",
+      "method": "Entropy-Weighted TOPSIS",
+      "data_level": "fold",
+      "n_metrics": 7
+    },
+    {
+      "round": 2,
+      "slug": "promethee",
+      "dir": "round2_promethee/",
+      "method": "PROMETHEE II",
+      "data_level": "combo",
+      "n_metrics": 6
+    },
+    {
+      "round": 3,
+      "slug": "stability_weighted",
+      "dir": "round3_stability_weighted/",
+      "method": "Stability-Weighted Composite",
+      "data_level": "fold",
+      "n_metrics": 5
+    },
+    {
+      "round": 4,
+      "slug": "cross_consistency",
+      "dir": "round4_cross_consistency/",
+      "method": "Cross-Asset x Cross-Formation Consistency",
+      "data_level": "fold",
+      "n_metrics": 1
+    },
+    {
+      "round": 5,
+      "slug": "bootstrap_stability",
+      "dir": "round5_bootstrap_stability/",
+      "method": "Bootstrap Rank Stability",
+      "data_level": "fold",
+      "n_metrics": 7
+    }
+  ],
+  "cross_round_file": "cross_round_comparison.json",
+  "degenerate_filter": "slt000 barriers excluded (62 of 434 = 372 ranked)",
+  "git_commit": "9ec4b15"
+}

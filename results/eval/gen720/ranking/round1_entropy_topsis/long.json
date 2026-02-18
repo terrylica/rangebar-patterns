@@ -1,0 +1,5287 @@
+{
+  "meta": {
+    "round": 1,
+    "method": "entropy_weighted_topsis",
+    "method_description": "Shannon entropy auto-derives criterion weights from fold-level data. High-entropy columns (more discriminating) get higher weight.",
+    "direction": "long",
+    "timestamp": "2026-02-18T01:01:01.950279+00:00",
+    "n_barriers_ranked": 372,
+    "n_barriers_excluded": 62,
+    "exclusion_reason": "slt000 (no stop-loss) barriers removed",
+    "data_source": "results/eval/gen720/folds/long_folds.parquet",
+    "n_folds_used": 3455508,
+    "git_commit": "9ec4b15"
+  },
+  "method_params": {
+    "metrics": [
+      "profit_factor",
+      "omega",
+      "rachev",
+      "cdar",
+      "total_return",
+      "win_rate",
+      "max_drawdown"
+    ],
+    "types": [
+      1,
+      1,
+      1,
+      -1,
+      1,
+      1,
+      -1
+    ],
+    "entropy_weights": [
+      0.115623,
+      0.115623,
+      0.290066,
+      0.132492,
+      0.124937,
+      0.088995,
+      0.132263
+    ],
+    "data_level": "fold",
+    "aggregation": "median"
+  },
+  "ranking": [
+    {
+      "rank": 1,
+      "barrier_id": "p2_slt005_mb30",
+      "score": 0.760415,
+      "metrics": {
+        "profit_factor": 1.074657,
+        "omega": 1.074657,
+        "rachev": 1.190056,
+        "cdar": 0.184937,
+        "total_return": 0.075706,
+        "win_rate": 0.30198,
+        "max_drawdown": 0.203369
+      }
+    },
+    {
+      "rank": 2,
+      "barrier_id": "p2_slt005_mb100",
+      "score": 0.760292,
+      "metrics": {
+        "profit_factor": 1.075182,
+        "omega": 1.075182,
+        "rachev": 1.190056,
+        "cdar": 0.185032,
+        "total_return": 0.075724,
+        "win_rate": 0.300493,
+        "max_drawdown": 0.203778
+      }
+    },
+    {
+      "rank": 3,
+      "barrier_id": "p2_slt005_mb75",
+      "score": 0.760282,
+      "metrics": {
+        "profit_factor": 1.075182,
+        "omega": 1.075182,
+        "rachev": 1.190056,
+        "cdar": 0.184997,
+        "total_return": 0.075706,
+        "win_rate": 0.300493,
+        "max_drawdown": 0.203567
+      }
+    },
+    {
+      "rank": 4,
+      "barrier_id": "p2_slt005_mb50",
+      "score": 0.760281,
+      "metrics": {
+        "profit_factor": 1.074668,
+        "omega": 1.074668,
+        "rachev": 1.190056,
+        "cdar": 0.184972,
+        "total_return": 0.075706,
+        "win_rate": 0.300493,
+        "max_drawdown": 0.203552
+      }
+    },
+    {
+      "rank": 5,
+      "barrier_id": "p2_slt005_mb150",
+      "score": 0.760278,
+      "metrics": {
+        "profit_factor": 1.074741,
+        "omega": 1.074741,
+        "rachev": 1.190056,
+        "cdar": 0.184985,
+        "total_return": 0.075706,
+        "win_rate": 0.300493,
+        "max_drawdown": 0.203652
+      }
+    },
+    {
+      "rank": 6,
+      "barrier_id": "p2_slt005_mb200",
+      "score": 0.760268,
+      "metrics": {
+        "profit_factor": 1.074726,
+        "omega": 1.074726,
+        "rachev": 1.190056,
+        "cdar": 0.184997,
+        "total_return": 0.075696,
+        "win_rate": 0.300493,
+        "max_drawdown": 0.203652
+      }
+    },
+    {
+      "rank": 7,
+      "barrier_id": "p2_slt005_mb15",
+      "score": 0.760257,
+      "metrics": {
+        "profit_factor": 1.075182,
+        "omega": 1.075182,
+        "rachev": 1.190056,
+        "cdar": 0.184324,
+        "total_return": 0.075366,
+        "win_rate": 0.303483,
+        "max_drawdown": 0.202827
+      }
+    },
+    {
+      "rank": 8,
+      "barrier_id": "p2_slt005_mb20",
+      "score": 0.760217,
+      "metrics": {
+        "profit_factor": 1.075182,
+        "omega": 1.075182,
+        "rachev": 1.190056,
+        "cdar": 0.184786,
+        "total_return": 0.075487,
+        "win_rate": 0.30198,
+        "max_drawdown": 0.203246
+      }
+    },
+    {
+      "rank": 9,
+      "barrier_id": "p2_slt005_mb10",
+      "score": 0.759556,
+      "metrics": {
+        "profit_factor": 1.074161,
+        "omega": 1.074161,
+        "rachev": 1.190056,
+        "cdar": 0.183424,
+        "total_return": 0.074459,
+        "win_rate": 0.305,
+        "max_drawdown": 0.202296
+      }
+    },
+    {
+      "rank": 10,
+      "barrier_id": "p2_slt010_mb20",
+      "score": 0.75488,
+      "metrics": {
+        "profit_factor": 1.054746,
+        "omega": 1.054746,
+        "rachev": 1.189978,
+        "cdar": 0.222267,
+        "total_return": 0.068403,
+        "win_rate": 0.368159,
+        "max_drawdown": 0.243462
+      }
+    },
+    {
+      "rank": 11,
+      "barrier_id": "p2_slt010_mb15",
+      "score": 0.754452,
+      "metrics": {
+        "profit_factor": 1.054416,
+        "omega": 1.054416,
+        "rachev": 1.189978,
+        "cdar": 0.220867,
+        "total_return": 0.067725,
+        "win_rate": 0.37,
+        "max_drawdown": 0.242817
+      }
+    },
+    {
+      "rank": 12,
+      "barrier_id": "p2_slt010_mb30",
+      "score": 0.754337,
+      "metrics": {
+        "profit_factor": 1.054458,
+        "omega": 1.054458,
+        "rachev": 1.189978,
+        "cdar": 0.223228,
+        "total_return": 0.067974,
+        "win_rate": 0.368159,
+        "max_drawdown": 0.244633
+      }
+    },
+    {
+      "rank": 13,
+      "barrier_id": "p2_slt010_mb50",
+      "score": 0.753437,
+      "metrics": {
+        "profit_factor": 1.054416,
+        "omega": 1.054416,
+        "rachev": 1.189978,
+        "cdar": 0.223748,
+        "total_return": 0.067149,
+        "win_rate": 0.367925,
+        "max_drawdown": 0.245352
+      }
+    },
+    {
+      "rank": 14,
+      "barrier_id": "p2_slt010_mb150",
+      "score": 0.753112,
+      "metrics": {
+        "profit_factor": 1.054402,
+        "omega": 1.054402,
+        "rachev": 1.189978,
+        "cdar": 0.223952,
+        "total_return": 0.066881,
+        "win_rate": 0.367647,
+        "max_drawdown": 0.245907
+      }
+    },
+    {
+      "rank": 15,
+      "barrier_id": "p2_slt010_mb200",
+      "score": 0.753076,
+      "metrics": {
+        "profit_factor": 1.054416,
+        "omega": 1.054416,
+        "rachev": 1.189978,
+        "cdar": 0.223952,
+        "total_return": 0.066881,
+        "win_rate": 0.36715,
+        "max_drawdown": 0.245907
+      }
+    },
+    {
+      "rank": 16,
+      "barrier_id": "p2_slt010_mb75",
+      "score": 0.75293,
+      "metrics": {
+        "profit_factor": 1.054573,
+        "omega": 1.054573,
+        "rachev": 1.189978,
+        "cdar": 0.223862,
+        "total_return": 0.066682,
+        "win_rate": 0.367647,
+        "max_drawdown": 0.24575
+      }
+    },
+    {
+      "rank": 17,
+      "barrier_id": "p2_slt010_mb100",
+      "score": 0.752729,
+      "metrics": {
+        "profit_factor": 1.054458,
+        "omega": 1.054458,
+        "rachev": 1.189978,
+        "cdar": 0.223985,
+        "total_return": 0.066494,
+        "win_rate": 0.367647,
+        "max_drawdown": 0.245907
+      }
+    },
+    {
+      "rank": 18,
+      "barrier_id": "p2_slt010_mb10",
+      "score": 0.752238,
+      "metrics": {
+        "profit_factor": 1.053783,
+        "omega": 1.053783,
+        "rachev": 1.189978,
+        "cdar": 0.217159,
+        "total_return": 0.065011,
+        "win_rate": 0.371287,
+        "max_drawdown": 0.239395
+      }
+    },
+    {
+      "rank": 19,
+      "barrier_id": "p2_slt025_mb10",
+      "score": 0.696804,
+      "metrics": {
+        "profit_factor": 1.058824,
+        "omega": 1.058824,
+        "rachev": 1.0,
+        "cdar": 0.305516,
+        "total_return": 0.089567,
+        "win_rate": 0.495146,
+        "max_drawdown": 0.334717
+      }
+    },
+    {
+      "rank": 20,
+      "barrier_id": "p2_slt025_mb30",
+      "score": 0.693231,
+      "metrics": {
+        "profit_factor": 1.057881,
+        "omega": 1.057881,
+        "rachev": 1.0,
+        "cdar": 0.349434,
+        "total_return": 0.096893,
+        "win_rate": 0.514851,
+        "max_drawdown": 0.376597
+      }
+    },
+    {
+      "rank": 21,
+      "barrier_id": "p2_slt025_mb75",
+      "score": 0.692312,
+      "metrics": {
+        "profit_factor": 1.059961,
+        "omega": 1.059961,
+        "rachev": 1.0,
+        "cdar": 0.354375,
+        "total_return": 0.099252,
+        "win_rate": 0.515,
+        "max_drawdown": 0.393072
+      }
+    },
+    {
+      "rank": 22,
+      "barrier_id": "p2_slt025_mb100",
+      "score": 0.692219,
+      "metrics": {
+        "profit_factor": 1.060021,
+        "omega": 1.060021,
+        "rachev": 1.0,
+        "cdar": 0.354375,
+        "total_return": 0.099252,
+        "win_rate": 0.515,
+        "max_drawdown": 0.39375
+      }
+    },
+    {
+      "rank": 23,
+      "barrier_id": "p2_slt025_mb50",
+      "score": 0.691929,
+      "metrics": {
+        "profit_factor": 1.059957,
+        "omega": 1.059957,
+        "rachev": 1.0,
+        "cdar": 0.3525,
+        "total_return": 0.097566,
+        "win_rate": 0.515,
+        "max_drawdown": 0.3875
+      }
+    },
+    {
+      "rank": 24,
+      "barrier_id": "p2_slt025_mb200",
+      "score": 0.691708,
+      "metrics": {
+        "profit_factor": 1.059406,
+        "omega": 1.059406,
+        "rachev": 1.0,
+        "cdar": 0.355114,
+        "total_return": 0.098779,
+        "win_rate": 0.515,
+        "max_drawdown": 0.39375
+      }
+    },
+    {
+      "rank": 25,
+      "barrier_id": "p2_slt025_mb150",
+      "score": 0.691617,
+      "metrics": {
+        "profit_factor": 1.059753,
+        "omega": 1.059753,
+        "rachev": 1.0,
+        "cdar": 0.355,
+        "total_return": 0.098648,
+        "win_rate": 0.515,
+        "max_drawdown": 0.39375
+      }
+    },
+    {
+      "rank": 26,
+      "barrier_id": "p2_slt025_mb20",
+      "score": 0.691599,
+      "metrics": {
+        "profit_factor": 1.056339,
+        "omega": 1.056339,
+        "rachev": 1.0,
+        "cdar": 0.342622,
+        "total_return": 0.09375,
+        "win_rate": 0.512438,
+        "max_drawdown": 0.375
+      }
+    },
+    {
+      "rank": 27,
+      "barrier_id": "p2_slt025_mb15",
+      "score": 0.690095,
+      "metrics": {
+        "profit_factor": 1.054151,
+        "omega": 1.054151,
+        "rachev": 1.0,
+        "cdar": 0.332824,
+        "total_return": 0.088669,
+        "win_rate": 0.514851,
+        "max_drawdown": 0.363903
+      }
+    },
+    {
+      "rank": 28,
+      "barrier_id": "p3_slt005_mb50",
+      "score": 0.582698,
+      "metrics": {
+        "profit_factor": 1.069926,
+        "omega": 1.069926,
+        "rachev": 0.815895,
+        "cdar": 0.217252,
+        "total_return": 0.079473,
+        "win_rate": 0.341584,
+        "max_drawdown": 0.238438
+      }
+    },
+    {
+      "rank": 29,
+      "barrier_id": "p3_slt005_mb30",
+      "score": 0.582592,
+      "metrics": {
+        "profit_factor": 1.069873,
+        "omega": 1.069873,
+        "rachev": 0.815895,
+        "cdar": 0.217125,
+        "total_return": 0.079111,
+        "win_rate": 0.342995,
+        "max_drawdown": 0.238285
+      }
+    },
+    {
+      "rank": 30,
+      "barrier_id": "p3_slt005_mb150",
+      "score": 0.582465,
+      "metrics": {
+        "profit_factor": 1.069898,
+        "omega": 1.069898,
+        "rachev": 0.815895,
+        "cdar": 0.217382,
+        "total_return": 0.079101,
+        "win_rate": 0.341584,
+        "max_drawdown": 0.238581
+      }
+    },
+    {
+      "rank": 31,
+      "barrier_id": "p3_slt005_mb100",
+      "score": 0.582465,
+      "metrics": {
+        "profit_factor": 1.069898,
+        "omega": 1.069898,
+        "rachev": 0.815895,
+        "cdar": 0.217386,
+        "total_return": 0.079101,
+        "win_rate": 0.341584,
+        "max_drawdown": 0.238581
+      }
+    },
+    {
+      "rank": 32,
+      "barrier_id": "p3_slt005_mb20",
+      "score": 0.582361,
+      "metrics": {
+        "profit_factor": 1.069728,
+        "omega": 1.069728,
+        "rachev": 0.815895,
+        "cdar": 0.216889,
+        "total_return": 0.078586,
+        "win_rate": 0.343284,
+        "max_drawdown": 0.238093
+      }
+    },
+    {
+      "rank": 33,
+      "barrier_id": "p3_slt005_mb75",
+      "score": 0.582323,
+      "metrics": {
+        "profit_factor": 1.069898,
+        "omega": 1.069898,
+        "rachev": 0.815895,
+        "cdar": 0.217265,
+        "total_return": 0.078815,
+        "win_rate": 0.341584,
+        "max_drawdown": 0.238558
+      }
+    },
+    {
+      "rank": 34,
+      "barrier_id": "p3_slt005_mb200",
+      "score": 0.582308,
+      "metrics": {
+        "profit_factor": 1.069873,
+        "omega": 1.069873,
+        "rachev": 0.815895,
+        "cdar": 0.217382,
+        "total_return": 0.078815,
+        "win_rate": 0.341584,
+        "max_drawdown": 0.238581
+      }
+    },
+    {
+      "rank": 35,
+      "barrier_id": "p3_slt005_mb15",
+      "score": 0.582277,
+      "metrics": {
+        "profit_factor": 1.069757,
+        "omega": 1.069757,
+        "rachev": 0.815895,
+        "cdar": 0.21661,
+        "total_return": 0.078324,
+        "win_rate": 0.343284,
+        "max_drawdown": 0.237805
+      }
+    },
+    {
+      "rank": 36,
+      "barrier_id": "p3_slt005_mb10",
+      "score": 0.581873,
+      "metrics": {
+        "profit_factor": 1.068498,
+        "omega": 1.068498,
+        "rachev": 0.815895,
+        "cdar": 0.214811,
+        "total_return": 0.07681,
+        "win_rate": 0.345,
+        "max_drawdown": 0.236188
+      }
+    },
+    {
+      "rank": 37,
+      "barrier_id": "p3_slt010_mb20",
+      "score": 0.580385,
+      "metrics": {
+        "profit_factor": 1.064301,
+        "omega": 1.064301,
+        "rachev": 0.81587,
+        "cdar": 0.233787,
+        "total_return": 0.079478,
+        "win_rate": 0.373134,
+        "max_drawdown": 0.256531
+      }
+    },
+    {
+      "rank": 38,
+      "barrier_id": "p3_slt010_mb30",
+      "score": 0.580095,
+      "metrics": {
+        "profit_factor": 1.063981,
+        "omega": 1.063981,
+        "rachev": 0.81587,
+        "cdar": 0.234237,
+        "total_return": 0.079132,
+        "win_rate": 0.373134,
+        "max_drawdown": 0.256967
+      }
+    },
+    {
+      "rank": 39,
+      "barrier_id": "p3_slt010_mb15",
+      "score": 0.580066,
+      "metrics": {
+        "profit_factor": 1.064282,
+        "omega": 1.064282,
+        "rachev": 0.81587,
+        "cdar": 0.233179,
+        "total_return": 0.078372,
+        "win_rate": 0.375,
+        "max_drawdown": 0.255176
+      }
+    },
+    {
+      "rank": 40,
+      "barrier_id": "p3_slt010_mb75",
+      "score": 0.579628,
+      "metrics": {
+        "profit_factor": 1.064502,
+        "omega": 1.064502,
+        "rachev": 0.81587,
+        "cdar": 0.234993,
+        "total_return": 0.078727,
+        "win_rate": 0.372549,
+        "max_drawdown": 0.258232
+      }
+    },
+    {
+      "rank": 41,
+      "barrier_id": "p3_slt010_mb50",
+      "score": 0.579576,
+      "metrics": {
+        "profit_factor": 1.064502,
+        "omega": 1.064502,
+        "rachev": 0.81587,
+        "cdar": 0.234634,
+        "total_return": 0.078398,
+        "win_rate": 0.372549,
+        "max_drawdown": 0.257374
+      }
+    },
+    {
+      "rank": 42,
+      "barrier_id": "p3_slt010_mb150",
+      "score": 0.579519,
+      "metrics": {
+        "profit_factor": 1.064364,
+        "omega": 1.064364,
+        "rachev": 0.81587,
+        "cdar": 0.235081,
+        "total_return": 0.078615,
+        "win_rate": 0.371981,
+        "max_drawdown": 0.258333
+      }
+    },
+    {
+      "rank": 43,
+      "barrier_id": "p3_slt010_mb100",
+      "score": 0.579493,
+      "metrics": {
+        "profit_factor": 1.064451,
+        "omega": 1.064451,
+        "rachev": 0.81587,
+        "cdar": 0.235101,
+        "total_return": 0.078572,
+        "win_rate": 0.371981,
+        "max_drawdown": 0.258333
+      }
+    },
+    {
+      "rank": 44,
+      "barrier_id": "p3_slt010_mb10",
+      "score": 0.579491,
+      "metrics": {
+        "profit_factor": 1.06362,
+        "omega": 1.06362,
+        "rachev": 0.81587,
+        "cdar": 0.229193,
+        "total_return": 0.075761,
+        "win_rate": 0.377451,
+        "max_drawdown": 0.252146
+      }
+    },
+    {
+      "rank": 45,
+      "barrier_id": "p3_slt010_mb200",
+      "score": 0.579407,
+      "metrics": {
+        "profit_factor": 1.064318,
+        "omega": 1.064318,
+        "rachev": 0.81587,
+        "cdar": 0.235067,
+        "total_return": 0.078411,
+        "win_rate": 0.371981,
+        "max_drawdown": 0.258333
+      }
+    },
+    {
+      "rank": 46,
+      "barrier_id": "p3_slt025_mb10",
+      "score": 0.571522,
+      "metrics": {
+        "profit_factor": 1.058556,
+        "omega": 1.058556,
+        "rachev": 0.815462,
+        "cdar": 0.318234,
+        "total_return": 0.091939,
+        "win_rate": 0.507389,
+        "max_drawdown": 0.346285
+      }
+    },
+    {
+      "rank": 47,
+      "barrier_id": "p3_slt025_mb15",
+      "score": 0.566577,
+      "metrics": {
+        "profit_factor": 1.056369,
+        "omega": 1.056369,
+        "rachev": 0.815426,
+        "cdar": 0.344254,
+        "total_return": 0.095395,
+        "win_rate": 0.526316,
+        "max_drawdown": 0.37545
+      }
+    },
+    {
+      "rank": 48,
+      "barrier_id": "p3_slt025_mb20",
+      "score": 0.564168,
+      "metrics": {
+        "profit_factor": 1.056073,
+        "omega": 1.056073,
+        "rachev": 0.815391,
+        "cdar": 0.355598,
+        "total_return": 0.097683,
+        "win_rate": 0.524752,
+        "max_drawdown": 0.389269
+      }
+    },
+    {
+      "rank": 49,
+      "barrier_id": "p3_slt025_mb100",
+      "score": 0.561848,
+      "metrics": {
+        "profit_factor": 1.056355,
+        "omega": 1.056355,
+        "rachev": 0.815385,
+        "cdar": 0.367247,
+        "total_return": 0.100254,
+        "win_rate": 0.52657,
+        "max_drawdown": 0.403796
+      }
+    },
+    {
+      "rank": 50,
+      "barrier_id": "p3_slt025_mb30",
+      "score": 0.561789,
+      "metrics": {
+        "profit_factor": 1.05548,
+        "omega": 1.05548,
+        "rachev": 0.815385,
+        "cdar": 0.363543,
+        "total_return": 0.097407,
+        "win_rate": 0.525,
+        "max_drawdown": 0.396536
+      }
+    },
+    {
+      "rank": 51,
+      "barrier_id": "p3_slt025_mb75",
+      "score": 0.561736,
+      "metrics": {
+        "profit_factor": 1.056336,
+        "omega": 1.056336,
+        "rachev": 0.815385,
+        "cdar": 0.367011,
+        "total_return": 0.099906,
+        "win_rate": 0.52657,
+        "max_drawdown": 0.403472
+      }
+    },
+    {
+      "rank": 52,
+      "barrier_id": "p3_slt025_mb200",
+      "score": 0.561489,
+      "metrics": {
+        "profit_factor": 1.056325,
+        "omega": 1.056325,
+        "rachev": 0.815346,
+        "cdar": 0.368313,
+        "total_return": 0.100125,
+        "win_rate": 0.52657,
+        "max_drawdown": 0.404441
+      }
+    },
+    {
+      "rank": 53,
+      "barrier_id": "p3_slt025_mb50",
+      "score": 0.561299,
+      "metrics": {
+        "profit_factor": 1.056162,
+        "omega": 1.056162,
+        "rachev": 0.815385,
+        "cdar": 0.365875,
+        "total_return": 0.098294,
+        "win_rate": 0.526316,
+        "max_drawdown": 0.40138
+      }
+    },
+    {
+      "rank": 54,
+      "barrier_id": "p3_slt025_mb150",
+      "score": 0.56128,
+      "metrics": {
+        "profit_factor": 1.056336,
+        "omega": 1.056336,
+        "rachev": 0.815346,
+        "cdar": 0.368206,
+        "total_return": 0.099685,
+        "win_rate": 0.526316,
+        "max_drawdown": 0.404236
+      }
+    },
+    {
+      "rank": 55,
+      "barrier_id": "p2_slt035_mb10",
+      "score": 0.498185,
+      "metrics": {
+        "profit_factor": 1.070924,
+        "omega": 1.070924,
+        "rachev": 0.714286,
+        "cdar": 0.34988,
+        "total_return": 0.111208,
+        "win_rate": 0.533333,
+        "max_drawdown": 0.380455
+      }
+    },
+    {
+      "rank": 56,
+      "barrier_id": "p3_slt035_mb10",
+      "score": 0.497793,
+      "metrics": {
+        "profit_factor": 1.070874,
+        "omega": 1.070874,
+        "rachev": 0.714286,
+        "cdar": 0.350101,
+        "total_return": 0.110394,
+        "win_rate": 0.533981,
+        "max_drawdown": 0.380455
+      }
+    },
+    {
+      "rank": 57,
+      "barrier_id": "p3_slt035_mb15",
+      "score": 0.484506,
+      "metrics": {
+        "profit_factor": 1.065939,
+        "omega": 1.065939,
+        "rachev": 0.714286,
+        "cdar": 0.40014,
+        "total_return": 0.115296,
+        "win_rate": 0.577114,
+        "max_drawdown": 0.436968
+      }
+    },
+    {
+      "rank": 58,
+      "barrier_id": "p2_slt035_mb15",
+      "score": 0.484439,
+      "metrics": {
+        "profit_factor": 1.065825,
+        "omega": 1.065825,
+        "rachev": 0.714286,
+        "cdar": 0.399557,
+        "total_return": 0.114786,
+        "win_rate": 0.577114,
+        "max_drawdown": 0.436503
+      }
+    },
+    {
+      "rank": 59,
+      "barrier_id": "p3_slt035_mb20",
+      "score": 0.477673,
+      "metrics": {
+        "profit_factor": 1.063511,
+        "omega": 1.063511,
+        "rachev": 0.714286,
+        "cdar": 0.427114,
+        "total_return": 0.119902,
+        "win_rate": 0.58209,
+        "max_drawdown": 0.465
+      }
+    },
+    {
+      "rank": 60,
+      "barrier_id": "p2_slt035_mb20",
+      "score": 0.477337,
+      "metrics": {
+        "profit_factor": 1.063496,
+        "omega": 1.063496,
+        "rachev": 0.714286,
+        "cdar": 0.427815,
+        "total_return": 0.119485,
+        "win_rate": 0.58209,
+        "max_drawdown": 0.465079
+      }
+    },
+    {
+      "rank": 61,
+      "barrier_id": "p3_slt035_mb30",
+      "score": 0.469384,
+      "metrics": {
+        "profit_factor": 1.062156,
+        "omega": 1.062156,
+        "rachev": 0.714286,
+        "cdar": 0.448245,
+        "total_return": 0.11792,
+        "win_rate": 0.593137,
+        "max_drawdown": 0.49
+      }
+    },
+    {
+      "rank": 62,
+      "barrier_id": "p3_slt035_mb50",
+      "score": 0.469212,
+      "metrics": {
+        "profit_factor": 1.06403,
+        "omega": 1.06403,
+        "rachev": 0.714286,
+        "cdar": 0.4575,
+        "total_return": 0.12375,
+        "win_rate": 0.597015,
+        "max_drawdown": 0.499136
+      }
+    },
+    {
+      "rank": 63,
+      "barrier_id": "p2_slt035_mb50",
+      "score": 0.469207,
+      "metrics": {
+        "profit_factor": 1.062736,
+        "omega": 1.062736,
+        "rachev": 0.714286,
+        "cdar": 0.4575,
+        "total_return": 0.12375,
+        "win_rate": 0.597015,
+        "max_drawdown": 0.499136
+      }
+    },
+    {
+      "rank": 64,
+      "barrier_id": "p2_slt035_mb30",
+      "score": 0.46908,
+      "metrics": {
+        "profit_factor": 1.062086,
+        "omega": 1.062086,
+        "rachev": 0.714286,
+        "cdar": 0.448084,
+        "total_return": 0.117301,
+        "win_rate": 0.592233,
+        "max_drawdown": 0.49
+      }
+    },
+    {
+      "rank": 65,
+      "barrier_id": "p3_slt035_mb75",
+      "score": 0.468253,
+      "metrics": {
+        "profit_factor": 1.062718,
+        "omega": 1.062718,
+        "rachev": 0.714286,
+        "cdar": 0.460016,
+        "total_return": 0.12375,
+        "win_rate": 0.598039,
+        "max_drawdown": 0.5025
+      }
+    },
+    {
+      "rank": 66,
+      "barrier_id": "p2_slt035_mb75",
+      "score": 0.468221,
+      "metrics": {
+        "profit_factor": 1.062718,
+        "omega": 1.062718,
+        "rachev": 0.714286,
+        "cdar": 0.46,
+        "total_return": 0.12375,
+        "win_rate": 0.597222,
+        "max_drawdown": 0.5025
+      }
+    },
+    {
+      "rank": 67,
+      "barrier_id": "p3_slt035_mb100",
+      "score": 0.467999,
+      "metrics": {
+        "profit_factor": 1.064736,
+        "omega": 1.064736,
+        "rachev": 0.714286,
+        "cdar": 0.4615,
+        "total_return": 0.12375,
+        "win_rate": 0.598131,
+        "max_drawdown": 0.5025
+      }
+    },
+    {
+      "rank": 68,
+      "barrier_id": "p2_slt035_mb100",
+      "score": 0.467973,
+      "metrics": {
+        "profit_factor": 1.064736,
+        "omega": 1.064736,
+        "rachev": 0.714286,
+        "cdar": 0.461625,
+        "total_return": 0.12375,
+        "win_rate": 0.598039,
+        "max_drawdown": 0.5025
+      }
+    },
+    {
+      "rank": 69,
+      "barrier_id": "p3_slt035_mb150",
+      "score": 0.467342,
+      "metrics": {
+        "profit_factor": 1.06555,
+        "omega": 1.06555,
+        "rachev": 0.714286,
+        "cdar": 0.463125,
+        "total_return": 0.12375,
+        "win_rate": 0.59901,
+        "max_drawdown": 0.505
+      }
+    },
+    {
+      "rank": 70,
+      "barrier_id": "p2_slt035_mb150",
+      "score": 0.467342,
+      "metrics": {
+        "profit_factor": 1.06555,
+        "omega": 1.06555,
+        "rachev": 0.714286,
+        "cdar": 0.463125,
+        "total_return": 0.12375,
+        "win_rate": 0.59901,
+        "max_drawdown": 0.505
+      }
+    },
+    {
+      "rank": 71,
+      "barrier_id": "p2_slt035_mb200",
+      "score": 0.467334,
+      "metrics": {
+        "profit_factor": 1.06341,
+        "omega": 1.06341,
+        "rachev": 0.714286,
+        "cdar": 0.463125,
+        "total_return": 0.12375,
+        "win_rate": 0.59901,
+        "max_drawdown": 0.505
+      }
+    },
+    {
+      "rank": 72,
+      "barrier_id": "p3_slt035_mb200",
+      "score": 0.467331,
+      "metrics": {
+        "profit_factor": 1.062718,
+        "omega": 1.062718,
+        "rachev": 0.714286,
+        "cdar": 0.463125,
+        "total_return": 0.12375,
+        "win_rate": 0.59901,
+        "max_drawdown": 0.505
+      }
+    },
+    {
+      "rank": 73,
+      "barrier_id": "p5_slt005_mb10",
+      "score": 0.437152,
+      "metrics": {
+        "profit_factor": 1.070795,
+        "omega": 1.070795,
+        "rachev": 0.606602,
+        "cdar": 0.275916,
+        "total_return": 0.09039,
+        "win_rate": 0.40796,
+        "max_drawdown": 0.300833
+      }
+    },
+    {
+      "rank": 74,
+      "barrier_id": "p5_slt005_mb15",
+      "score": 0.436886,
+      "metrics": {
+        "profit_factor": 1.070063,
+        "omega": 1.070063,
+        "rachev": 0.606602,
+        "cdar": 0.277481,
+        "total_return": 0.091914,
+        "win_rate": 0.402985,
+        "max_drawdown": 0.303178
+      }
+    },
+    {
+      "rank": 75,
+      "barrier_id": "p5_slt005_mb30",
+      "score": 0.436849,
+      "metrics": {
+        "profit_factor": 1.069933,
+        "omega": 1.069933,
+        "rachev": 0.606602,
+        "cdar": 0.277549,
+        "total_return": 0.092025,
+        "win_rate": 0.400966,
+        "max_drawdown": 0.303197
+      }
+    },
+    {
+      "rank": 76,
+      "barrier_id": "p5_slt005_mb50",
+      "score": 0.436825,
+      "metrics": {
+        "profit_factor": 1.070195,
+        "omega": 1.070195,
+        "rachev": 0.606602,
+        "cdar": 0.277551,
+        "total_return": 0.092063,
+        "win_rate": 0.4,
+        "max_drawdown": 0.303254
+      }
+    },
+    {
+      "rank": 77,
+      "barrier_id": "p5_slt005_mb20",
+      "score": 0.436811,
+      "metrics": {
+        "profit_factor": 1.069905,
+        "omega": 1.069905,
+        "rachev": 0.606602,
+        "cdar": 0.277549,
+        "total_return": 0.091803,
+        "win_rate": 0.401961,
+        "max_drawdown": 0.303128
+      }
+    },
+    {
+      "rank": 78,
+      "barrier_id": "p5_slt005_mb100",
+      "score": 0.436789,
+      "metrics": {
+        "profit_factor": 1.070582,
+        "omega": 1.070582,
+        "rachev": 0.606602,
+        "cdar": 0.277549,
+        "total_return": 0.092025,
+        "win_rate": 0.4,
+        "max_drawdown": 0.3034
+      }
+    },
+    {
+      "rank": 79,
+      "barrier_id": "p5_slt005_mb150",
+      "score": 0.436789,
+      "metrics": {
+        "profit_factor": 1.070576,
+        "omega": 1.070576,
+        "rachev": 0.606602,
+        "cdar": 0.277549,
+        "total_return": 0.092025,
+        "win_rate": 0.4,
+        "max_drawdown": 0.3034
+      }
+    },
+    {
+      "rank": 80,
+      "barrier_id": "p5_slt005_mb200",
+      "score": 0.436789,
+      "metrics": {
+        "profit_factor": 1.070576,
+        "omega": 1.070576,
+        "rachev": 0.606602,
+        "cdar": 0.277551,
+        "total_return": 0.092025,
+        "win_rate": 0.4,
+        "max_drawdown": 0.3034
+      }
+    },
+    {
+      "rank": 81,
+      "barrier_id": "p5_slt005_mb75",
+      "score": 0.436789,
+      "metrics": {
+        "profit_factor": 1.070576,
+        "omega": 1.070576,
+        "rachev": 0.606602,
+        "cdar": 0.277551,
+        "total_return": 0.092025,
+        "win_rate": 0.4,
+        "max_drawdown": 0.3034
+      }
+    },
+    {
+      "rank": 82,
+      "barrier_id": "p5_slt010_mb10",
+      "score": 0.436662,
+      "metrics": {
+        "profit_factor": 1.067661,
+        "omega": 1.067661,
+        "rachev": 0.606602,
+        "cdar": 0.282927,
+        "total_return": 0.094298,
+        "win_rate": 0.432836,
+        "max_drawdown": 0.30961
+      }
+    },
+    {
+      "rank": 83,
+      "barrier_id": "p5_slt010_mb30",
+      "score": 0.43504,
+      "metrics": {
+        "profit_factor": 1.067642,
+        "omega": 1.067642,
+        "rachev": 0.606602,
+        "cdar": 0.288093,
+        "total_return": 0.095451,
+        "win_rate": 0.425,
+        "max_drawdown": 0.314999
+      }
+    },
+    {
+      "rank": 84,
+      "barrier_id": "p5_slt010_mb15",
+      "score": 0.434989,
+      "metrics": {
+        "profit_factor": 1.065597,
+        "omega": 1.065597,
+        "rachev": 0.606602,
+        "cdar": 0.287235,
+        "total_return": 0.093904,
+        "win_rate": 0.427861,
+        "max_drawdown": 0.313317
+      }
+    },
+    {
+      "rank": 85,
+      "barrier_id": "p5_slt010_mb50",
+      "score": 0.434895,
+      "metrics": {
+        "profit_factor": 1.067395,
+        "omega": 1.067395,
+        "rachev": 0.606602,
+        "cdar": 0.288809,
+        "total_return": 0.095898,
+        "win_rate": 0.425,
+        "max_drawdown": 0.316098
+      }
+    },
+    {
+      "rank": 86,
+      "barrier_id": "p5_slt010_mb20",
+      "score": 0.434889,
+      "metrics": {
+        "profit_factor": 1.067995,
+        "omega": 1.067995,
+        "rachev": 0.606602,
+        "cdar": 0.28745,
+        "total_return": 0.094162,
+        "win_rate": 0.425743,
+        "max_drawdown": 0.313909
+      }
+    },
+    {
+      "rank": 87,
+      "barrier_id": "p5_slt010_mb200",
+      "score": 0.434466,
+      "metrics": {
+        "profit_factor": 1.067112,
+        "omega": 1.067112,
+        "rachev": 0.606602,
+        "cdar": 0.289231,
+        "total_return": 0.095031,
+        "win_rate": 0.425,
+        "max_drawdown": 0.316325
+      }
+    },
+    {
+      "rank": 88,
+      "barrier_id": "p5_slt010_mb75",
+      "score": 0.434454,
+      "metrics": {
+        "profit_factor": 1.067112,
+        "omega": 1.067112,
+        "rachev": 0.606602,
+        "cdar": 0.289047,
+        "total_return": 0.094886,
+        "win_rate": 0.425,
+        "max_drawdown": 0.316281
+      }
+    },
+    {
+      "rank": 89,
+      "barrier_id": "p5_slt010_mb150",
+      "score": 0.434413,
+      "metrics": {
+        "profit_factor": 1.067053,
+        "omega": 1.067053,
+        "rachev": 0.606602,
+        "cdar": 0.289231,
+        "total_return": 0.094886,
+        "win_rate": 0.425,
+        "max_drawdown": 0.316325
+      }
+    },
+    {
+      "rank": 90,
+      "barrier_id": "p5_slt010_mb100",
+      "score": 0.434377,
+      "metrics": {
+        "profit_factor": 1.067002,
+        "omega": 1.067002,
+        "rachev": 0.606602,
+        "cdar": 0.289231,
+        "total_return": 0.094806,
+        "win_rate": 0.425,
+        "max_drawdown": 0.316372
+      }
+    },
+    {
+      "rank": 91,
+      "barrier_id": "p5_slt025_mb10",
+      "score": 0.423202,
+      "metrics": {
+        "profit_factor": 1.066111,
+        "omega": 1.066111,
+        "rachev": 0.606534,
+        "cdar": 0.335607,
+        "total_return": 0.100715,
+        "win_rate": 0.522167,
+        "max_drawdown": 0.365307
+      }
+    },
+    {
+      "rank": 92,
+      "barrier_id": "p5_slt025_mb15",
+      "score": 0.414789,
+      "metrics": {
+        "profit_factor": 1.061982,
+        "omega": 1.061982,
+        "rachev": 0.606534,
+        "cdar": 0.366035,
+        "total_return": 0.106912,
+        "win_rate": 0.544554,
+        "max_drawdown": 0.399583
+      }
+    },
+    {
+      "rank": 93,
+      "barrier_id": "p5_slt025_mb20",
+      "score": 0.412095,
+      "metrics": {
+        "profit_factor": 1.06144,
+        "omega": 1.06144,
+        "rachev": 0.606534,
+        "cdar": 0.376924,
+        "total_return": 0.110825,
+        "win_rate": 0.542289,
+        "max_drawdown": 0.41153
+      }
+    },
+    {
+      "rank": 94,
+      "barrier_id": "p5_slt025_mb30",
+      "score": 0.409593,
+      "metrics": {
+        "profit_factor": 1.061367,
+        "omega": 1.061367,
+        "rachev": 0.606534,
+        "cdar": 0.385434,
+        "total_return": 0.112312,
+        "win_rate": 0.545,
+        "max_drawdown": 0.420482
+      }
+    },
+    {
+      "rank": 95,
+      "barrier_id": "p5_slt035_mb10",
+      "score": 0.408429,
+      "metrics": {
+        "profit_factor": 1.072492,
+        "omega": 1.072492,
+        "rachev": 0.588435,
+        "cdar": 0.360556,
+        "total_return": 0.113883,
+        "win_rate": 0.537313,
+        "max_drawdown": 0.389261
+      }
+    },
+    {
+      "rank": 96,
+      "barrier_id": "p5_slt025_mb50",
+      "score": 0.407407,
+      "metrics": {
+        "profit_factor": 1.059955,
+        "omega": 1.059955,
+        "rachev": 0.606534,
+        "cdar": 0.389518,
+        "total_return": 0.110862,
+        "win_rate": 0.544554,
+        "max_drawdown": 0.424765
+      }
+    },
+    {
+      "rank": 97,
+      "barrier_id": "p5_slt025_mb100",
+      "score": 0.406447,
+      "metrics": {
+        "profit_factor": 1.059703,
+        "omega": 1.059703,
+        "rachev": 0.606534,
+        "cdar": 0.390828,
+        "total_return": 0.109763,
+        "win_rate": 0.545,
+        "max_drawdown": 0.42625
+      }
+    },
+    {
+      "rank": 98,
+      "barrier_id": "p5_slt025_mb75",
+      "score": 0.406433,
+      "metrics": {
+        "profit_factor": 1.059703,
+        "omega": 1.059703,
+        "rachev": 0.606534,
+        "cdar": 0.390653,
+        "total_return": 0.109585,
+        "win_rate": 0.545,
+        "max_drawdown": 0.426109
+      }
+    },
+    {
+      "rank": 99,
+      "barrier_id": "p5_slt025_mb200",
+      "score": 0.406339,
+      "metrics": {
+        "profit_factor": 1.059611,
+        "omega": 1.059611,
+        "rachev": 0.606534,
+        "cdar": 0.391308,
+        "total_return": 0.110294,
+        "win_rate": 0.545,
+        "max_drawdown": 0.427563
+      }
+    },
+    {
+      "rank": 100,
+      "barrier_id": "p5_slt025_mb150",
+      "score": 0.406155,
+      "metrics": {
+        "profit_factor": 1.05951,
+        "omega": 1.05951,
+        "rachev": 0.606534,
+        "cdar": 0.391207,
+        "total_return": 0.109551,
+        "win_rate": 0.545,
+        "max_drawdown": 0.426977
+      }
+    },
+    {
+      "rank": 101,
+      "barrier_id": "p5_slt035_mb15",
+      "score": 0.393169,
+      "metrics": {
+        "profit_factor": 1.06861,
+        "omega": 1.06861,
+        "rachev": 0.588346,
+        "cdar": 0.408728,
+        "total_return": 0.119197,
+        "win_rate": 0.584158,
+        "max_drawdown": 0.444613
+      }
+    },
+    {
+      "rank": 102,
+      "barrier_id": "p5_slt035_mb20",
+      "score": 0.383624,
+      "metrics": {
+        "profit_factor": 1.063773,
+        "omega": 1.063773,
+        "rachev": 0.588258,
+        "cdar": 0.436757,
+        "total_return": 0.12293,
+        "win_rate": 0.588235,
+        "max_drawdown": 0.47602
+      }
+    },
+    {
+      "rank": 103,
+      "barrier_id": "p5_slt035_mb30",
+      "score": 0.374404,
+      "metrics": {
+        "profit_factor": 1.063425,
+        "omega": 1.063425,
+        "rachev": 0.588235,
+        "cdar": 0.459337,
+        "total_return": 0.121272,
+        "win_rate": 0.6,
+        "max_drawdown": 0.500424
+      }
+    },
+    {
+      "rank": 104,
+      "barrier_id": "p5_slt035_mb50",
+      "score": 0.371416,
+      "metrics": {
+        "profit_factor": 1.063832,
+        "omega": 1.063832,
+        "rachev": 0.588235,
+        "cdar": 0.468,
+        "total_return": 0.122907,
+        "win_rate": 0.604878,
+        "max_drawdown": 0.512769
+      }
+    },
+    {
+      "rank": 105,
+      "barrier_id": "p5_slt035_mb75",
+      "score": 0.371376,
+      "metrics": {
+        "profit_factor": 1.064033,
+        "omega": 1.064033,
+        "rachev": 0.588235,
+        "cdar": 0.471375,
+        "total_return": 0.125043,
+        "win_rate": 0.605,
+        "max_drawdown": 0.514879
+      }
+    },
+    {
+      "rank": 106,
+      "barrier_id": "p5_slt035_mb100",
+      "score": 0.370804,
+      "metrics": {
+        "profit_factor": 1.064033,
+        "omega": 1.064033,
+        "rachev": 0.588235,
+        "cdar": 0.47325,
+        "total_return": 0.125046,
+        "win_rate": 0.605,
+        "max_drawdown": 0.515956
+      }
+    },
+    {
+      "rank": 107,
+      "barrier_id": "p5_slt035_mb150",
+      "score": 0.370006,
+      "metrics": {
+        "profit_factor": 1.063839,
+        "omega": 1.063839,
+        "rachev": 0.588235,
+        "cdar": 0.475014,
+        "total_return": 0.125109,
+        "win_rate": 0.605,
+        "max_drawdown": 0.518556
+      }
+    },
+    {
+      "rank": 108,
+      "barrier_id": "p5_slt035_mb200",
+      "score": 0.369744,
+      "metrics": {
+        "profit_factor": 1.063654,
+        "omega": 1.063654,
+        "rachev": 0.588235,
+        "cdar": 0.475598,
+        "total_return": 0.125109,
+        "win_rate": 0.605,
+        "max_drawdown": 0.519345
+      }
+    },
+    {
+      "rank": 109,
+      "barrier_id": "p7_slt005_mb10",
+      "score": 0.364617,
+      "metrics": {
+        "profit_factor": 1.075226,
+        "omega": 1.075226,
+        "rachev": 0.501248,
+        "cdar": 0.327254,
+        "total_return": 0.104406,
+        "win_rate": 0.46,
+        "max_drawdown": 0.355205
+      }
+    },
+    {
+      "rank": 110,
+      "barrier_id": "p7_slt010_mb10",
+      "score": 0.363874,
+      "metrics": {
+        "profit_factor": 1.072603,
+        "omega": 1.072603,
+        "rachev": 0.501248,
+        "cdar": 0.331293,
+        "total_return": 0.105782,
+        "win_rate": 0.478261,
+        "max_drawdown": 0.360304
+      }
+    },
+    {
+      "rank": 111,
+      "barrier_id": "p7_slt005_mb15",
+      "score": 0.363755,
+      "metrics": {
+        "profit_factor": 1.073727,
+        "omega": 1.073727,
+        "rachev": 0.501248,
+        "cdar": 0.3303,
+        "total_return": 0.107475,
+        "win_rate": 0.45,
+        "max_drawdown": 0.3603
+      }
+    },
+    {
+      "rank": 112,
+      "barrier_id": "p7_slt005_mb50",
+      "score": 0.363209,
+      "metrics": {
+        "profit_factor": 1.074359,
+        "omega": 1.074359,
+        "rachev": 0.501248,
+        "cdar": 0.331425,
+        "total_return": 0.107618,
+        "win_rate": 0.446078,
+        "max_drawdown": 0.361539
+      }
+    },
+    {
+      "rank": 113,
+      "barrier_id": "p7_slt005_mb30",
+      "score": 0.363171,
+      "metrics": {
+        "profit_factor": 1.074753,
+        "omega": 1.074753,
+        "rachev": 0.501248,
+        "cdar": 0.331588,
+        "total_return": 0.107459,
+        "win_rate": 0.447761,
+        "max_drawdown": 0.361547
+      }
+    },
+    {
+      "rank": 114,
+      "barrier_id": "p7_slt005_mb100",
+      "score": 0.363148,
+      "metrics": {
+        "profit_factor": 1.074418,
+        "omega": 1.074418,
+        "rachev": 0.501248,
+        "cdar": 0.331425,
+        "total_return": 0.107459,
+        "win_rate": 0.446078,
+        "max_drawdown": 0.361561
+      }
+    },
+    {
+      "rank": 115,
+      "barrier_id": "p7_slt005_mb75",
+      "score": 0.363142,
+      "metrics": {
+        "profit_factor": 1.074411,
+        "omega": 1.074411,
+        "rachev": 0.501248,
+        "cdar": 0.331438,
+        "total_return": 0.107475,
+        "win_rate": 0.446078,
+        "max_drawdown": 0.36161
+      }
+    },
+    {
+      "rank": 116,
+      "barrier_id": "p7_slt005_mb150",
+      "score": 0.363136,
+      "metrics": {
+        "profit_factor": 1.074418,
+        "omega": 1.074418,
+        "rachev": 0.501248,
+        "cdar": 0.331438,
+        "total_return": 0.107459,
+        "win_rate": 0.446078,
+        "max_drawdown": 0.36161
+      }
+    },
+    {
+      "rank": 117,
+      "barrier_id": "p7_slt005_mb200",
+      "score": 0.36309,
+      "metrics": {
+        "profit_factor": 1.074418,
+        "omega": 1.074418,
+        "rachev": 0.501248,
+        "cdar": 0.331588,
+        "total_return": 0.107459,
+        "win_rate": 0.446078,
+        "max_drawdown": 0.361686
+      }
+    },
+    {
+      "rank": 118,
+      "barrier_id": "p7_slt005_mb20",
+      "score": 0.362897,
+      "metrics": {
+        "profit_factor": 1.073945,
+        "omega": 1.073945,
+        "rachev": 0.501248,
+        "cdar": 0.331366,
+        "total_return": 0.106535,
+        "win_rate": 0.447761,
+        "max_drawdown": 0.361487
+      }
+    },
+    {
+      "rank": 119,
+      "barrier_id": "p7_slt010_mb15",
+      "score": 0.362542,
+      "metrics": {
+        "profit_factor": 1.071287,
+        "omega": 1.071287,
+        "rachev": 0.501248,
+        "cdar": 0.337986,
+        "total_return": 0.110175,
+        "win_rate": 0.472637,
+        "max_drawdown": 0.367121
+      }
+    },
+    {
+      "rank": 120,
+      "barrier_id": "p7_slt010_mb20",
+      "score": 0.361854,
+      "metrics": {
+        "profit_factor": 1.072275,
+        "omega": 1.072275,
+        "rachev": 0.501248,
+        "cdar": 0.339008,
+        "total_return": 0.109947,
+        "win_rate": 0.468599,
+        "max_drawdown": 0.368442
+      }
+    },
+    {
+      "rank": 121,
+      "barrier_id": "p7_slt010_mb30",
+      "score": 0.361549,
+      "metrics": {
+        "profit_factor": 1.072497,
+        "omega": 1.072497,
+        "rachev": 0.501248,
+        "cdar": 0.339661,
+        "total_return": 0.109947,
+        "win_rate": 0.467662,
+        "max_drawdown": 0.369145
+      }
+    },
+    {
+      "rank": 122,
+      "barrier_id": "p7_slt010_mb50",
+      "score": 0.361164,
+      "metrics": {
+        "profit_factor": 1.072293,
+        "omega": 1.072293,
+        "rachev": 0.501248,
+        "cdar": 0.340325,
+        "total_return": 0.109813,
+        "win_rate": 0.467662,
+        "max_drawdown": 0.370154
+      }
+    },
+    {
+      "rank": 123,
+      "barrier_id": "p7_slt010_mb75",
+      "score": 0.361044,
+      "metrics": {
+        "profit_factor": 1.072085,
+        "omega": 1.072085,
+        "rachev": 0.501248,
+        "cdar": 0.34057,
+        "total_return": 0.10979,
+        "win_rate": 0.467662,
+        "max_drawdown": 0.370455
+      }
+    },
+    {
+      "rank": 124,
+      "barrier_id": "p7_slt010_mb200",
+      "score": 0.360864,
+      "metrics": {
+        "profit_factor": 1.071794,
+        "omega": 1.071794,
+        "rachev": 0.501248,
+        "cdar": 0.340789,
+        "total_return": 0.109476,
+        "win_rate": 0.467662,
+        "max_drawdown": 0.370544
+      }
+    },
+    {
+      "rank": 125,
+      "barrier_id": "p7_slt010_mb150",
+      "score": 0.36084,
+      "metrics": {
+        "profit_factor": 1.071794,
+        "omega": 1.071794,
+        "rachev": 0.501248,
+        "cdar": 0.340789,
+        "total_return": 0.109476,
+        "win_rate": 0.467662,
+        "max_drawdown": 0.370668
+      }
+    },
+    {
+      "rank": 126,
+      "barrier_id": "p7_slt010_mb100",
+      "score": 0.360837,
+      "metrics": {
+        "profit_factor": 1.071825,
+        "omega": 1.071825,
+        "rachev": 0.501248,
+        "cdar": 0.340803,
+        "total_return": 0.109476,
+        "win_rate": 0.467662,
+        "max_drawdown": 0.370668
+      }
+    },
+    {
+      "rank": 127,
+      "barrier_id": "p7_slt025_mb10",
+      "score": 0.358011,
+      "metrics": {
+        "profit_factor": 1.074706,
+        "omega": 1.074706,
+        "rachev": 0.501248,
+        "cdar": 0.358114,
+        "total_return": 0.114418,
+        "win_rate": 0.535,
+        "max_drawdown": 0.388918
+      }
+    },
+    {
+      "rank": 128,
+      "barrier_id": "p7_slt035_mb10",
+      "score": 0.356358,
+      "metrics": {
+        "profit_factor": 1.078869,
+        "omega": 1.078869,
+        "rachev": 0.501248,
+        "cdar": 0.369952,
+        "total_return": 0.121,
+        "win_rate": 0.541872,
+        "max_drawdown": 0.399672
+      }
+    },
+    {
+      "rank": 129,
+      "barrier_id": "p2_slt050_mb10",
+      "score": 0.355327,
+      "metrics": {
+        "profit_factor": 1.0807,
+        "omega": 1.0807,
+        "rachev": 0.5,
+        "cdar": 0.379244,
+        "total_return": 0.129008,
+        "win_rate": 0.542289,
+        "max_drawdown": 0.409329
+      }
+    },
+    {
+      "rank": 130,
+      "barrier_id": "p3_slt050_mb10",
+      "score": 0.355327,
+      "metrics": {
+        "profit_factor": 1.0807,
+        "omega": 1.0807,
+        "rachev": 0.5,
+        "cdar": 0.379244,
+        "total_return": 0.129008,
+        "win_rate": 0.542289,
+        "max_drawdown": 0.409329
+      }
+    },
+    {
+      "rank": 131,
+      "barrier_id": "p5_slt050_mb10",
+      "score": 0.355327,
+      "metrics": {
+        "profit_factor": 1.0807,
+        "omega": 1.0807,
+        "rachev": 0.5,
+        "cdar": 0.379244,
+        "total_return": 0.129008,
+        "win_rate": 0.542289,
+        "max_drawdown": 0.409329
+      }
+    },
+    {
+      "rank": 132,
+      "barrier_id": "p7_slt050_mb10",
+      "score": 0.355327,
+      "metrics": {
+        "profit_factor": 1.0807,
+        "omega": 1.0807,
+        "rachev": 0.5,
+        "cdar": 0.379244,
+        "total_return": 0.129008,
+        "win_rate": 0.542289,
+        "max_drawdown": 0.409329
+      }
+    },
+    {
+      "rank": 133,
+      "barrier_id": "p7_slt025_mb15",
+      "score": 0.348316,
+      "metrics": {
+        "profit_factor": 1.069268,
+        "omega": 1.069268,
+        "rachev": 0.501248,
+        "cdar": 0.390368,
+        "total_return": 0.121826,
+        "win_rate": 0.562189,
+        "max_drawdown": 0.424522
+      }
+    },
+    {
+      "rank": 134,
+      "barrier_id": "p10_slt005_mb15",
+      "score": 0.346254,
+      "metrics": {
+        "profit_factor": 1.074073,
+        "omega": 1.074073,
+        "rachev": 0.5,
+        "cdar": 0.3895,
+        "total_return": 0.122627,
+        "win_rate": 0.505,
+        "max_drawdown": 0.421997
+      }
+    },
+    {
+      "rank": 135,
+      "barrier_id": "p10_slt005_mb20",
+      "score": 0.345303,
+      "metrics": {
+        "profit_factor": 1.075105,
+        "omega": 1.075105,
+        "rachev": 0.5,
+        "cdar": 0.389654,
+        "total_return": 0.121193,
+        "win_rate": 0.5,
+        "max_drawdown": 0.422506
+      }
+    },
+    {
+      "rank": 136,
+      "barrier_id": "p10_slt005_mb100",
+      "score": 0.345199,
+      "metrics": {
+        "profit_factor": 1.074796,
+        "omega": 1.074796,
+        "rachev": 0.5,
+        "cdar": 0.389654,
+        "total_return": 0.121193,
+        "win_rate": 0.5,
+        "max_drawdown": 0.423023
+      }
+    },
+    {
+      "rank": 137,
+      "barrier_id": "p10_slt005_mb75",
+      "score": 0.345192,
+      "metrics": {
+        "profit_factor": 1.074796,
+        "omega": 1.074796,
+        "rachev": 0.5,
+        "cdar": 0.389654,
+        "total_return": 0.121178,
+        "win_rate": 0.5,
+        "max_drawdown": 0.423023
+      }
+    },
+    {
+      "rank": 138,
+      "barrier_id": "p10_slt005_mb200",
+      "score": 0.345148,
+      "metrics": {
+        "profit_factor": 1.074789,
+        "omega": 1.074789,
+        "rachev": 0.5,
+        "cdar": 0.389886,
+        "total_return": 0.121193,
+        "win_rate": 0.5,
+        "max_drawdown": 0.423023
+      }
+    },
+    {
+      "rank": 139,
+      "barrier_id": "p10_slt005_mb150",
+      "score": 0.345148,
+      "metrics": {
+        "profit_factor": 1.074789,
+        "omega": 1.074789,
+        "rachev": 0.5,
+        "cdar": 0.389886,
+        "total_return": 0.121193,
+        "win_rate": 0.5,
+        "max_drawdown": 0.423023
+      }
+    },
+    {
+      "rank": 140,
+      "barrier_id": "p10_slt005_mb30",
+      "score": 0.345119,
+      "metrics": {
+        "profit_factor": 1.075049,
+        "omega": 1.075049,
+        "rachev": 0.5,
+        "cdar": 0.389886,
+        "total_return": 0.121123,
+        "win_rate": 0.5,
+        "max_drawdown": 0.423023
+      }
+    },
+    {
+      "rank": 141,
+      "barrier_id": "p10_slt005_mb50",
+      "score": 0.344996,
+      "metrics": {
+        "profit_factor": 1.074789,
+        "omega": 1.074789,
+        "rachev": 0.5,
+        "cdar": 0.389886,
+        "total_return": 0.120839,
+        "win_rate": 0.5,
+        "max_drawdown": 0.423023
+      }
+    },
+    {
+      "rank": 142,
+      "barrier_id": "p10_slt010_mb15",
+      "score": 0.344894,
+      "metrics": {
+        "profit_factor": 1.072571,
+        "omega": 1.072571,
+        "rachev": 0.5,
+        "cdar": 0.396042,
+        "total_return": 0.123793,
+        "win_rate": 0.534314,
+        "max_drawdown": 0.430357
+      }
+    },
+    {
+      "rank": 143,
+      "barrier_id": "p10_slt010_mb30",
+      "score": 0.343504,
+      "metrics": {
+        "profit_factor": 1.073907,
+        "omega": 1.073907,
+        "rachev": 0.5,
+        "cdar": 0.398498,
+        "total_return": 0.123949,
+        "win_rate": 0.525,
+        "max_drawdown": 0.433016
+      }
+    },
+    {
+      "rank": 144,
+      "barrier_id": "p10_slt010_mb20",
+      "score": 0.342977,
+      "metrics": {
+        "profit_factor": 1.073472,
+        "omega": 1.073472,
+        "rachev": 0.5,
+        "cdar": 0.39802,
+        "total_return": 0.12199,
+        "win_rate": 0.526316,
+        "max_drawdown": 0.432111
+      }
+    },
+    {
+      "rank": 145,
+      "barrier_id": "p10_slt010_mb50",
+      "score": 0.342731,
+      "metrics": {
+        "profit_factor": 1.073292,
+        "omega": 1.073292,
+        "rachev": 0.5,
+        "cdar": 0.399491,
+        "total_return": 0.123026,
+        "win_rate": 0.524752,
+        "max_drawdown": 0.43368
+      }
+    },
+    {
+      "rank": 146,
+      "barrier_id": "p10_slt010_mb75",
+      "score": 0.342598,
+      "metrics": {
+        "profit_factor": 1.073729,
+        "omega": 1.073729,
+        "rachev": 0.5,
+        "cdar": 0.399826,
+        "total_return": 0.123026,
+        "win_rate": 0.524752,
+        "max_drawdown": 0.433986
+      }
+    },
+    {
+      "rank": 147,
+      "barrier_id": "p10_slt010_mb100",
+      "score": 0.34235,
+      "metrics": {
+        "profit_factor": 1.073292,
+        "omega": 1.073292,
+        "rachev": 0.5,
+        "cdar": 0.400115,
+        "total_return": 0.122827,
+        "win_rate": 0.524752,
+        "max_drawdown": 0.434465
+      }
+    },
+    {
+      "rank": 148,
+      "barrier_id": "p7_slt025_mb20",
+      "score": 0.342117,
+      "metrics": {
+        "profit_factor": 1.067744,
+        "omega": 1.067744,
+        "rachev": 0.501248,
+        "cdar": 0.402785,
+        "total_return": 0.121406,
+        "win_rate": 0.56,
+        "max_drawdown": 0.440747
+      }
+    },
+    {
+      "rank": 149,
+      "barrier_id": "p10_slt010_mb150",
+      "score": 0.342065,
+      "metrics": {
+        "profit_factor": 1.073158,
+        "omega": 1.073158,
+        "rachev": 0.5,
+        "cdar": 0.400199,
+        "total_return": 0.122275,
+        "win_rate": 0.524752,
+        "max_drawdown": 0.434574
+      }
+    },
+    {
+      "rank": 150,
+      "barrier_id": "p10_slt010_mb200",
+      "score": 0.342064,
+      "metrics": {
+        "profit_factor": 1.073021,
+        "omega": 1.073021,
+        "rachev": 0.5,
+        "cdar": 0.400199,
+        "total_return": 0.122275,
+        "win_rate": 0.524752,
+        "max_drawdown": 0.434574
+      }
+    },
+    {
+      "rank": 151,
+      "barrier_id": "p7_slt025_mb30",
+      "score": 0.340758,
+      "metrics": {
+        "profit_factor": 1.06789,
+        "omega": 1.06789,
+        "rachev": 0.501248,
+        "cdar": 0.410412,
+        "total_return": 0.125578,
+        "win_rate": 0.562189,
+        "max_drawdown": 0.449131
+      }
+    },
+    {
+      "rank": 152,
+      "barrier_id": "p7_slt035_mb15",
+      "score": 0.340176,
+      "metrics": {
+        "profit_factor": 1.072053,
+        "omega": 1.072053,
+        "rachev": 0.501248,
+        "cdar": 0.419411,
+        "total_return": 0.12824,
+        "win_rate": 0.591133,
+        "max_drawdown": 0.45568
+      }
+    },
+    {
+      "rank": 153,
+      "barrier_id": "p7_slt025_mb50",
+      "score": 0.340103,
+      "metrics": {
+        "profit_factor": 1.068357,
+        "omega": 1.068357,
+        "rachev": 0.501248,
+        "cdar": 0.41317,
+        "total_return": 0.126781,
+        "win_rate": 0.562189,
+        "max_drawdown": 0.452197
+      }
+    },
+    {
+      "rank": 154,
+      "barrier_id": "p7_slt025_mb75",
+      "score": 0.339663,
+      "metrics": {
+        "profit_factor": 1.068186,
+        "omega": 1.068186,
+        "rachev": 0.501248,
+        "cdar": 0.414216,
+        "total_return": 0.126781,
+        "win_rate": 0.563107,
+        "max_drawdown": 0.453482
+      }
+    },
+    {
+      "rank": 155,
+      "barrier_id": "p7_slt025_mb100",
+      "score": 0.33954,
+      "metrics": {
+        "profit_factor": 1.068399,
+        "omega": 1.068399,
+        "rachev": 0.501248,
+        "cdar": 0.415129,
+        "total_return": 0.127179,
+        "win_rate": 0.56338,
+        "max_drawdown": 0.454098
+      }
+    },
+    {
+      "rank": 156,
+      "barrier_id": "p10_slt025_mb15",
+      "score": 0.339247,
+      "metrics": {
+        "profit_factor": 1.073266,
+        "omega": 1.073266,
+        "rachev": 0.5,
+        "cdar": 0.419458,
+        "total_return": 0.128722,
+        "win_rate": 0.586207,
+        "max_drawdown": 0.456801
+      }
+    },
+    {
+      "rank": 157,
+      "barrier_id": "p7_slt025_mb150",
+      "score": 0.339202,
+      "metrics": {
+        "profit_factor": 1.068554,
+        "omega": 1.068554,
+        "rachev": 0.501248,
+        "cdar": 0.415969,
+        "total_return": 0.127191,
+        "win_rate": 0.563107,
+        "max_drawdown": 0.454844
+      }
+    },
+    {
+      "rank": 158,
+      "barrier_id": "p7_slt025_mb200",
+      "score": 0.338995,
+      "metrics": {
+        "profit_factor": 1.068465,
+        "omega": 1.068465,
+        "rachev": 0.501248,
+        "cdar": 0.415969,
+        "total_return": 0.126994,
+        "win_rate": 0.563107,
+        "max_drawdown": 0.455423
+      }
+    },
+    {
+      "rank": 159,
+      "barrier_id": "p10_slt035_mb15",
+      "score": 0.334571,
+      "metrics": {
+        "profit_factor": 1.07244,
+        "omega": 1.07244,
+        "rachev": 0.5,
+        "cdar": 0.43981,
+        "total_return": 0.134061,
+        "win_rate": 0.60199,
+        "max_drawdown": 0.475522
+      }
+    },
+    {
+      "rank": 160,
+      "barrier_id": "p10_slt025_mb20",
+      "score": 0.334273,
+      "metrics": {
+        "profit_factor": 1.072123,
+        "omega": 1.072123,
+        "rachev": 0.5,
+        "cdar": 0.433721,
+        "total_return": 0.132258,
+        "win_rate": 0.582524,
+        "max_drawdown": 0.473965
+      }
+    },
+    {
+      "rank": 161,
+      "barrier_id": "p3_slt050_mb15",
+      "score": 0.332847,
+      "metrics": {
+        "profit_factor": 1.076198,
+        "omega": 1.076198,
+        "rachev": 0.5,
+        "cdar": 0.45371,
+        "total_return": 0.141918,
+        "win_rate": 0.606965,
+        "max_drawdown": 0.491593
+      }
+    },
+    {
+      "rank": 162,
+      "barrier_id": "p5_slt050_mb15",
+      "score": 0.332847,
+      "metrics": {
+        "profit_factor": 1.076198,
+        "omega": 1.076198,
+        "rachev": 0.5,
+        "cdar": 0.45371,
+        "total_return": 0.141918,
+        "win_rate": 0.606965,
+        "max_drawdown": 0.491593
+      }
+    },
+    {
+      "rank": 163,
+      "barrier_id": "p2_slt050_mb15",
+      "score": 0.332847,
+      "metrics": {
+        "profit_factor": 1.076198,
+        "omega": 1.076198,
+        "rachev": 0.5,
+        "cdar": 0.45371,
+        "total_return": 0.141918,
+        "win_rate": 0.606965,
+        "max_drawdown": 0.491593
+      }
+    },
+    {
+      "rank": 164,
+      "barrier_id": "p7_slt050_mb15",
+      "score": 0.332847,
+      "metrics": {
+        "profit_factor": 1.076198,
+        "omega": 1.076198,
+        "rachev": 0.5,
+        "cdar": 0.45371,
+        "total_return": 0.141918,
+        "win_rate": 0.606965,
+        "max_drawdown": 0.491593
+      }
+    },
+    {
+      "rank": 165,
+      "barrier_id": "p10_slt050_mb15",
+      "score": 0.332847,
+      "metrics": {
+        "profit_factor": 1.076198,
+        "omega": 1.076198,
+        "rachev": 0.5,
+        "cdar": 0.45371,
+        "total_return": 0.141918,
+        "win_rate": 0.606965,
+        "max_drawdown": 0.491593
+      }
+    },
+    {
+      "rank": 166,
+      "barrier_id": "p7_slt075_mb10",
+      "score": 0.332799,
+      "metrics": {
+        "profit_factor": 1.08373,
+        "omega": 1.08373,
+        "rachev": 0.454545,
+        "cdar": 0.38412,
+        "total_return": 0.132968,
+        "win_rate": 0.542289,
+        "max_drawdown": 0.413835
+      }
+    },
+    {
+      "rank": 167,
+      "barrier_id": "p10_slt025_mb30",
+      "score": 0.332305,
+      "metrics": {
+        "profit_factor": 1.072812,
+        "omega": 1.072812,
+        "rachev": 0.5,
+        "cdar": 0.442006,
+        "total_return": 0.135704,
+        "win_rate": 0.586207,
+        "max_drawdown": 0.484645
+      }
+    },
+    {
+      "rank": 168,
+      "barrier_id": "p10_slt025_mb50",
+      "score": 0.331328,
+      "metrics": {
+        "profit_factor": 1.071905,
+        "omega": 1.071905,
+        "rachev": 0.5,
+        "cdar": 0.445762,
+        "total_return": 0.136774,
+        "win_rate": 0.587065,
+        "max_drawdown": 0.48851
+      }
+    },
+    {
+      "rank": 169,
+      "barrier_id": "p10_slt025_mb100",
+      "score": 0.33059,
+      "metrics": {
+        "profit_factor": 1.072098,
+        "omega": 1.072098,
+        "rachev": 0.5,
+        "cdar": 0.448049,
+        "total_return": 0.137135,
+        "win_rate": 0.587065,
+        "max_drawdown": 0.490709
+      }
+    },
+    {
+      "rank": 170,
+      "barrier_id": "p10_slt025_mb150",
+      "score": 0.330382,
+      "metrics": {
+        "profit_factor": 1.071985,
+        "omega": 1.071985,
+        "rachev": 0.5,
+        "cdar": 0.448331,
+        "total_return": 0.136908,
+        "win_rate": 0.587065,
+        "max_drawdown": 0.490846
+      }
+    },
+    {
+      "rank": 171,
+      "barrier_id": "p10_slt025_mb75",
+      "score": 0.330291,
+      "metrics": {
+        "profit_factor": 1.071888,
+        "omega": 1.071888,
+        "rachev": 0.5,
+        "cdar": 0.447857,
+        "total_return": 0.136207,
+        "win_rate": 0.587065,
+        "max_drawdown": 0.489959
+      }
+    },
+    {
+      "rank": 172,
+      "barrier_id": "p10_slt025_mb200",
+      "score": 0.330162,
+      "metrics": {
+        "profit_factor": 1.071922,
+        "omega": 1.071922,
+        "rachev": 0.5,
+        "cdar": 0.449322,
+        "total_return": 0.137046,
+        "win_rate": 0.587065,
+        "max_drawdown": 0.49124
+      }
+    },
+    {
+      "rank": 173,
+      "barrier_id": "p7_slt035_mb20",
+      "score": 0.32758,
+      "metrics": {
+        "profit_factor": 1.067245,
+        "omega": 1.067245,
+        "rachev": 0.501248,
+        "cdar": 0.449668,
+        "total_return": 0.12897,
+        "win_rate": 0.596059,
+        "max_drawdown": 0.488887
+      }
+    },
+    {
+      "rank": 174,
+      "barrier_id": "p15_slt005_mb20",
+      "score": 0.323343,
+      "metrics": {
+        "profit_factor": 1.074405,
+        "omega": 1.074405,
+        "rachev": 0.5,
+        "cdar": 0.460347,
+        "total_return": 0.133442,
+        "win_rate": 0.564593,
+        "max_drawdown": 0.498019
+      }
+    },
+    {
+      "rank": 175,
+      "barrier_id": "p15_slt005_mb30",
+      "score": 0.323204,
+      "metrics": {
+        "profit_factor": 1.074127,
+        "omega": 1.074127,
+        "rachev": 0.5,
+        "cdar": 0.460942,
+        "total_return": 0.134319,
+        "win_rate": 0.561576,
+        "max_drawdown": 0.499584
+      }
+    },
+    {
+      "rank": 176,
+      "barrier_id": "p15_slt010_mb20",
+      "score": 0.323126,
+      "metrics": {
+        "profit_factor": 1.074051,
+        "omega": 1.074051,
+        "rachev": 0.5,
+        "cdar": 0.463465,
+        "total_return": 0.134632,
+        "win_rate": 0.57561,
+        "max_drawdown": 0.501731
+      }
+    },
+    {
+      "rank": 177,
+      "barrier_id": "p15_slt005_mb75",
+      "score": 0.32309,
+      "metrics": {
+        "profit_factor": 1.073987,
+        "omega": 1.073987,
+        "rachev": 0.5,
+        "cdar": 0.460881,
+        "total_return": 0.134159,
+        "win_rate": 0.560386,
+        "max_drawdown": 0.499492
+      }
+    },
+    {
+      "rank": 178,
+      "barrier_id": "p15_slt005_mb100",
+      "score": 0.323079,
+      "metrics": {
+        "profit_factor": 1.073988,
+        "omega": 1.073988,
+        "rachev": 0.5,
+        "cdar": 0.460942,
+        "total_return": 0.134199,
+        "win_rate": 0.560386,
+        "max_drawdown": 0.499584
+      }
+    },
+    {
+      "rank": 179,
+      "barrier_id": "p15_slt005_mb150",
+      "score": 0.323058,
+      "metrics": {
+        "profit_factor": 1.073987,
+        "omega": 1.073987,
+        "rachev": 0.5,
+        "cdar": 0.460942,
+        "total_return": 0.134159,
+        "win_rate": 0.560386,
+        "max_drawdown": 0.499584
+      }
+    },
+    {
+      "rank": 180,
+      "barrier_id": "p15_slt005_mb200",
+      "score": 0.323058,
+      "metrics": {
+        "profit_factor": 1.073987,
+        "omega": 1.073987,
+        "rachev": 0.5,
+        "cdar": 0.460942,
+        "total_return": 0.134159,
+        "win_rate": 0.560386,
+        "max_drawdown": 0.499584
+      }
+    },
+    {
+      "rank": 181,
+      "barrier_id": "p15_slt005_mb50",
+      "score": 0.323015,
+      "metrics": {
+        "profit_factor": 1.073987,
+        "omega": 1.073987,
+        "rachev": 0.5,
+        "cdar": 0.460887,
+        "total_return": 0.133998,
+        "win_rate": 0.560976,
+        "max_drawdown": 0.499584
+      }
+    },
+    {
+      "rank": 182,
+      "barrier_id": "p15_slt010_mb50",
+      "score": 0.322735,
+      "metrics": {
+        "profit_factor": 1.074389,
+        "omega": 1.074389,
+        "rachev": 0.5,
+        "cdar": 0.465213,
+        "total_return": 0.136628,
+        "win_rate": 0.572139,
+        "max_drawdown": 0.506234
+      }
+    },
+    {
+      "rank": 183,
+      "barrier_id": "p15_slt010_mb75",
+      "score": 0.322415,
+      "metrics": {
+        "profit_factor": 1.073865,
+        "omega": 1.073865,
+        "rachev": 0.5,
+        "cdar": 0.466659,
+        "total_return": 0.136763,
+        "win_rate": 0.572139,
+        "max_drawdown": 0.506613
+      }
+    },
+    {
+      "rank": 184,
+      "barrier_id": "p15_slt010_mb200",
+      "score": 0.322176,
+      "metrics": {
+        "profit_factor": 1.073665,
+        "omega": 1.073665,
+        "rachev": 0.5,
+        "cdar": 0.467038,
+        "total_return": 0.136652,
+        "win_rate": 0.572139,
+        "max_drawdown": 0.50709
+      }
+    },
+    {
+      "rank": 185,
+      "barrier_id": "p15_slt010_mb30",
+      "score": 0.322079,
+      "metrics": {
+        "profit_factor": 1.074103,
+        "omega": 1.074103,
+        "rachev": 0.5,
+        "cdar": 0.465001,
+        "total_return": 0.135082,
+        "win_rate": 0.572139,
+        "max_drawdown": 0.505572
+      }
+    },
+    {
+      "rank": 186,
+      "barrier_id": "p15_slt010_mb150",
+      "score": 0.322036,
+      "metrics": {
+        "profit_factor": 1.073521,
+        "omega": 1.073521,
+        "rachev": 0.5,
+        "cdar": 0.467019,
+        "total_return": 0.136293,
+        "win_rate": 0.572139,
+        "max_drawdown": 0.506834
+      }
+    },
+    {
+      "rank": 187,
+      "barrier_id": "p15_slt010_mb100",
+      "score": 0.321987,
+      "metrics": {
+        "profit_factor": 1.073564,
+        "omega": 1.073564,
+        "rachev": 0.5,
+        "cdar": 0.467019,
+        "total_return": 0.136203,
+        "win_rate": 0.572139,
+        "max_drawdown": 0.506834
+      }
+    },
+    {
+      "rank": 188,
+      "barrier_id": "p15_slt025_mb20",
+      "score": 0.321359,
+      "metrics": {
+        "profit_factor": 1.071853,
+        "omega": 1.071853,
+        "rachev": 0.5,
+        "cdar": 0.481743,
+        "total_return": 0.142082,
+        "win_rate": 0.61194,
+        "max_drawdown": 0.521783
+      }
+    },
+    {
+      "rank": 189,
+      "barrier_id": "p10_slt035_mb20",
+      "score": 0.32119,
+      "metrics": {
+        "profit_factor": 1.070405,
+        "omega": 1.070405,
+        "rachev": 0.5,
+        "cdar": 0.469807,
+        "total_return": 0.134416,
+        "win_rate": 0.608911,
+        "max_drawdown": 0.51324
+      }
+    },
+    {
+      "rank": 190,
+      "barrier_id": "p5_slt075_mb10",
+      "score": 0.318671,
+      "metrics": {
+        "profit_factor": 1.087349,
+        "omega": 1.087349,
+        "rachev": 0.423806,
+        "cdar": 0.387694,
+        "total_return": 0.13404,
+        "win_rate": 0.542289,
+        "max_drawdown": 0.417663
+      }
+    },
+    {
+      "rank": 191,
+      "barrier_id": "p2_slt050_mb20",
+      "score": 0.318019,
+      "metrics": {
+        "profit_factor": 1.076187,
+        "omega": 1.076187,
+        "rachev": 0.499974,
+        "cdar": 0.504834,
+        "total_return": 0.151456,
+        "win_rate": 0.622549,
+        "max_drawdown": 0.54645
+      }
+    },
+    {
+      "rank": 192,
+      "barrier_id": "p10_slt050_mb20",
+      "score": 0.318019,
+      "metrics": {
+        "profit_factor": 1.076187,
+        "omega": 1.076187,
+        "rachev": 0.499974,
+        "cdar": 0.504834,
+        "total_return": 0.151456,
+        "win_rate": 0.622549,
+        "max_drawdown": 0.54645
+      }
+    },
+    {
+      "rank": 193,
+      "barrier_id": "p15_slt050_mb20",
+      "score": 0.318019,
+      "metrics": {
+        "profit_factor": 1.076187,
+        "omega": 1.076187,
+        "rachev": 0.499974,
+        "cdar": 0.504834,
+        "total_return": 0.151456,
+        "win_rate": 0.622549,
+        "max_drawdown": 0.54645
+      }
+    },
+    {
+      "rank": 194,
+      "barrier_id": "p5_slt050_mb20",
+      "score": 0.318019,
+      "metrics": {
+        "profit_factor": 1.076187,
+        "omega": 1.076187,
+        "rachev": 0.499974,
+        "cdar": 0.504834,
+        "total_return": 0.151456,
+        "win_rate": 0.622549,
+        "max_drawdown": 0.54645
+      }
+    },
+    {
+      "rank": 195,
+      "barrier_id": "p3_slt050_mb20",
+      "score": 0.318019,
+      "metrics": {
+        "profit_factor": 1.076187,
+        "omega": 1.076187,
+        "rachev": 0.499974,
+        "cdar": 0.504834,
+        "total_return": 0.151456,
+        "win_rate": 0.622549,
+        "max_drawdown": 0.54645
+      }
+    },
+    {
+      "rank": 196,
+      "barrier_id": "p7_slt050_mb20",
+      "score": 0.318019,
+      "metrics": {
+        "profit_factor": 1.076187,
+        "omega": 1.076187,
+        "rachev": 0.499974,
+        "cdar": 0.504834,
+        "total_return": 0.151456,
+        "win_rate": 0.622549,
+        "max_drawdown": 0.54645
+      }
+    },
+    {
+      "rank": 197,
+      "barrier_id": "p15_slt035_mb20",
+      "score": 0.31706,
+      "metrics": {
+        "profit_factor": 1.072456,
+        "omega": 1.072456,
+        "rachev": 0.5,
+        "cdar": 0.491899,
+        "total_return": 0.141739,
+        "win_rate": 0.62,
+        "max_drawdown": 0.53429
+      }
+    },
+    {
+      "rank": 198,
+      "barrier_id": "p7_slt035_mb30",
+      "score": 0.316457,
+      "metrics": {
+        "profit_factor": 1.064962,
+        "omega": 1.064962,
+        "rachev": 0.501248,
+        "cdar": 0.472497,
+        "total_return": 0.12569,
+        "win_rate": 0.608911,
+        "max_drawdown": 0.514793
+      }
+    },
+    {
+      "rank": 199,
+      "barrier_id": "p15_slt025_mb30",
+      "score": 0.315244,
+      "metrics": {
+        "profit_factor": 1.069775,
+        "omega": 1.069775,
+        "rachev": 0.5,
+        "cdar": 0.493886,
+        "total_return": 0.140245,
+        "win_rate": 0.617647,
+        "max_drawdown": 0.536224
+      }
+    },
+    {
+      "rank": 200,
+      "barrier_id": "p2_slt075_mb10",
+      "score": 0.314015,
+      "metrics": {
+        "profit_factor": 1.088461,
+        "omega": 1.088461,
+        "rachev": 0.413461,
+        "cdar": 0.388609,
+        "total_return": 0.133865,
+        "win_rate": 0.543689,
+        "max_drawdown": 0.419787
+      }
+    },
+    {
+      "rank": 201,
+      "barrier_id": "p10_slt035_mb30",
+      "score": 0.314013,
+      "metrics": {
+        "profit_factor": 1.067127,
+        "omega": 1.067127,
+        "rachev": 0.5,
+        "cdar": 0.493928,
+        "total_return": 0.137824,
+        "win_rate": 0.621891,
+        "max_drawdown": 0.536701
+      }
+    },
+    {
+      "rank": 202,
+      "barrier_id": "p3_slt075_mb10",
+      "score": 0.313867,
+      "metrics": {
+        "profit_factor": 1.088126,
+        "omega": 1.088126,
+        "rachev": 0.413718,
+        "cdar": 0.388813,
+        "total_return": 0.133481,
+        "win_rate": 0.543689,
+        "max_drawdown": 0.41988
+      }
+    },
+    {
+      "rank": 203,
+      "barrier_id": "p7_slt035_mb50",
+      "score": 0.313866,
+      "metrics": {
+        "profit_factor": 1.064786,
+        "omega": 1.064786,
+        "rachev": 0.501248,
+        "cdar": 0.483287,
+        "total_return": 0.129762,
+        "win_rate": 0.612745,
+        "max_drawdown": 0.5275
+      }
+    },
+    {
+      "rank": 204,
+      "barrier_id": "p7_slt035_mb75",
+      "score": 0.31352,
+      "metrics": {
+        "profit_factor": 1.065836,
+        "omega": 1.065836,
+        "rachev": 0.501248,
+        "cdar": 0.485811,
+        "total_return": 0.130732,
+        "win_rate": 0.614286,
+        "max_drawdown": 0.52954
+      }
+    },
+    {
+      "rank": 205,
+      "barrier_id": "p7_slt035_mb100",
+      "score": 0.313107,
+      "metrics": {
+        "profit_factor": 1.065717,
+        "omega": 1.065717,
+        "rachev": 0.501248,
+        "cdar": 0.486751,
+        "total_return": 0.130932,
+        "win_rate": 0.615,
+        "max_drawdown": 0.531347
+      }
+    },
+    {
+      "rank": 206,
+      "barrier_id": "p15_slt025_mb50",
+      "score": 0.313102,
+      "metrics": {
+        "profit_factor": 1.069829,
+        "omega": 1.069829,
+        "rachev": 0.5,
+        "cdar": 0.498018,
+        "total_return": 0.139417,
+        "win_rate": 0.619512,
+        "max_drawdown": 0.540843
+      }
+    },
+    {
+      "rank": 207,
+      "barrier_id": "p15_slt025_mb100",
+      "score": 0.312464,
+      "metrics": {
+        "profit_factor": 1.068881,
+        "omega": 1.068881,
+        "rachev": 0.5,
+        "cdar": 0.500429,
+        "total_return": 0.140133,
+        "win_rate": 0.62,
+        "max_drawdown": 0.54375
+      }
+    },
+    {
+      "rank": 208,
+      "barrier_id": "p15_slt025_mb75",
+      "score": 0.312442,
+      "metrics": {
+        "profit_factor": 1.069489,
+        "omega": 1.069489,
+        "rachev": 0.5,
+        "cdar": 0.499109,
+        "total_return": 0.139356,
+        "win_rate": 0.62,
+        "max_drawdown": 0.543009
+      }
+    },
+    {
+      "rank": 209,
+      "barrier_id": "p7_slt035_mb150",
+      "score": 0.312304,
+      "metrics": {
+        "profit_factor": 1.065301,
+        "omega": 1.065301,
+        "rachev": 0.501248,
+        "cdar": 0.488406,
+        "total_return": 0.130732,
+        "win_rate": 0.615,
+        "max_drawdown": 0.533026
+      }
+    },
+    {
+      "rank": 210,
+      "barrier_id": "p7_slt035_mb200",
+      "score": 0.311872,
+      "metrics": {
+        "profit_factor": 1.06487,
+        "omega": 1.06487,
+        "rachev": 0.501248,
+        "cdar": 0.488888,
+        "total_return": 0.130558,
+        "win_rate": 0.615,
+        "max_drawdown": 0.534194
+      }
+    },
+    {
+      "rank": 211,
+      "barrier_id": "p15_slt025_mb150",
+      "score": 0.311696,
+      "metrics": {
+        "profit_factor": 1.068881,
+        "omega": 1.068881,
+        "rachev": 0.5,
+        "cdar": 0.501145,
+        "total_return": 0.139679,
+        "win_rate": 0.62,
+        "max_drawdown": 0.545559
+      }
+    },
+    {
+      "rank": 212,
+      "barrier_id": "p15_slt025_mb200",
+      "score": 0.311563,
+      "metrics": {
+        "profit_factor": 1.069489,
+        "omega": 1.069489,
+        "rachev": 0.5,
+        "cdar": 0.501507,
+        "total_return": 0.139751,
+        "win_rate": 0.62,
+        "max_drawdown": 0.546078
+      }
+    },
+    {
+      "rank": 213,
+      "barrier_id": "p10_slt035_mb50",
+      "score": 0.310458,
+      "metrics": {
+        "profit_factor": 1.067444,
+        "omega": 1.067444,
+        "rachev": 0.5,
+        "cdar": 0.502134,
+        "total_return": 0.138422,
+        "win_rate": 0.626866,
+        "max_drawdown": 0.549328
+      }
+    },
+    {
+      "rank": 214,
+      "barrier_id": "p10_slt035_mb75",
+      "score": 0.310425,
+      "metrics": {
+        "profit_factor": 1.067317,
+        "omega": 1.067317,
+        "rachev": 0.5,
+        "cdar": 0.504924,
+        "total_return": 0.140271,
+        "win_rate": 0.628713,
+        "max_drawdown": 0.552607
+      }
+    },
+    {
+      "rank": 215,
+      "barrier_id": "p10_slt035_mb100",
+      "score": 0.309805,
+      "metrics": {
+        "profit_factor": 1.067373,
+        "omega": 1.067373,
+        "rachev": 0.5,
+        "cdar": 0.506161,
+        "total_return": 0.140267,
+        "win_rate": 0.628713,
+        "max_drawdown": 0.554454
+      }
+    },
+    {
+      "rank": 216,
+      "barrier_id": "p10_slt035_mb200",
+      "score": 0.308834,
+      "metrics": {
+        "profit_factor": 1.066964,
+        "omega": 1.066964,
+        "rachev": 0.5,
+        "cdar": 0.50885,
+        "total_return": 0.139979,
+        "win_rate": 0.63,
+        "max_drawdown": 0.556074
+      }
+    },
+    {
+      "rank": 217,
+      "barrier_id": "p10_slt035_mb150",
+      "score": 0.308754,
+      "metrics": {
+        "profit_factor": 1.066947,
+        "omega": 1.066947,
+        "rachev": 0.5,
+        "cdar": 0.508441,
+        "total_return": 0.139659,
+        "win_rate": 0.629268,
+        "max_drawdown": 0.555709
+      }
+    },
+    {
+      "rank": 218,
+      "barrier_id": "p20_slt005_mb30",
+      "score": 0.308415,
+      "metrics": {
+        "profit_factor": 1.07126,
+        "omega": 1.07126,
+        "rachev": 0.499973,
+        "cdar": 0.509065,
+        "total_return": 0.141104,
+        "win_rate": 0.6,
+        "max_drawdown": 0.55166
+      }
+    },
+    {
+      "rank": 219,
+      "barrier_id": "p20_slt010_mb30",
+      "score": 0.307706,
+      "metrics": {
+        "profit_factor": 1.070524,
+        "omega": 1.070524,
+        "rachev": 0.499973,
+        "cdar": 0.51408,
+        "total_return": 0.142449,
+        "win_rate": 0.61194,
+        "max_drawdown": 0.55781
+      }
+    },
+    {
+      "rank": 220,
+      "barrier_id": "p20_slt005_mb50",
+      "score": 0.307656,
+      "metrics": {
+        "profit_factor": 1.071104,
+        "omega": 1.071104,
+        "rachev": 0.499973,
+        "cdar": 0.509065,
+        "total_return": 0.139956,
+        "win_rate": 0.6,
+        "max_drawdown": 0.55205
+      }
+    },
+    {
+      "rank": 221,
+      "barrier_id": "p20_slt005_mb100",
+      "score": 0.307634,
+      "metrics": {
+        "profit_factor": 1.07144,
+        "omega": 1.07144,
+        "rachev": 0.499973,
+        "cdar": 0.508878,
+        "total_return": 0.139879,
+        "win_rate": 0.6,
+        "max_drawdown": 0.552137
+      }
+    },
+    {
+      "rank": 222,
+      "barrier_id": "p20_slt005_mb150",
+      "score": 0.307634,
+      "metrics": {
+        "profit_factor": 1.071343,
+        "omega": 1.071343,
+        "rachev": 0.499973,
+        "cdar": 0.508878,
+        "total_return": 0.139879,
+        "win_rate": 0.6,
+        "max_drawdown": 0.552137
+      }
+    },
+    {
+      "rank": 223,
+      "barrier_id": "p20_slt005_mb200",
+      "score": 0.307633,
+      "metrics": {
+        "profit_factor": 1.071104,
+        "omega": 1.071104,
+        "rachev": 0.499973,
+        "cdar": 0.508878,
+        "total_return": 0.139879,
+        "win_rate": 0.6,
+        "max_drawdown": 0.552137
+      }
+    },
+    {
+      "rank": 224,
+      "barrier_id": "p20_slt005_mb75",
+      "score": 0.307633,
+      "metrics": {
+        "profit_factor": 1.071104,
+        "omega": 1.071104,
+        "rachev": 0.499973,
+        "cdar": 0.508878,
+        "total_return": 0.139879,
+        "win_rate": 0.6,
+        "max_drawdown": 0.552137
+      }
+    },
+    {
+      "rank": 225,
+      "barrier_id": "p20_slt025_mb30",
+      "score": 0.307481,
+      "metrics": {
+        "profit_factor": 1.069484,
+        "omega": 1.069484,
+        "rachev": 0.499973,
+        "cdar": 0.528566,
+        "total_return": 0.149554,
+        "win_rate": 0.636816,
+        "max_drawdown": 0.575
+      }
+    },
+    {
+      "rank": 226,
+      "barrier_id": "p20_slt010_mb50",
+      "score": 0.307074,
+      "metrics": {
+        "profit_factor": 1.069832,
+        "omega": 1.069832,
+        "rachev": 0.499973,
+        "cdar": 0.515323,
+        "total_return": 0.142095,
+        "win_rate": 0.610837,
+        "max_drawdown": 0.558237
+      }
+    },
+    {
+      "rank": 227,
+      "barrier_id": "p20_slt010_mb150",
+      "score": 0.306755,
+      "metrics": {
+        "profit_factor": 1.069049,
+        "omega": 1.069049,
+        "rachev": 0.499973,
+        "cdar": 0.51617,
+        "total_return": 0.142157,
+        "win_rate": 0.61,
+        "max_drawdown": 0.558867
+      }
+    },
+    {
+      "rank": 228,
+      "barrier_id": "p20_slt010_mb200",
+      "score": 0.306754,
+      "metrics": {
+        "profit_factor": 1.069151,
+        "omega": 1.069151,
+        "rachev": 0.499973,
+        "cdar": 0.516368,
+        "total_return": 0.142223,
+        "win_rate": 0.61,
+        "max_drawdown": 0.558867
+      }
+    },
+    {
+      "rank": 229,
+      "barrier_id": "p20_slt010_mb100",
+      "score": 0.306701,
+      "metrics": {
+        "profit_factor": 1.069049,
+        "omega": 1.069049,
+        "rachev": 0.499973,
+        "cdar": 0.51617,
+        "total_return": 0.142032,
+        "win_rate": 0.61,
+        "max_drawdown": 0.558756
+      }
+    },
+    {
+      "rank": 230,
+      "barrier_id": "p20_slt010_mb75",
+      "score": 0.306615,
+      "metrics": {
+        "profit_factor": 1.069151,
+        "omega": 1.069151,
+        "rachev": 0.499973,
+        "cdar": 0.515959,
+        "total_return": 0.141717,
+        "win_rate": 0.61,
+        "max_drawdown": 0.558444
+      }
+    },
+    {
+      "rank": 231,
+      "barrier_id": "p10_slt075_mb15",
+      "score": 0.3063,
+      "metrics": {
+        "profit_factor": 1.084538,
+        "omega": 1.084538,
+        "rachev": 0.437561,
+        "cdar": 0.461306,
+        "total_return": 0.154122,
+        "win_rate": 0.606965,
+        "max_drawdown": 0.497081
+      }
+    },
+    {
+      "rank": 232,
+      "barrier_id": "p15_slt035_mb30",
+      "score": 0.305537,
+      "metrics": {
+        "profit_factor": 1.068258,
+        "omega": 1.068258,
+        "rachev": 0.5,
+        "cdar": 0.522024,
+        "total_return": 0.141607,
+        "win_rate": 0.638614,
+        "max_drawdown": 0.56687
+      }
+    },
+    {
+      "rank": 233,
+      "barrier_id": "p20_slt025_mb50",
+      "score": 0.305472,
+      "metrics": {
+        "profit_factor": 1.069326,
+        "omega": 1.069326,
+        "rachev": 0.499973,
+        "cdar": 0.533163,
+        "total_return": 0.149355,
+        "win_rate": 0.64,
+        "max_drawdown": 0.58125
+      }
+    },
+    {
+      "rank": 234,
+      "barrier_id": "p20_slt035_mb30",
+      "score": 0.305202,
+      "metrics": {
+        "profit_factor": 1.073389,
+        "omega": 1.073389,
+        "rachev": 0.499973,
+        "cdar": 0.542717,
+        "total_return": 0.153402,
+        "win_rate": 0.65,
+        "max_drawdown": 0.59058
+      }
+    },
+    {
+      "rank": 235,
+      "barrier_id": "p20_slt025_mb100",
+      "score": 0.305051,
+      "metrics": {
+        "profit_factor": 1.069326,
+        "omega": 1.069326,
+        "rachev": 0.499973,
+        "cdar": 0.535286,
+        "total_return": 0.149861,
+        "win_rate": 0.64,
+        "max_drawdown": 0.582969
+      }
+    },
+    {
+      "rank": 236,
+      "barrier_id": "p20_slt025_mb200",
+      "score": 0.30464,
+      "metrics": {
+        "profit_factor": 1.069326,
+        "omega": 1.069326,
+        "rachev": 0.499973,
+        "cdar": 0.535898,
+        "total_return": 0.149861,
+        "win_rate": 0.64,
+        "max_drawdown": 0.584527
+      }
+    },
+    {
+      "rank": 237,
+      "barrier_id": "p20_slt025_mb150",
+      "score": 0.30464,
+      "metrics": {
+        "profit_factor": 1.069286,
+        "omega": 1.069286,
+        "rachev": 0.499973,
+        "cdar": 0.535898,
+        "total_return": 0.149861,
+        "win_rate": 0.64,
+        "max_drawdown": 0.584527
+      }
+    },
+    {
+      "rank": 238,
+      "barrier_id": "p20_slt025_mb75",
+      "score": 0.304526,
+      "metrics": {
+        "profit_factor": 1.069131,
+        "omega": 1.069131,
+        "rachev": 0.499973,
+        "cdar": 0.534566,
+        "total_return": 0.148635,
+        "win_rate": 0.64,
+        "max_drawdown": 0.582307
+      }
+    },
+    {
+      "rank": 239,
+      "barrier_id": "p15_slt035_mb75",
+      "score": 0.303697,
+      "metrics": {
+        "profit_factor": 1.069817,
+        "omega": 1.069817,
+        "rachev": 0.5,
+        "cdar": 0.536361,
+        "total_return": 0.148127,
+        "win_rate": 0.645,
+        "max_drawdown": 0.585
+      }
+    },
+    {
+      "rank": 240,
+      "barrier_id": "p15_slt035_mb100",
+      "score": 0.303183,
+      "metrics": {
+        "profit_factor": 1.0706,
+        "omega": 1.0706,
+        "rachev": 0.5,
+        "cdar": 0.537639,
+        "total_return": 0.148436,
+        "win_rate": 0.645,
+        "max_drawdown": 0.587483
+      }
+    },
+    {
+      "rank": 241,
+      "barrier_id": "p15_slt035_mb150",
+      "score": 0.302609,
+      "metrics": {
+        "profit_factor": 1.069777,
+        "omega": 1.069777,
+        "rachev": 0.5,
+        "cdar": 0.538991,
+        "total_return": 0.148339,
+        "win_rate": 0.645,
+        "max_drawdown": 0.58875
+      }
+    },
+    {
+      "rank": 242,
+      "barrier_id": "p15_slt035_mb50",
+      "score": 0.302532,
+      "metrics": {
+        "profit_factor": 1.069817,
+        "omega": 1.069817,
+        "rachev": 0.5,
+        "cdar": 0.532861,
+        "total_return": 0.144154,
+        "win_rate": 0.645,
+        "max_drawdown": 0.581537
+      }
+    },
+    {
+      "rank": 243,
+      "barrier_id": "p15_slt035_mb200",
+      "score": 0.302004,
+      "metrics": {
+        "profit_factor": 1.069093,
+        "omega": 1.069093,
+        "rachev": 0.5,
+        "cdar": 0.540256,
+        "total_return": 0.148127,
+        "win_rate": 0.64532,
+        "max_drawdown": 0.59
+      }
+    },
+    {
+      "rank": 244,
+      "barrier_id": "p2_slt050_mb30",
+      "score": 0.30006,
+      "metrics": {
+        "profit_factor": 1.073187,
+        "omega": 1.073187,
+        "rachev": 0.499944,
+        "cdar": 0.562662,
+        "total_return": 0.155276,
+        "win_rate": 0.655172,
+        "max_drawdown": 0.606498
+      }
+    },
+    {
+      "rank": 245,
+      "barrier_id": "p15_slt050_mb30",
+      "score": 0.30006,
+      "metrics": {
+        "profit_factor": 1.073187,
+        "omega": 1.073187,
+        "rachev": 0.499944,
+        "cdar": 0.562662,
+        "total_return": 0.155276,
+        "win_rate": 0.655172,
+        "max_drawdown": 0.606498
+      }
+    },
+    {
+      "rank": 246,
+      "barrier_id": "p5_slt050_mb30",
+      "score": 0.30006,
+      "metrics": {
+        "profit_factor": 1.073187,
+        "omega": 1.073187,
+        "rachev": 0.499944,
+        "cdar": 0.562662,
+        "total_return": 0.155276,
+        "win_rate": 0.655172,
+        "max_drawdown": 0.606498
+      }
+    },
+    {
+      "rank": 247,
+      "barrier_id": "p20_slt050_mb30",
+      "score": 0.30006,
+      "metrics": {
+        "profit_factor": 1.073187,
+        "omega": 1.073187,
+        "rachev": 0.499944,
+        "cdar": 0.562662,
+        "total_return": 0.155276,
+        "win_rate": 0.655172,
+        "max_drawdown": 0.606498
+      }
+    },
+    {
+      "rank": 248,
+      "barrier_id": "p3_slt050_mb30",
+      "score": 0.30006,
+      "metrics": {
+        "profit_factor": 1.073187,
+        "omega": 1.073187,
+        "rachev": 0.499944,
+        "cdar": 0.562662,
+        "total_return": 0.155276,
+        "win_rate": 0.655172,
+        "max_drawdown": 0.606498
+      }
+    },
+    {
+      "rank": 249,
+      "barrier_id": "p7_slt050_mb30",
+      "score": 0.30006,
+      "metrics": {
+        "profit_factor": 1.073187,
+        "omega": 1.073187,
+        "rachev": 0.499944,
+        "cdar": 0.562662,
+        "total_return": 0.155276,
+        "win_rate": 0.655172,
+        "max_drawdown": 0.606498
+      }
+    },
+    {
+      "rank": 250,
+      "barrier_id": "p10_slt050_mb30",
+      "score": 0.30006,
+      "metrics": {
+        "profit_factor": 1.073187,
+        "omega": 1.073187,
+        "rachev": 0.499944,
+        "cdar": 0.562662,
+        "total_return": 0.155276,
+        "win_rate": 0.655172,
+        "max_drawdown": 0.606498
+      }
+    },
+    {
+      "rank": 251,
+      "barrier_id": "p20_slt035_mb50",
+      "score": 0.299938,
+      "metrics": {
+        "profit_factor": 1.071245,
+        "omega": 1.071245,
+        "rachev": 0.499973,
+        "cdar": 0.55542,
+        "total_return": 0.152669,
+        "win_rate": 0.656716,
+        "max_drawdown": 0.605766
+      }
+    },
+    {
+      "rank": 252,
+      "barrier_id": "p20_slt035_mb75",
+      "score": 0.299333,
+      "metrics": {
+        "profit_factor": 1.072325,
+        "omega": 1.072325,
+        "rachev": 0.499973,
+        "cdar": 0.55875,
+        "total_return": 0.153343,
+        "win_rate": 0.656716,
+        "max_drawdown": 0.608108
+      }
+    },
+    {
+      "rank": 253,
+      "barrier_id": "p20_slt035_mb100",
+      "score": 0.298392,
+      "metrics": {
+        "profit_factor": 1.072375,
+        "omega": 1.072375,
+        "rachev": 0.499973,
+        "cdar": 0.560001,
+        "total_return": 0.152912,
+        "win_rate": 0.656863,
+        "max_drawdown": 0.61044
+      }
+    },
+    {
+      "rank": 254,
+      "barrier_id": "p20_slt035_mb150",
+      "score": 0.297821,
+      "metrics": {
+        "profit_factor": 1.07188,
+        "omega": 1.07188,
+        "rachev": 0.499973,
+        "cdar": 0.56223,
+        "total_return": 0.152912,
+        "win_rate": 0.658416,
+        "max_drawdown": 0.611834
+      }
+    },
+    {
+      "rank": 255,
+      "barrier_id": "p20_slt035_mb200",
+      "score": 0.29703,
+      "metrics": {
+        "profit_factor": 1.071735,
+        "omega": 1.071735,
+        "rachev": 0.499973,
+        "cdar": 0.564061,
+        "total_return": 0.152771,
+        "win_rate": 0.658416,
+        "max_drawdown": 0.613744
+      }
+    },
+    {
+      "rank": 256,
+      "barrier_id": "p30_slt005_mb150",
+      "score": 0.293124,
+      "metrics": {
+        "profit_factor": 1.069812,
+        "omega": 1.069812,
+        "rachev": 0.499943,
+        "cdar": 0.564984,
+        "total_return": 0.147957,
+        "win_rate": 0.643564,
+        "max_drawdown": 0.610034
+      }
+    },
+    {
+      "rank": 257,
+      "barrier_id": "p30_slt005_mb200",
+      "score": 0.293124,
+      "metrics": {
+        "profit_factor": 1.069803,
+        "omega": 1.069803,
+        "rachev": 0.499943,
+        "cdar": 0.564984,
+        "total_return": 0.147957,
+        "win_rate": 0.643564,
+        "max_drawdown": 0.610034
+      }
+    },
+    {
+      "rank": 258,
+      "barrier_id": "p30_slt005_mb75",
+      "score": 0.293124,
+      "metrics": {
+        "profit_factor": 1.069812,
+        "omega": 1.069812,
+        "rachev": 0.499943,
+        "cdar": 0.565017,
+        "total_return": 0.147957,
+        "win_rate": 0.643564,
+        "max_drawdown": 0.61
+      }
+    },
+    {
+      "rank": 259,
+      "barrier_id": "p30_slt005_mb50",
+      "score": 0.293087,
+      "metrics": {
+        "profit_factor": 1.069803,
+        "omega": 1.069803,
+        "rachev": 0.499943,
+        "cdar": 0.564375,
+        "total_return": 0.147713,
+        "win_rate": 0.643564,
+        "max_drawdown": 0.61
+      }
+    },
+    {
+      "rank": 260,
+      "barrier_id": "p30_slt005_mb100",
+      "score": 0.293029,
+      "metrics": {
+        "profit_factor": 1.069812,
+        "omega": 1.069812,
+        "rachev": 0.499943,
+        "cdar": 0.564984,
+        "total_return": 0.147815,
+        "win_rate": 0.643564,
+        "max_drawdown": 0.610034
+      }
+    },
+    {
+      "rank": 261,
+      "barrier_id": "p30_slt025_mb50",
+      "score": 0.291721,
+      "metrics": {
+        "profit_factor": 1.071011,
+        "omega": 1.071011,
+        "rachev": 0.499943,
+        "cdar": 0.573324,
+        "total_return": 0.14983,
+        "win_rate": 0.661692,
+        "max_drawdown": 0.623503
+      }
+    },
+    {
+      "rank": 262,
+      "barrier_id": "p30_slt035_mb50",
+      "score": 0.291545,
+      "metrics": {
+        "profit_factor": 1.072333,
+        "omega": 1.072333,
+        "rachev": 0.499943,
+        "cdar": 0.58125,
+        "total_return": 0.152631,
+        "win_rate": 0.669903,
+        "max_drawdown": 0.630635
+      }
+    },
+    {
+      "rank": 263,
+      "barrier_id": "p30_slt010_mb50",
+      "score": 0.291347,
+      "metrics": {
+        "profit_factor": 1.069413,
+        "omega": 1.069413,
+        "rachev": 0.499943,
+        "cdar": 0.565044,
+        "total_return": 0.145511,
+        "win_rate": 0.648515,
+        "max_drawdown": 0.612743
+      }
+    },
+    {
+      "rank": 264,
+      "barrier_id": "p30_slt025_mb75",
+      "score": 0.29116,
+      "metrics": {
+        "profit_factor": 1.070102,
+        "omega": 1.070102,
+        "rachev": 0.499943,
+        "cdar": 0.575,
+        "total_return": 0.149874,
+        "win_rate": 0.661692,
+        "max_drawdown": 0.625
+      }
+    },
+    {
+      "rank": 265,
+      "barrier_id": "p30_slt025_mb100",
+      "score": 0.291022,
+      "metrics": {
+        "profit_factor": 1.070367,
+        "omega": 1.070367,
+        "rachev": 0.499943,
+        "cdar": 0.575625,
+        "total_return": 0.149847,
+        "win_rate": 0.661692,
+        "max_drawdown": 0.625
+      }
+    },
+    {
+      "rank": 266,
+      "barrier_id": "p30_slt025_mb150",
+      "score": 0.290933,
+      "metrics": {
+        "profit_factor": 1.070603,
+        "omega": 1.070603,
+        "rachev": 0.499943,
+        "cdar": 0.57664,
+        "total_return": 0.15,
+        "win_rate": 0.661692,
+        "max_drawdown": 0.625
+      }
+    },
+    {
+      "rank": 267,
+      "barrier_id": "p15_slt075_mb20",
+      "score": 0.29088,
+      "metrics": {
+        "profit_factor": 1.079445,
+        "omega": 1.079445,
+        "rachev": 0.447244,
+        "cdar": 0.506487,
+        "total_return": 0.152433,
+        "win_rate": 0.623762,
+        "max_drawdown": 0.548207
+      }
+    },
+    {
+      "rank": 268,
+      "barrier_id": "p30_slt010_mb100",
+      "score": 0.290804,
+      "metrics": {
+        "profit_factor": 1.069248,
+        "omega": 1.069248,
+        "rachev": 0.499943,
+        "cdar": 0.566151,
+        "total_return": 0.145356,
+        "win_rate": 0.648515,
+        "max_drawdown": 0.613955
+      }
+    },
+    {
+      "rank": 269,
+      "barrier_id": "p30_slt010_mb75",
+      "score": 0.290785,
+      "metrics": {
+        "profit_factor": 1.06926,
+        "omega": 1.06926,
+        "rachev": 0.499943,
+        "cdar": 0.56588,
+        "total_return": 0.145074,
+        "win_rate": 0.648515,
+        "max_drawdown": 0.613326
+      }
+    },
+    {
+      "rank": 270,
+      "barrier_id": "p30_slt010_mb150",
+      "score": 0.290725,
+      "metrics": {
+        "profit_factor": 1.068708,
+        "omega": 1.068708,
+        "rachev": 0.499943,
+        "cdar": 0.566151,
+        "total_return": 0.145265,
+        "win_rate": 0.648515,
+        "max_drawdown": 0.614048
+      }
+    },
+    {
+      "rank": 271,
+      "barrier_id": "p30_slt025_mb200",
+      "score": 0.290662,
+      "metrics": {
+        "profit_factor": 1.070603,
+        "omega": 1.070603,
+        "rachev": 0.499943,
+        "cdar": 0.577597,
+        "total_return": 0.149874,
+        "win_rate": 0.661692,
+        "max_drawdown": 0.625
+      }
+    },
+    {
+      "rank": 272,
+      "barrier_id": "p30_slt010_mb200",
+      "score": 0.290612,
+      "metrics": {
+        "profit_factor": 1.068708,
+        "omega": 1.068708,
+        "rachev": 0.499943,
+        "cdar": 0.566523,
+        "total_return": 0.145265,
+        "win_rate": 0.648515,
+        "max_drawdown": 0.614261
+      }
+    },
+    {
+      "rank": 273,
+      "barrier_id": "p30_slt035_mb75",
+      "score": 0.290096,
+      "metrics": {
+        "profit_factor": 1.071395,
+        "omega": 1.071395,
+        "rachev": 0.499943,
+        "cdar": 0.584587,
+        "total_return": 0.152526,
+        "win_rate": 0.67,
+        "max_drawdown": 0.635
+      }
+    },
+    {
+      "rank": 274,
+      "barrier_id": "p30_slt035_mb150",
+      "score": 0.289546,
+      "metrics": {
+        "profit_factor": 1.070866,
+        "omega": 1.070866,
+        "rachev": 0.499943,
+        "cdar": 0.586442,
+        "total_return": 0.15268,
+        "win_rate": 0.671569,
+        "max_drawdown": 0.637523
+      }
+    },
+    {
+      "rank": 275,
+      "barrier_id": "p30_slt035_mb200",
+      "score": 0.289529,
+      "metrics": {
+        "profit_factor": 1.071041,
+        "omega": 1.071041,
+        "rachev": 0.499943,
+        "cdar": 0.586875,
+        "total_return": 0.152866,
+        "win_rate": 0.671569,
+        "max_drawdown": 0.637927
+      }
+    },
+    {
+      "rank": 276,
+      "barrier_id": "p30_slt035_mb100",
+      "score": 0.289495,
+      "metrics": {
+        "profit_factor": 1.071353,
+        "omega": 1.071353,
+        "rachev": 0.499943,
+        "cdar": 0.58552,
+        "total_return": 0.152526,
+        "win_rate": 0.67,
+        "max_drawdown": 0.6375
+      }
+    },
+    {
+      "rank": 277,
+      "barrier_id": "p7_slt075_mb15",
+      "score": 0.286093,
+      "metrics": {
+        "profit_factor": 1.088618,
+        "omega": 1.088618,
+        "rachev": 0.378108,
+        "cdar": 0.473158,
+        "total_return": 0.164465,
+        "win_rate": 0.607843,
+        "max_drawdown": 0.508609
+      }
+    },
+    {
+      "rank": 278,
+      "barrier_id": "p30_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 279,
+      "barrier_id": "p10_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 280,
+      "barrier_id": "p5_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 281,
+      "barrier_id": "p2_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 282,
+      "barrier_id": "p3_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 283,
+      "barrier_id": "p20_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 284,
+      "barrier_id": "p15_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 285,
+      "barrier_id": "p7_slt050_mb50",
+      "score": 0.285939,
+      "metrics": {
+        "profit_factor": 1.072828,
+        "omega": 1.072828,
+        "rachev": 0.499929,
+        "cdar": 0.596325,
+        "total_return": 0.152755,
+        "win_rate": 0.675,
+        "max_drawdown": 0.65
+      }
+    },
+    {
+      "rank": 286,
+      "barrier_id": "p15_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 287,
+      "barrier_id": "p2_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 288,
+      "barrier_id": "p10_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 289,
+      "barrier_id": "p5_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 290,
+      "barrier_id": "p30_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 291,
+      "barrier_id": "p20_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 292,
+      "barrier_id": "p3_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 293,
+      "barrier_id": "p7_slt050_mb75",
+      "score": 0.281489,
+      "metrics": {
+        "profit_factor": 1.070231,
+        "omega": 1.070231,
+        "rachev": 0.499923,
+        "cdar": 0.60631,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656256
+      }
+    },
+    {
+      "rank": 294,
+      "barrier_id": "p20_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 295,
+      "barrier_id": "p10_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 296,
+      "barrier_id": "p15_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 297,
+      "barrier_id": "p2_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 298,
+      "barrier_id": "p7_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 299,
+      "barrier_id": "p5_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 300,
+      "barrier_id": "p3_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 301,
+      "barrier_id": "p30_slt050_mb100",
+      "score": 0.281056,
+      "metrics": {
+        "profit_factor": 1.070184,
+        "omega": 1.070184,
+        "rachev": 0.499921,
+        "cdar": 0.608613,
+        "total_return": 0.15,
+        "win_rate": 0.68,
+        "max_drawdown": 0.656346
+      }
+    },
+    {
+      "rank": 302,
+      "barrier_id": "p7_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 303,
+      "barrier_id": "p15_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 304,
+      "barrier_id": "p10_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 305,
+      "barrier_id": "p2_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 306,
+      "barrier_id": "p3_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 307,
+      "barrier_id": "p20_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 308,
+      "barrier_id": "p5_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 309,
+      "barrier_id": "p30_slt050_mb150",
+      "score": 0.280246,
+      "metrics": {
+        "profit_factor": 1.069863,
+        "omega": 1.069863,
+        "rachev": 0.49992,
+        "cdar": 0.611446,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.658841
+      }
+    },
+    {
+      "rank": 310,
+      "barrier_id": "p10_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 311,
+      "barrier_id": "p7_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 312,
+      "barrier_id": "p20_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 313,
+      "barrier_id": "p15_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 314,
+      "barrier_id": "p2_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 315,
+      "barrier_id": "p3_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 316,
+      "barrier_id": "p5_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 317,
+      "barrier_id": "p30_slt050_mb200",
+      "score": 0.279326,
+      "metrics": {
+        "profit_factor": 1.07015,
+        "omega": 1.07015,
+        "rachev": 0.49992,
+        "cdar": 0.613125,
+        "total_return": 0.15,
+        "win_rate": 0.681373,
+        "max_drawdown": 0.662617
+      }
+    },
+    {
+      "rank": 318,
+      "barrier_id": "p5_slt075_mb15",
+      "score": 0.274498,
+      "metrics": {
+        "profit_factor": 1.090648,
+        "omega": 1.090648,
+        "rachev": 0.350647,
+        "cdar": 0.480394,
+        "total_return": 0.162812,
+        "win_rate": 0.61,
+        "max_drawdown": 0.516614
+      }
+    },
+    {
+      "rank": 319,
+      "barrier_id": "p2_slt075_mb15",
+      "score": 0.272638,
+      "metrics": {
+        "profit_factor": 1.089975,
+        "omega": 1.089975,
+        "rachev": 0.344282,
+        "cdar": 0.483226,
+        "total_return": 0.163999,
+        "win_rate": 0.61,
+        "max_drawdown": 0.519358
+      }
+    },
+    {
+      "rank": 320,
+      "barrier_id": "p3_slt075_mb15",
+      "score": 0.272326,
+      "metrics": {
+        "profit_factor": 1.089322,
+        "omega": 1.089322,
+        "rachev": 0.34446,
+        "cdar": 0.482766,
+        "total_return": 0.163325,
+        "win_rate": 0.61,
+        "max_drawdown": 0.519358
+      }
+    },
+    {
+      "rank": 321,
+      "barrier_id": "p10_slt075_mb20",
+      "score": 0.26992,
+      "metrics": {
+        "profit_factor": 1.090533,
+        "omega": 1.090533,
+        "rachev": 0.36493,
+        "cdar": 0.520081,
+        "total_return": 0.173058,
+        "win_rate": 0.625,
+        "max_drawdown": 0.561637
+      }
+    },
+    {
+      "rank": 322,
+      "barrier_id": "p20_slt075_mb30",
+      "score": 0.265987,
+      "metrics": {
+        "profit_factor": 1.08003,
+        "omega": 1.08003,
+        "rachev": 0.422882,
+        "cdar": 0.569803,
+        "total_return": 0.165065,
+        "win_rate": 0.656716,
+        "max_drawdown": 0.616549
+      }
+    },
+    {
+      "rank": 323,
+      "barrier_id": "p5_slt075_mb20",
+      "score": 0.262887,
+      "metrics": {
+        "profit_factor": 1.098717,
+        "omega": 1.098717,
+        "rachev": 0.333333,
+        "cdar": 0.545317,
+        "total_return": 0.184966,
+        "win_rate": 0.630542,
+        "max_drawdown": 0.586753
+      }
+    },
+    {
+      "rank": 324,
+      "barrier_id": "p7_slt075_mb20",
+      "score": 0.262569,
+      "metrics": {
+        "profit_factor": 1.094725,
+        "omega": 1.094725,
+        "rachev": 0.333333,
+        "cdar": 0.536508,
+        "total_return": 0.180508,
+        "win_rate": 0.628713,
+        "max_drawdown": 0.576496
+      }
+    },
+    {
+      "rank": 325,
+      "barrier_id": "p2_slt075_mb20",
+      "score": 0.259746,
+      "metrics": {
+        "profit_factor": 1.099417,
+        "omega": 1.099417,
+        "rachev": 0.333333,
+        "cdar": 0.550674,
+        "total_return": 0.183086,
+        "win_rate": 0.631841,
+        "max_drawdown": 0.591485
+      }
+    },
+    {
+      "rank": 326,
+      "barrier_id": "p3_slt075_mb20",
+      "score": 0.259702,
+      "metrics": {
+        "profit_factor": 1.099374,
+        "omega": 1.099374,
+        "rachev": 0.333333,
+        "cdar": 0.550674,
+        "total_return": 0.182965,
+        "win_rate": 0.631841,
+        "max_drawdown": 0.591167
+      }
+    },
+    {
+      "rank": 327,
+      "barrier_id": "p5_slt075_mb30",
+      "score": 0.25411,
+      "metrics": {
+        "profit_factor": 1.099592,
+        "omega": 1.099592,
+        "rachev": 0.333333,
+        "cdar": 0.645892,
+        "total_return": 0.206481,
+        "win_rate": 0.68,
+        "max_drawdown": 0.692546
+      }
+    },
+    {
+      "rank": 328,
+      "barrier_id": "p30_slt075_mb50",
+      "score": 0.253065,
+      "metrics": {
+        "profit_factor": 1.074426,
+        "omega": 1.074426,
+        "rachev": 0.434783,
+        "cdar": 0.607064,
+        "total_return": 0.157489,
+        "win_rate": 0.678049,
+        "max_drawdown": 0.654648
+      }
+    },
+    {
+      "rank": 329,
+      "barrier_id": "p3_slt075_mb30",
+      "score": 0.251756,
+      "metrics": {
+        "profit_factor": 1.098934,
+        "omega": 1.098934,
+        "rachev": 0.333333,
+        "cdar": 0.650008,
+        "total_return": 0.204816,
+        "win_rate": 0.681592,
+        "max_drawdown": 0.695832
+      }
+    },
+    {
+      "rank": 330,
+      "barrier_id": "p2_slt075_mb30",
+      "score": 0.251178,
+      "metrics": {
+        "profit_factor": 1.099086,
+        "omega": 1.099086,
+        "rachev": 0.333333,
+        "cdar": 0.649866,
+        "total_return": 0.204225,
+        "win_rate": 0.681592,
+        "max_drawdown": 0.69624
+      }
+    },
+    {
+      "rank": 331,
+      "barrier_id": "p15_slt075_mb30",
+      "score": 0.250733,
+      "metrics": {
+        "profit_factor": 1.085935,
+        "omega": 1.085935,
+        "rachev": 0.354258,
+        "cdar": 0.579546,
+        "total_return": 0.177227,
+        "win_rate": 0.660099,
+        "max_drawdown": 0.625
+      }
+    },
+    {
+      "rank": 332,
+      "barrier_id": "p7_slt075_mb100",
+      "score": 0.250662,
+      "metrics": {
+        "profit_factor": 1.095311,
+        "omega": 1.095311,
+        "rachev": 0.333333,
+        "cdar": 0.785625,
+        "total_return": 0.224283,
+        "win_rate": 0.75,
+        "max_drawdown": 0.85
+      }
+    },
+    {
+      "rank": 333,
+      "barrier_id": "p7_slt075_mb30",
+      "score": 0.25063,
+      "metrics": {
+        "profit_factor": 1.097632,
+        "omega": 1.097632,
+        "rachev": 0.333333,
+        "cdar": 0.632291,
+        "total_return": 0.199338,
+        "win_rate": 0.675926,
+        "max_drawdown": 0.679789
+      }
+    },
+    {
+      "rank": 334,
+      "barrier_id": "p7_slt075_mb200",
+      "score": 0.250576,
+      "metrics": {
+        "profit_factor": 1.094891,
+        "omega": 1.094891,
+        "rachev": 0.333333,
+        "cdar": 0.795,
+        "total_return": 0.224861,
+        "win_rate": 0.755,
+        "max_drawdown": 0.8625
+      }
+    },
+    {
+      "rank": 335,
+      "barrier_id": "p7_slt075_mb150",
+      "score": 0.250566,
+      "metrics": {
+        "profit_factor": 1.094891,
+        "omega": 1.094891,
+        "rachev": 0.333333,
+        "cdar": 0.793125,
+        "total_return": 0.224863,
+        "win_rate": 0.753695,
+        "max_drawdown": 0.8625
+      }
+    },
+    {
+      "rank": 336,
+      "barrier_id": "p10_slt075_mb30",
+      "score": 0.250398,
+      "metrics": {
+        "profit_factor": 1.094478,
+        "omega": 1.094478,
+        "rachev": 0.333333,
+        "cdar": 0.607783,
+        "total_return": 0.191411,
+        "win_rate": 0.668317,
+        "max_drawdown": 0.651275
+      }
+    },
+    {
+      "rank": 337,
+      "barrier_id": "p5_slt075_mb150",
+      "score": 0.25014,
+      "metrics": {
+        "profit_factor": 1.093525,
+        "omega": 1.093525,
+        "rachev": 0.333333,
+        "cdar": 0.8075,
+        "total_return": 0.225,
+        "win_rate": 0.761194,
+        "max_drawdown": 0.875
+      }
+    },
+    {
+      "rank": 338,
+      "barrier_id": "p5_slt075_mb200",
+      "score": 0.250114,
+      "metrics": {
+        "profit_factor": 1.093417,
+        "omega": 1.093417,
+        "rachev": 0.333333,
+        "cdar": 0.808125,
+        "total_return": 0.225,
+        "win_rate": 0.761194,
+        "max_drawdown": 0.875
+      }
+    },
+    {
+      "rank": 339,
+      "barrier_id": "p2_slt075_mb150",
+      "score": 0.250012,
+      "metrics": {
+        "profit_factor": 1.092199,
+        "omega": 1.092199,
+        "rachev": 0.333333,
+        "cdar": 0.811875,
+        "total_return": 0.225,
+        "win_rate": 0.764706,
+        "max_drawdown": 0.88125
+      }
+    },
+    {
+      "rank": 340,
+      "barrier_id": "p3_slt075_mb150",
+      "score": 0.250012,
+      "metrics": {
+        "profit_factor": 1.092199,
+        "omega": 1.092199,
+        "rachev": 0.333333,
+        "cdar": 0.811875,
+        "total_return": 0.225,
+        "win_rate": 0.764706,
+        "max_drawdown": 0.88125
+      }
+    },
+    {
+      "rank": 341,
+      "barrier_id": "p2_slt075_mb200",
+      "score": 0.249893,
+      "metrics": {
+        "profit_factor": 1.092199,
+        "omega": 1.092199,
+        "rachev": 0.333333,
+        "cdar": 0.815625,
+        "total_return": 0.225,
+        "win_rate": 0.765,
+        "max_drawdown": 0.88125
+      }
+    },
+    {
+      "rank": 342,
+      "barrier_id": "p3_slt075_mb200",
+      "score": 0.249893,
+      "metrics": {
+        "profit_factor": 1.092199,
+        "omega": 1.092199,
+        "rachev": 0.333333,
+        "cdar": 0.815625,
+        "total_return": 0.225,
+        "win_rate": 0.765,
+        "max_drawdown": 0.88125
+      }
+    },
+    {
+      "rank": 343,
+      "barrier_id": "p2_slt075_mb100",
+      "score": 0.249579,
+      "metrics": {
+        "profit_factor": 1.094844,
+        "omega": 1.094844,
+        "rachev": 0.333333,
+        "cdar": 0.808304,
+        "total_return": 0.224531,
+        "win_rate": 0.76,
+        "max_drawdown": 0.875
+      }
+    },
+    {
+      "rank": 344,
+      "barrier_id": "p3_slt075_mb100",
+      "score": 0.249429,
+      "metrics": {
+        "profit_factor": 1.093842,
+        "omega": 1.093842,
+        "rachev": 0.333333,
+        "cdar": 0.80875,
+        "total_return": 0.224399,
+        "win_rate": 0.76,
+        "max_drawdown": 0.875
+      }
+    },
+    {
+      "rank": 345,
+      "barrier_id": "p5_slt075_mb100",
+      "score": 0.248997,
+      "metrics": {
+        "profit_factor": 1.097184,
+        "omega": 1.097184,
+        "rachev": 0.333333,
+        "cdar": 0.80375,
+        "total_return": 0.223461,
+        "win_rate": 0.757282,
+        "max_drawdown": 0.86361
+      }
+    },
+    {
+      "rank": 346,
+      "barrier_id": "p2_slt075_mb50",
+      "score": 0.246981,
+      "metrics": {
+        "profit_factor": 1.095481,
+        "omega": 1.095481,
+        "rachev": 0.333333,
+        "cdar": 0.753229,
+        "total_return": 0.217463,
+        "win_rate": 0.731343,
+        "max_drawdown": 0.807987
+      }
+    },
+    {
+      "rank": 347,
+      "barrier_id": "p5_slt075_mb75",
+      "score": 0.246795,
+      "metrics": {
+        "profit_factor": 1.094748,
+        "omega": 1.094748,
+        "rachev": 0.333333,
+        "cdar": 0.792522,
+        "total_return": 0.220617,
+        "win_rate": 0.75,
+        "max_drawdown": 0.85
+      }
+    },
+    {
+      "rank": 348,
+      "barrier_id": "p5_slt075_mb50",
+      "score": 0.246474,
+      "metrics": {
+        "profit_factor": 1.096636,
+        "omega": 1.096636,
+        "rachev": 0.333333,
+        "cdar": 0.747325,
+        "total_return": 0.216401,
+        "win_rate": 0.729064,
+        "max_drawdown": 0.803948
+      }
+    },
+    {
+      "rank": 349,
+      "barrier_id": "p7_slt075_mb75",
+      "score": 0.245376,
+      "metrics": {
+        "profit_factor": 1.096212,
+        "omega": 1.096212,
+        "rachev": 0.333333,
+        "cdar": 0.774375,
+        "total_return": 0.217753,
+        "win_rate": 0.743842,
+        "max_drawdown": 0.833175
+      }
+    },
+    {
+      "rank": 350,
+      "barrier_id": "p3_slt075_mb50",
+      "score": 0.244935,
+      "metrics": {
+        "profit_factor": 1.095347,
+        "omega": 1.095347,
+        "rachev": 0.333333,
+        "cdar": 0.753229,
+        "total_return": 0.215342,
+        "win_rate": 0.731343,
+        "max_drawdown": 0.807705
+      }
+    },
+    {
+      "rank": 351,
+      "barrier_id": "p2_slt075_mb75",
+      "score": 0.243268,
+      "metrics": {
+        "profit_factor": 1.095043,
+        "omega": 1.095043,
+        "rachev": 0.333333,
+        "cdar": 0.794789,
+        "total_return": 0.217235,
+        "win_rate": 0.753695,
+        "max_drawdown": 0.860196
+      }
+    },
+    {
+      "rank": 352,
+      "barrier_id": "p3_slt075_mb75",
+      "score": 0.242531,
+      "metrics": {
+        "profit_factor": 1.094528,
+        "omega": 1.094528,
+        "rachev": 0.333333,
+        "cdar": 0.794245,
+        "total_return": 0.21645,
+        "win_rate": 0.753695,
+        "max_drawdown": 0.860196
+      }
+    },
+    {
+      "rank": 353,
+      "barrier_id": "p10_slt075_mb100",
+      "score": 0.24231,
+      "metrics": {
+        "profit_factor": 1.094203,
+        "omega": 1.094203,
+        "rachev": 0.333333,
+        "cdar": 0.752192,
+        "total_return": 0.2125,
+        "win_rate": 0.736318,
+        "max_drawdown": 0.812512
+      }
+    },
+    {
+      "rank": 354,
+      "barrier_id": "p10_slt075_mb200",
+      "score": 0.241162,
+      "metrics": {
+        "profit_factor": 1.094662,
+        "omega": 1.094662,
+        "rachev": 0.333333,
+        "cdar": 0.76125,
+        "total_return": 0.212334,
+        "win_rate": 0.741294,
+        "max_drawdown": 0.825
+      }
+    },
+    {
+      "rank": 355,
+      "barrier_id": "p7_slt075_mb50",
+      "score": 0.240373,
+      "metrics": {
+        "profit_factor": 1.096322,
+        "omega": 1.096322,
+        "rachev": 0.333333,
+        "cdar": 0.731042,
+        "total_return": 0.208181,
+        "win_rate": 0.722772,
+        "max_drawdown": 0.788031
+      }
+    },
+    {
+      "rank": 356,
+      "barrier_id": "p10_slt075_mb75",
+      "score": 0.239439,
+      "metrics": {
+        "profit_factor": 1.091362,
+        "omega": 1.091362,
+        "rachev": 0.333333,
+        "cdar": 0.7425,
+        "total_return": 0.208529,
+        "win_rate": 0.73,
+        "max_drawdown": 0.800158
+      }
+    },
+    {
+      "rank": 357,
+      "barrier_id": "p10_slt075_mb150",
+      "score": 0.238009,
+      "metrics": {
+        "profit_factor": 1.094631,
+        "omega": 1.094631,
+        "rachev": 0.333333,
+        "cdar": 0.757579,
+        "total_return": 0.208979,
+        "win_rate": 0.74,
+        "max_drawdown": 0.825
+      }
+    },
+    {
+      "rank": 358,
+      "barrier_id": "p10_slt075_mb50",
+      "score": 0.236973,
+      "metrics": {
+        "profit_factor": 1.090943,
+        "omega": 1.090943,
+        "rachev": 0.333333,
+        "cdar": 0.704205,
+        "total_return": 0.200548,
+        "win_rate": 0.711443,
+        "max_drawdown": 0.758211
+      }
+    },
+    {
+      "rank": 359,
+      "barrier_id": "p30_slt075_mb100",
+      "score": 0.236887,
+      "metrics": {
+        "profit_factor": 1.075623,
+        "omega": 1.075623,
+        "rachev": 0.399765,
+        "cdar": 0.635625,
+        "total_return": 0.16686,
+        "win_rate": 0.69,
+        "max_drawdown": 0.69375
+      }
+    },
+    {
+      "rank": 360,
+      "barrier_id": "p15_slt075_mb50",
+      "score": 0.235874,
+      "metrics": {
+        "profit_factor": 1.087205,
+        "omega": 1.087205,
+        "rachev": 0.333333,
+        "cdar": 0.66,
+        "total_return": 0.190029,
+        "win_rate": 0.696517,
+        "max_drawdown": 0.710725
+      }
+    },
+    {
+      "rank": 361,
+      "barrier_id": "p30_slt075_mb75",
+      "score": 0.232804,
+      "metrics": {
+        "profit_factor": 1.073358,
+        "omega": 1.073358,
+        "rachev": 0.4,
+        "cdar": 0.628495,
+        "total_return": 0.15809,
+        "win_rate": 0.686567,
+        "max_drawdown": 0.676525
+      }
+    },
+    {
+      "rank": 362,
+      "barrier_id": "p30_slt075_mb200",
+      "score": 0.23233,
+      "metrics": {
+        "profit_factor": 1.076065,
+        "omega": 1.076065,
+        "rachev": 0.384615,
+        "cdar": 0.64125,
+        "total_return": 0.168246,
+        "win_rate": 0.691542,
+        "max_drawdown": 0.693917
+      }
+    },
+    {
+      "rank": 363,
+      "barrier_id": "p20_slt075_mb50",
+      "score": 0.230303,
+      "metrics": {
+        "profit_factor": 1.082524,
+        "omega": 1.082524,
+        "rachev": 0.339578,
+        "cdar": 0.631369,
+        "total_return": 0.175564,
+        "win_rate": 0.686567,
+        "max_drawdown": 0.684689
+      }
+    },
+    {
+      "rank": 364,
+      "barrier_id": "p30_slt075_mb150",
+      "score": 0.228854,
+      "metrics": {
+        "profit_factor": 1.075188,
+        "omega": 1.075188,
+        "rachev": 0.388053,
+        "cdar": 0.6375,
+        "total_return": 0.1625,
+        "win_rate": 0.691542,
+        "max_drawdown": 0.69375
+      }
+    },
+    {
+      "rank": 365,
+      "barrier_id": "p15_slt075_mb100",
+      "score": 0.227472,
+      "metrics": {
+        "profit_factor": 1.086492,
+        "omega": 1.086492,
+        "rachev": 0.333333,
+        "cdar": 0.702303,
+        "total_return": 0.190126,
+        "win_rate": 0.718447,
+        "max_drawdown": 0.758916
+      }
+    },
+    {
+      "rank": 366,
+      "barrier_id": "p15_slt075_mb75",
+      "score": 0.226498,
+      "metrics": {
+        "profit_factor": 1.084796,
+        "omega": 1.084796,
+        "rachev": 0.333333,
+        "cdar": 0.695068,
+        "total_return": 0.187924,
+        "win_rate": 0.712871,
+        "max_drawdown": 0.75
+      }
+    },
+    {
+      "rank": 367,
+      "barrier_id": "p15_slt075_mb200",
+      "score": 0.226145,
+      "metrics": {
+        "profit_factor": 1.086476,
+        "omega": 1.086476,
+        "rachev": 0.333333,
+        "cdar": 0.710625,
+        "total_return": 0.190357,
+        "win_rate": 0.721393,
+        "max_drawdown": 0.76875
+      }
+    },
+    {
+      "rank": 368,
+      "barrier_id": "p15_slt075_mb150",
+      "score": 0.224591,
+      "metrics": {
+        "profit_factor": 1.08504,
+        "omega": 1.08504,
+        "rachev": 0.333333,
+        "cdar": 0.706875,
+        "total_return": 0.188472,
+        "win_rate": 0.720588,
+        "max_drawdown": 0.76875
+      }
+    },
+    {
+      "rank": 369,
+      "barrier_id": "p20_slt075_mb75",
+      "score": 0.219731,
+      "metrics": {
+        "profit_factor": 1.07786,
+        "omega": 1.07786,
+        "rachev": 0.333333,
+        "cdar": 0.662017,
+        "total_return": 0.173721,
+        "win_rate": 0.7,
+        "max_drawdown": 0.716464
+      }
+    },
+    {
+      "rank": 370,
+      "barrier_id": "p20_slt075_mb100",
+      "score": 0.218884,
+      "metrics": {
+        "profit_factor": 1.078653,
+        "omega": 1.078653,
+        "rachev": 0.333333,
+        "cdar": 0.670272,
+        "total_return": 0.174677,
+        "win_rate": 0.705,
+        "max_drawdown": 0.725
+      }
+    },
+    {
+      "rank": 371,
+      "barrier_id": "p20_slt075_mb150",
+      "score": 0.218254,
+      "metrics": {
+        "profit_factor": 1.077453,
+        "omega": 1.077453,
+        "rachev": 0.333333,
+        "cdar": 0.6725,
+        "total_return": 0.175,
+        "win_rate": 0.706468,
+        "max_drawdown": 0.73125
+      }
+    },
+    {
+      "rank": 372,
+      "barrier_id": "p20_slt075_mb200",
+      "score": 0.21805,
+      "metrics": {
+        "profit_factor": 1.076923,
+        "omega": 1.076923,
+        "rachev": 0.333333,
+        "cdar": 0.675049,
+        "total_return": 0.175,
+        "win_rate": 0.707921,
+        "max_drawdown": 0.73125
+      }
+    }
+  ],
+  "comparison_to_baseline": {
+    "baseline_method": "equal_weight_topsis_3metric",
+    "kendall_tau": -0.6632,
+    "spearman_rho": -0.8707,
+    "top10_jaccard": 0.0,
+    "rank1_agreement": false,
+    "baseline_top10": [
+      "p15_slt050_mb200",
+      "p7_slt050_mb200",
+      "p2_slt050_mb200",
+      "p3_slt050_mb200",
+      "p20_slt050_mb200",
+      "p10_slt050_mb200",
+      "p30_slt050_mb200",
+      "p5_slt050_mb200",
+      "p3_slt050_mb150",
+      "p5_slt050_mb150"
+    ],
+    "this_top10": [
+      "p2_slt005_mb30",
+      "p2_slt005_mb100",
+      "p2_slt005_mb75",
+      "p2_slt005_mb50",
+      "p2_slt005_mb150",
+      "p2_slt005_mb200",
+      "p2_slt005_mb15",
+      "p2_slt005_mb20",
+      "p2_slt005_mb10",
+      "p2_slt010_mb20"
+    ]
+  }
+}

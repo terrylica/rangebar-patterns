@@ -1,0 +1,3779 @@
+{
+  "meta": {
+    "round": 4,
+    "method": "cross_consistency",
+    "method_description": "Rank by universality: geometric mean of (symbols with PF>1 fraction, formations with PF>1 fraction, thresholds with PF>1 fraction).",
+    "direction": "short",
+    "timestamp": "2026-02-18T01:01:14.402026+00:00",
+    "n_barriers_ranked": 372,
+    "n_barriers_excluded": 62,
+    "exclusion_reason": "slt000 (no stop-loss) barriers removed",
+    "data_source": "results/eval/gen720/folds/short_folds.parquet",
+    "n_folds_used": 4068936,
+    "git_commit": "9ec4b15"
+  },
+  "method_params": {
+    "metric": "profit_factor",
+    "threshold": 1.0,
+    "aggregation": "geometric_mean",
+    "dimensions": [
+      "symbol",
+      "formation",
+      "threshold"
+    ],
+    "data_level": "fold"
+  },
+  "ranking": [
+    {
+      "rank": 1,
+      "barrier_id": "p5_slt005_mb10",
+      "score": 0.843433,
+      "metrics": {
+        "symbol_fraction": 0.8,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 2,
+      "barrier_id": "p7_slt005_mb10",
+      "score": 0.843433,
+      "metrics": {
+        "symbol_fraction": 0.8,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 3,
+      "barrier_id": "p15_slt005_mb20",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 4,
+      "barrier_id": "p20_slt005_mb75",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 5,
+      "barrier_id": "p20_slt005_mb50",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 6,
+      "barrier_id": "p7_slt005_mb50",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 7,
+      "barrier_id": "p20_slt005_mb30",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 8,
+      "barrier_id": "p3_slt005_mb15",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 9,
+      "barrier_id": "p20_slt005_mb200",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 10,
+      "barrier_id": "p3_slt005_mb20",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 11,
+      "barrier_id": "p20_slt005_mb150",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 12,
+      "barrier_id": "p3_slt005_mb10",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 13,
+      "barrier_id": "p20_slt005_mb100",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 14,
+      "barrier_id": "p5_slt005_mb20",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 15,
+      "barrier_id": "p5_slt005_mb30",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 16,
+      "barrier_id": "p7_slt005_mb30",
+      "score": 0.819321,
+      "metrics": {
+        "symbol_fraction": 0.733333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 17,
+      "barrier_id": "p30_slt005_mb100",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 18,
+      "barrier_id": "p5_slt005_mb15",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 19,
+      "barrier_id": "p2_slt005_mb10",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 20,
+      "barrier_id": "p15_slt005_mb75",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 21,
+      "barrier_id": "p15_slt005_mb50",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 22,
+      "barrier_id": "p15_slt005_mb30",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 23,
+      "barrier_id": "p30_slt005_mb150",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 24,
+      "barrier_id": "p30_slt005_mb200",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 25,
+      "barrier_id": "p15_slt005_mb200",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 26,
+      "barrier_id": "p30_slt005_mb75",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 27,
+      "barrier_id": "p3_slt005_mb30",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 28,
+      "barrier_id": "p15_slt005_mb150",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 29,
+      "barrier_id": "p7_slt005_mb20",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 30,
+      "barrier_id": "p15_slt005_mb100",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 31,
+      "barrier_id": "p10_slt005_mb20",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 32,
+      "barrier_id": "p30_slt005_mb50",
+      "score": 0.793701,
+      "metrics": {
+        "symbol_fraction": 0.666667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 33,
+      "barrier_id": "p3_slt005_mb50",
+      "score": 0.766309,
+      "metrics": {
+        "symbol_fraction": 0.6,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 34,
+      "barrier_id": "p7_slt005_mb15",
+      "score": 0.766309,
+      "metrics": {
+        "symbol_fraction": 0.6,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 35,
+      "barrier_id": "p10_slt005_mb50",
+      "score": 0.766309,
+      "metrics": {
+        "symbol_fraction": 0.6,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 36,
+      "barrier_id": "p10_slt005_mb30",
+      "score": 0.766309,
+      "metrics": {
+        "symbol_fraction": 0.6,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 37,
+      "barrier_id": "p10_slt005_mb15",
+      "score": 0.766309,
+      "metrics": {
+        "symbol_fraction": 0.6,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 38,
+      "barrier_id": "p7_slt005_mb75",
+      "score": 0.766309,
+      "metrics": {
+        "symbol_fraction": 0.6,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 39,
+      "barrier_id": "p7_slt005_mb100",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 40,
+      "barrier_id": "p7_slt005_mb150",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 41,
+      "barrier_id": "p7_slt005_mb200",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 42,
+      "barrier_id": "p2_slt005_mb15",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 43,
+      "barrier_id": "p2_slt005_mb20",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 44,
+      "barrier_id": "p10_slt005_mb100",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 45,
+      "barrier_id": "p5_slt005_mb75",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 46,
+      "barrier_id": "p10_slt005_mb150",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 47,
+      "barrier_id": "p10_slt005_mb200",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 48,
+      "barrier_id": "p10_slt005_mb75",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 49,
+      "barrier_id": "p3_slt005_mb75",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 50,
+      "barrier_id": "p3_slt005_mb200",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 51,
+      "barrier_id": "p5_slt005_mb50",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 52,
+      "barrier_id": "p5_slt005_mb200",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 53,
+      "barrier_id": "p3_slt005_mb150",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 54,
+      "barrier_id": "p5_slt005_mb150",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 55,
+      "barrier_id": "p3_slt005_mb100",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 56,
+      "barrier_id": "p2_slt005_mb30",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 57,
+      "barrier_id": "p5_slt005_mb100",
+      "score": 0.736806,
+      "metrics": {
+        "symbol_fraction": 0.533333,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 58,
+      "barrier_id": "p2_slt005_mb50",
+      "score": 0.70473,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 59,
+      "barrier_id": "p2_slt005_mb75",
+      "score": 0.70473,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 60,
+      "barrier_id": "p2_slt005_mb100",
+      "score": 0.70473,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 1.0
+      }
+    },
+    {
+      "rank": 61,
+      "barrier_id": "p2_slt005_mb200",
+      "score": 0.615638,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 0.666667
+      }
+    },
+    {
+      "rank": 62,
+      "barrier_id": "p2_slt005_mb150",
+      "score": 0.615638,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.75,
+        "threshold_fraction": 0.666667
+      }
+    },
+    {
+      "rank": 63,
+      "barrier_id": "p3_slt025_mb15",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 64,
+      "barrier_id": "p3_slt025_mb10",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 65,
+      "barrier_id": "p5_slt025_mb20",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 66,
+      "barrier_id": "p2_slt075_mb15",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 67,
+      "barrier_id": "p5_slt025_mb15",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 68,
+      "barrier_id": "p2_slt010_mb30",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 69,
+      "barrier_id": "p3_slt010_mb15",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 70,
+      "barrier_id": "p3_slt010_mb20",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 71,
+      "barrier_id": "p2_slt010_mb20",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 72,
+      "barrier_id": "p2_slt010_mb10",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 73,
+      "barrier_id": "p3_slt025_mb20",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 74,
+      "barrier_id": "p5_slt035_mb20",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 75,
+      "barrier_id": "p3_slt010_mb30",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 76,
+      "barrier_id": "p10_slt035_mb20",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 77,
+      "barrier_id": "p7_slt025_mb20",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 78,
+      "barrier_id": "p7_slt035_mb15",
+      "score": 0.42686,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 79,
+      "barrier_id": "p2_slt010_mb15",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 80,
+      "barrier_id": "p5_slt050_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 81,
+      "barrier_id": "p3_slt050_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 82,
+      "barrier_id": "p5_slt075_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 83,
+      "barrier_id": "p10_slt050_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 84,
+      "barrier_id": "p3_slt035_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 85,
+      "barrier_id": "p3_slt035_mb15",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 86,
+      "barrier_id": "p2_slt035_mb15",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 87,
+      "barrier_id": "p7_slt075_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 88,
+      "barrier_id": "p7_slt025_mb15",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 89,
+      "barrier_id": "p2_slt035_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 90,
+      "barrier_id": "p7_slt050_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 91,
+      "barrier_id": "p15_slt035_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 92,
+      "barrier_id": "p5_slt010_mb15",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 93,
+      "barrier_id": "p15_slt075_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 94,
+      "barrier_id": "p2_slt050_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 95,
+      "barrier_id": "p15_slt050_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 96,
+      "barrier_id": "p10_slt075_mb20",
+      "score": 0.40548,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 97,
+      "barrier_id": "p3_slt075_mb15",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 98,
+      "barrier_id": "p5_slt075_mb15",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 99,
+      "barrier_id": "p5_slt010_mb10",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 100,
+      "barrier_id": "p3_slt010_mb10",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 101,
+      "barrier_id": "p5_slt010_mb20",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 102,
+      "barrier_id": "p7_slt075_mb15",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 103,
+      "barrier_id": "p3_slt075_mb20",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 104,
+      "barrier_id": "p7_slt025_mb10",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 105,
+      "barrier_id": "p2_slt075_mb20",
+      "score": 0.381571,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 106,
+      "barrier_id": "p2_slt075_mb10",
+      "score": 0.35422,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 107,
+      "barrier_id": "p3_slt075_mb10",
+      "score": 0.35422,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 108,
+      "barrier_id": "p5_slt075_mb10",
+      "score": 0.35422,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.333333
+      }
+    },
+    {
+      "rank": 109,
+      "barrier_id": "p2_slt010_mb50",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 110,
+      "barrier_id": "p2_slt025_mb20",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 111,
+      "barrier_id": "p15_slt025_mb20",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 112,
+      "barrier_id": "p7_slt035_mb20",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 113,
+      "barrier_id": "p2_slt010_mb75",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 114,
+      "barrier_id": "p10_slt075_mb15",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 115,
+      "barrier_id": "p2_slt010_mb100",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 116,
+      "barrier_id": "p5_slt025_mb30",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 117,
+      "barrier_id": "p2_slt025_mb15",
+      "score": 0.006156,
+      "metrics": {
+        "symbol_fraction": 0.466667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 118,
+      "barrier_id": "p20_slt075_mb30",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 119,
+      "barrier_id": "p5_slt025_mb50",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 120,
+      "barrier_id": "p3_slt050_mb15",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 121,
+      "barrier_id": "p2_slt050_mb15",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 122,
+      "barrier_id": "p7_slt035_mb30",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 123,
+      "barrier_id": "p10_slt050_mb15",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 124,
+      "barrier_id": "p15_slt025_mb50",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 125,
+      "barrier_id": "p5_slt050_mb15",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 126,
+      "barrier_id": "p3_slt010_mb50",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 127,
+      "barrier_id": "p10_slt025_mb15",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 128,
+      "barrier_id": "p10_slt025_mb20",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 129,
+      "barrier_id": "p7_slt050_mb15",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 130,
+      "barrier_id": "p3_slt010_mb75",
+      "score": 0.005848,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 131,
+      "barrier_id": "p10_slt035_mb15",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 132,
+      "barrier_id": "p10_slt035_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 133,
+      "barrier_id": "p2_slt010_mb200",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 134,
+      "barrier_id": "p2_slt075_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 135,
+      "barrier_id": "p7_slt050_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 136,
+      "barrier_id": "p10_slt050_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 137,
+      "barrier_id": "p2_slt010_mb150",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 138,
+      "barrier_id": "p7_slt010_mb15",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 139,
+      "barrier_id": "p5_slt050_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 140,
+      "barrier_id": "p7_slt025_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 141,
+      "barrier_id": "p7_slt010_mb10",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 142,
+      "barrier_id": "p15_slt050_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 143,
+      "barrier_id": "p15_slt075_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 144,
+      "barrier_id": "p7_slt075_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 145,
+      "barrier_id": "p15_slt025_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 146,
+      "barrier_id": "p3_slt025_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 147,
+      "barrier_id": "p7_slt025_mb50",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 148,
+      "barrier_id": "p5_slt075_mb50",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 149,
+      "barrier_id": "p3_slt035_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 150,
+      "barrier_id": "p2_slt050_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 151,
+      "barrier_id": "p3_slt050_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 152,
+      "barrier_id": "p20_slt050_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 153,
+      "barrier_id": "p5_slt035_mb15",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 154,
+      "barrier_id": "p5_slt035_mb10",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 155,
+      "barrier_id": "p10_slt075_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 156,
+      "barrier_id": "p3_slt075_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 157,
+      "barrier_id": "p10_slt025_mb50",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 158,
+      "barrier_id": "p5_slt075_mb30",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 159,
+      "barrier_id": "p10_slt075_mb50",
+      "score": 0.005503,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 160,
+      "barrier_id": "p3_slt050_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 161,
+      "barrier_id": "p10_slt010_mb15",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 162,
+      "barrier_id": "p3_slt010_mb100",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 163,
+      "barrier_id": "p10_slt010_mb50",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 164,
+      "barrier_id": "p10_slt010_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 165,
+      "barrier_id": "p7_slt075_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 166,
+      "barrier_id": "p7_slt050_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 167,
+      "barrier_id": "p10_slt025_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 168,
+      "barrier_id": "p10_slt010_mb20",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 169,
+      "barrier_id": "p3_slt035_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 170,
+      "barrier_id": "p2_slt025_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 171,
+      "barrier_id": "p15_slt010_mb50",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 172,
+      "barrier_id": "p2_slt050_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 173,
+      "barrier_id": "p15_slt010_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 174,
+      "barrier_id": "p20_slt025_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 175,
+      "barrier_id": "p20_slt025_mb50",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 176,
+      "barrier_id": "p20_slt035_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 177,
+      "barrier_id": "p5_slt050_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 178,
+      "barrier_id": "p5_slt035_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 179,
+      "barrier_id": "p7_slt010_mb50",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 180,
+      "barrier_id": "p20_slt010_mb50",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 181,
+      "barrier_id": "p7_slt010_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 182,
+      "barrier_id": "p15_slt010_mb100",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 183,
+      "barrier_id": "p15_slt010_mb20",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 184,
+      "barrier_id": "p2_slt025_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 185,
+      "barrier_id": "p2_slt035_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 186,
+      "barrier_id": "p15_slt035_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 187,
+      "barrier_id": "p7_slt035_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 188,
+      "barrier_id": "p2_slt035_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 189,
+      "barrier_id": "p5_slt010_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 190,
+      "barrier_id": "p20_slt010_mb30",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 191,
+      "barrier_id": "p5_slt025_mb10",
+      "score": 0.005109,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 192,
+      "barrier_id": "p7_slt010_mb20",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 193,
+      "barrier_id": "p10_slt010_mb75",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 194,
+      "barrier_id": "p10_slt010_mb150",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 195,
+      "barrier_id": "p7_slt010_mb150",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 196,
+      "barrier_id": "p3_slt010_mb150",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 197,
+      "barrier_id": "p10_slt010_mb100",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 198,
+      "barrier_id": "p10_slt010_mb200",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 199,
+      "barrier_id": "p20_slt010_mb100",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 200,
+      "barrier_id": "p20_slt010_mb150",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 201,
+      "barrier_id": "p20_slt010_mb200",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 202,
+      "barrier_id": "p7_slt010_mb75",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 203,
+      "barrier_id": "p15_slt010_mb75",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 204,
+      "barrier_id": "p5_slt010_mb100",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 205,
+      "barrier_id": "p7_slt010_mb100",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 206,
+      "barrier_id": "p10_slt035_mb50",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 207,
+      "barrier_id": "p5_slt010_mb50",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 208,
+      "barrier_id": "p5_slt010_mb75",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 209,
+      "barrier_id": "p20_slt010_mb75",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 210,
+      "barrier_id": "p3_slt010_mb200",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 211,
+      "barrier_id": "p15_slt010_mb200",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 212,
+      "barrier_id": "p30_slt010_mb50",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 213,
+      "barrier_id": "p15_slt010_mb150",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 214,
+      "barrier_id": "p7_slt075_mb50",
+      "score": 0.004642,
+      "metrics": {
+        "symbol_fraction": 0.4,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 215,
+      "barrier_id": "p15_slt075_mb50",
+      "score": 0.004368,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 216,
+      "barrier_id": "p20_slt075_mb50",
+      "score": 0.004368,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 217,
+      "barrier_id": "p15_slt075_mb75",
+      "score": 0.004368,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 218,
+      "barrier_id": "p7_slt010_mb200",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 219,
+      "barrier_id": "p3_slt025_mb75",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 220,
+      "barrier_id": "p3_slt025_mb100",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 221,
+      "barrier_id": "p5_slt010_mb200",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 222,
+      "barrier_id": "p3_slt025_mb50",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 223,
+      "barrier_id": "p5_slt010_mb150",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.5,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 224,
+      "barrier_id": "p7_slt035_mb50",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 225,
+      "barrier_id": "p3_slt025_mb200",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 226,
+      "barrier_id": "p3_slt025_mb150",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 227,
+      "barrier_id": "p7_slt075_mb75",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 228,
+      "barrier_id": "p30_slt075_mb50",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 229,
+      "barrier_id": "p10_slt075_mb75",
+      "score": 0.004055,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 230,
+      "barrier_id": "p2_slt025_mb100",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 231,
+      "barrier_id": "p2_slt025_mb150",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 232,
+      "barrier_id": "p2_slt025_mb200",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 233,
+      "barrier_id": "p2_slt025_mb50",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 234,
+      "barrier_id": "p2_slt025_mb75",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 235,
+      "barrier_id": "p30_slt010_mb150",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 236,
+      "barrier_id": "p30_slt010_mb200",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 237,
+      "barrier_id": "p30_slt010_mb75",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 238,
+      "barrier_id": "p30_slt025_mb50",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 239,
+      "barrier_id": "p30_slt025_mb75",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 240,
+      "barrier_id": "p30_slt010_mb100",
+      "score": 0.003684,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.25,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 241,
+      "barrier_id": "p20_slt075_mb75",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 242,
+      "barrier_id": "p5_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 243,
+      "barrier_id": "p30_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 244,
+      "barrier_id": "p2_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 245,
+      "barrier_id": "p15_slt075_mb100",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 246,
+      "barrier_id": "p15_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 247,
+      "barrier_id": "p2_slt075_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 248,
+      "barrier_id": "p10_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 249,
+      "barrier_id": "p20_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 250,
+      "barrier_id": "p7_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 251,
+      "barrier_id": "p3_slt050_mb50",
+      "score": 6.9e-05,
+      "metrics": {
+        "symbol_fraction": 0.333333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 252,
+      "barrier_id": "p2_slt035_mb50",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 253,
+      "barrier_id": "p5_slt025_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 254,
+      "barrier_id": "p15_slt025_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 255,
+      "barrier_id": "p5_slt025_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 256,
+      "barrier_id": "p15_slt025_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 257,
+      "barrier_id": "p15_slt025_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 258,
+      "barrier_id": "p7_slt025_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 259,
+      "barrier_id": "p5_slt025_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 260,
+      "barrier_id": "p15_slt025_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 261,
+      "barrier_id": "p20_slt075_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 262,
+      "barrier_id": "p5_slt025_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 263,
+      "barrier_id": "p7_slt025_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 264,
+      "barrier_id": "p15_slt035_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 265,
+      "barrier_id": "p15_slt035_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 266,
+      "barrier_id": "p15_slt035_mb50",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 267,
+      "barrier_id": "p15_slt035_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 268,
+      "barrier_id": "p5_slt035_mb50",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 269,
+      "barrier_id": "p30_slt075_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 270,
+      "barrier_id": "p20_slt035_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 271,
+      "barrier_id": "p20_slt025_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 272,
+      "barrier_id": "p20_slt025_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 273,
+      "barrier_id": "p20_slt025_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 274,
+      "barrier_id": "p15_slt035_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 275,
+      "barrier_id": "p7_slt025_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 276,
+      "barrier_id": "p20_slt025_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 277,
+      "barrier_id": "p2_slt035_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 278,
+      "barrier_id": "p10_slt025_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 279,
+      "barrier_id": "p10_slt025_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 280,
+      "barrier_id": "p3_slt035_mb50",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 281,
+      "barrier_id": "p3_slt035_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 282,
+      "barrier_id": "p10_slt025_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 283,
+      "barrier_id": "p30_slt035_mb50",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 284,
+      "barrier_id": "p10_slt025_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 285,
+      "barrier_id": "p10_slt035_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 286,
+      "barrier_id": "p5_slt075_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 287,
+      "barrier_id": "p3_slt075_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 288,
+      "barrier_id": "p10_slt035_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 289,
+      "barrier_id": "p10_slt035_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 290,
+      "barrier_id": "p10_slt035_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 291,
+      "barrier_id": "p3_slt075_mb50",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 292,
+      "barrier_id": "p7_slt035_mb200",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 293,
+      "barrier_id": "p7_slt035_mb150",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 294,
+      "barrier_id": "p7_slt035_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 295,
+      "barrier_id": "p2_slt075_mb100",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 296,
+      "barrier_id": "p7_slt035_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 297,
+      "barrier_id": "p7_slt025_mb75",
+      "score": 6.4e-05,
+      "metrics": {
+        "symbol_fraction": 0.266667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 298,
+      "barrier_id": "p7_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 299,
+      "barrier_id": "p10_slt075_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 300,
+      "barrier_id": "p5_slt075_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 301,
+      "barrier_id": "p7_slt075_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 302,
+      "barrier_id": "p10_slt075_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 303,
+      "barrier_id": "p10_slt075_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 304,
+      "barrier_id": "p10_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 305,
+      "barrier_id": "p7_slt075_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 306,
+      "barrier_id": "p15_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 307,
+      "barrier_id": "p7_slt075_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 308,
+      "barrier_id": "p15_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 309,
+      "barrier_id": "p7_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 310,
+      "barrier_id": "p10_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 311,
+      "barrier_id": "p15_slt075_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 312,
+      "barrier_id": "p3_slt035_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 313,
+      "barrier_id": "p5_slt035_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 314,
+      "barrier_id": "p2_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 315,
+      "barrier_id": "p2_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 316,
+      "barrier_id": "p30_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 317,
+      "barrier_id": "p3_slt075_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 318,
+      "barrier_id": "p2_slt035_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 319,
+      "barrier_id": "p2_slt035_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 320,
+      "barrier_id": "p2_slt035_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 321,
+      "barrier_id": "p30_slt035_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 322,
+      "barrier_id": "p30_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 323,
+      "barrier_id": "p30_slt025_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 324,
+      "barrier_id": "p3_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 325,
+      "barrier_id": "p20_slt075_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 326,
+      "barrier_id": "p2_slt075_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 327,
+      "barrier_id": "p20_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 328,
+      "barrier_id": "p5_slt035_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 329,
+      "barrier_id": "p5_slt035_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 330,
+      "barrier_id": "p30_slt025_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 331,
+      "barrier_id": "p30_slt035_mb150",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 332,
+      "barrier_id": "p3_slt035_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 333,
+      "barrier_id": "p30_slt035_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 334,
+      "barrier_id": "p5_slt050_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 335,
+      "barrier_id": "p20_slt035_mb50",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 336,
+      "barrier_id": "p5_slt035_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 337,
+      "barrier_id": "p3_slt035_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 338,
+      "barrier_id": "p30_slt035_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 339,
+      "barrier_id": "p3_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 340,
+      "barrier_id": "p20_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 341,
+      "barrier_id": "p5_slt050_mb100",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 342,
+      "barrier_id": "p30_slt025_mb200",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 343,
+      "barrier_id": "p3_slt075_mb75",
+      "score": 5.8e-05,
+      "metrics": {
+        "symbol_fraction": 0.2,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 344,
+      "barrier_id": "p7_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 345,
+      "barrier_id": "p3_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 346,
+      "barrier_id": "p3_slt075_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 347,
+      "barrier_id": "p3_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 348,
+      "barrier_id": "p30_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 349,
+      "barrier_id": "p10_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 350,
+      "barrier_id": "p7_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 351,
+      "barrier_id": "p20_slt035_mb100",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 352,
+      "barrier_id": "p2_slt075_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 353,
+      "barrier_id": "p20_slt035_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 354,
+      "barrier_id": "p20_slt035_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 355,
+      "barrier_id": "p5_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 356,
+      "barrier_id": "p15_slt075_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 357,
+      "barrier_id": "p20_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 358,
+      "barrier_id": "p15_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 359,
+      "barrier_id": "p15_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 360,
+      "barrier_id": "p10_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 361,
+      "barrier_id": "p20_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 362,
+      "barrier_id": "p30_slt075_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 363,
+      "barrier_id": "p30_slt075_mb100",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 364,
+      "barrier_id": "p30_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 365,
+      "barrier_id": "p5_slt075_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 366,
+      "barrier_id": "p2_slt050_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 367,
+      "barrier_id": "p2_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 368,
+      "barrier_id": "p2_slt075_mb150",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 369,
+      "barrier_id": "p20_slt075_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 370,
+      "barrier_id": "p5_slt050_mb200",
+      "score": 5.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.133333,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 371,
+      "barrier_id": "p30_slt075_mb200",
+      "score": 4.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.066667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    },
+    {
+      "rank": 372,
+      "barrier_id": "p5_slt075_mb200",
+      "score": 4.1e-05,
+      "metrics": {
+        "symbol_fraction": 0.066667,
+        "formation_fraction": 0.0,
+        "threshold_fraction": 0.0
+      }
+    }
+  ],
+  "comparison_to_baseline": {
+    "baseline_method": "equal_weight_topsis_3metric",
+    "kendall_tau": -0.1053,
+    "spearman_rho": -0.1955,
+    "top10_jaccard": 0.0,
+    "rank1_agreement": false,
+    "baseline_top10": [
+      "p10_slt025_mb75",
+      "p10_slt025_mb200",
+      "p10_slt025_mb150",
+      "p10_slt025_mb100",
+      "p10_slt025_mb50",
+      "p2_slt035_mb100",
+      "p2_slt035_mb150",
+      "p2_slt035_mb200",
+      "p10_slt025_mb30",
+      "p7_slt025_mb30"
+    ],
+    "this_top10": [
+      "p5_slt005_mb10",
+      "p7_slt005_mb10",
+      "p15_slt005_mb20",
+      "p20_slt005_mb75",
+      "p20_slt005_mb50",
+      "p7_slt005_mb50",
+      "p20_slt005_mb30",
+      "p3_slt005_mb15",
+      "p20_slt005_mb200",
+      "p3_slt005_mb20"
+    ]
+  }
+}
