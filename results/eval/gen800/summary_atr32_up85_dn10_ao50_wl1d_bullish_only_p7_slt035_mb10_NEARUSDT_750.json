@@ -1,0 +1,34 @@
+{
+  "config_id": "atr32_up85_dn10_ao50__wl1d__bullish_only__p7_slt035_mb10",
+  "symbol": "NEARUSDT",
+  "threshold": 750,
+  "n_bars": 161147,
+  "n_trades": 1998,
+  "hedging": true,
+  "win_rate": 0.5821,
+  "total_return_pct": 4948.7712,
+  "max_drawdown_pct": -57.1781,
+  "profit_factor": 1.3065,
+  "underwater_ratio": 0.8248,
+  "max_underwater_trades": 486,
+  "worst_stagnation_start": "2022-05-13 11:56:02.221000",
+  "worst_stagnation_end": "2025-01-21 17:53:13.335000",
+  "regime_distribution": {
+    "bearish": 39191,
+    "neutral": 72168,
+    "bullish": 49788
+  },
+  "laguerre_config": {
+    "atr_period": 32,
+    "level_up": 0.85,
+    "level_down": 0.1,
+    "adaptive_offset": 0.5
+  },
+  "barrier_config": {
+    "tp_mult": 2.5,
+    "sl_mult": 5.0,
+    "sl_tight_mult": 3.5,
+    "phase1_bars": 7,
+    "max_bars": 10
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "config_id": "atr32_up85_dn10_ao50__wl1d__bullish_only__p7_slt035_mb10",
+  "symbol": "AVAXUSDT",
+  "threshold": 750,
+  "n_bars": 163156,
+  "n_trades": 2171,
+  "hedging": true,
+  "win_rate": 0.5827,
+  "total_return_pct": 2247.6787,
+  "max_drawdown_pct": -49.2523,
+  "profit_factor": 1.223,
+  "underwater_ratio": 0.865,
+  "max_underwater_trades": 516,
+  "worst_stagnation_start": "2022-05-11 12:54:21.009000",
+  "worst_stagnation_end": "2025-05-09 09:06:38.586000",
+  "regime_distribution": {
+    "bearish": 39683,
+    "neutral": 73800,
+    "bullish": 49673
+  },
+  "laguerre_config": {
+    "atr_period": 32,
+    "level_up": 0.85,
+    "level_down": 0.1,
+    "adaptive_offset": 0.5
+  },
+  "barrier_config": {
+    "tp_mult": 2.5,
+    "sl_mult": 5.0,
+    "sl_tight_mult": 3.5,
+    "phase1_bars": 7,
+    "max_bars": 10
+  }
+}

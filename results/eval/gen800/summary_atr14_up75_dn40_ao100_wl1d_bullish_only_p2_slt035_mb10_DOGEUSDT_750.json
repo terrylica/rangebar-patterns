@@ -1,0 +1,34 @@
+{
+  "config_id": "atr14_up75_dn40_ao100__wl1d__bullish_only__p2_slt035_mb10",
+  "symbol": "DOGEUSDT",
+  "threshold": 750,
+  "n_bars": 304398,
+  "n_trades": 6833,
+  "hedging": true,
+  "win_rate": 0.5737,
+  "total_return_pct": 16.1153,
+  "max_drawdown_pct": -0.9727,
+  "profit_factor": 1.3986,
+  "underwater_ratio": 0.8039,
+  "max_underwater_trades": 1457,
+  "worst_stagnation_start": "2021-04-16 13:39:45.009000",
+  "worst_stagnation_end": "2021-05-19 12:51:12.766000",
+  "regime_distribution": {
+    "bearish": 126078,
+    "neutral": 79623,
+    "bullish": 98697
+  },
+  "laguerre_config": {
+    "atr_period": 14,
+    "level_up": 0.75,
+    "level_down": 0.4,
+    "adaptive_offset": 1.0
+  },
+  "barrier_config": {
+    "tp_mult": 2.5,
+    "sl_mult": 5.0,
+    "sl_tight_mult": 3.5,
+    "phase1_bars": 2,
+    "max_bars": 10
+  }
+}

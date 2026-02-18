@@ -1,0 +1,34 @@
+{
+  "config_id": "atr32_up85_dn10_ao50__wl1d__bullish_only__p7_slt035_mb10",
+  "symbol": "BNBUSDT",
+  "threshold": 750,
+  "n_bars": 87002,
+  "n_trades": 833,
+  "hedging": true,
+  "win_rate": 0.6387,
+  "total_return_pct": 1858.1825,
+  "max_drawdown_pct": -42.2309,
+  "profit_factor": 1.662,
+  "underwater_ratio": 0.7299,
+  "max_underwater_trades": 178,
+  "worst_stagnation_start": "2020-03-13 04:24:24.713000",
+  "worst_stagnation_end": "2021-02-23 11:48:47.020000",
+  "regime_distribution": {
+    "bearish": 20403,
+    "neutral": 39393,
+    "bullish": 27206
+  },
+  "laguerre_config": {
+    "atr_period": 32,
+    "level_up": 0.85,
+    "level_down": 0.1,
+    "adaptive_offset": 0.5
+  },
+  "barrier_config": {
+    "tp_mult": 2.5,
+    "sl_mult": 5.0,
+    "sl_tight_mult": 3.5,
+    "phase1_bars": 7,
+    "max_bars": 10
+  }
+}

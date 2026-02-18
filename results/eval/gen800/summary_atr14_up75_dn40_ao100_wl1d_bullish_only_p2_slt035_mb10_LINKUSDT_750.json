@@ -1,0 +1,34 @@
+{
+  "config_id": "atr14_up75_dn40_ao100__wl1d__bullish_only__p2_slt035_mb10",
+  "symbol": "LINKUSDT",
+  "threshold": 750,
+  "n_bars": 143745,
+  "n_trades": 1610,
+  "hedging": true,
+  "win_rate": 0.595,
+  "total_return_pct": 4.8376,
+  "max_drawdown_pct": -0.3583,
+  "profit_factor": 1.454,
+  "underwater_ratio": 0.7739,
+  "max_underwater_trades": 92,
+  "worst_stagnation_start": "2025-08-10 07:37:19.230000",
+  "worst_stagnation_end": "2025-10-10 21:40:48.444000",
+  "regime_distribution": {
+    "bearish": 61838,
+    "neutral": 30786,
+    "bullish": 51121
+  },
+  "laguerre_config": {
+    "atr_period": 14,
+    "level_up": 0.75,
+    "level_down": 0.4,
+    "adaptive_offset": 1.0
+  },
+  "barrier_config": {
+    "tp_mult": 2.5,
+    "sl_mult": 5.0,
+    "sl_tight_mult": 3.5,
+    "phase1_bars": 2,
+    "max_bars": 10
+  }
+}
