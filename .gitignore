@@ -23,5 +23,11 @@ results/eval/gen720/folds/_chunk_*.parquet
 results/eval/gen720/combos/long_combos.jsonl
 results/eval/gen720/combos/short_combos.jsonl
 
+# Gen800 HTML equity plots (12MB+ each, regenerate with gen800_reconstruct.py)
+results/eval/gen800/*.html
+
+# Gen800 uncompressed sweep JSONL (use .br compressed version)
+results/eval/gen800/gen800_sweep.jsonl
+
 # Node.js (semantic-release only)
 node_modules/
