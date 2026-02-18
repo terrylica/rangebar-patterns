@@ -211,137 +211,7 @@ class Gen800Strategy(Strategy):
         self.buy(**kwargs)
 
 
-def _plot_tall(bt, filename: str, timestamps=None, panel_height: int = 200):
-    """Generate backtesting.py plot with equal-height panels, gray HLC bars.
-
-    Customizations over default backtesting.py plot:
-    1. All sub-figures set to equal height (panel_height px each)
-    2. OHLC candlestick bodies hidden, replaced with gray HLC tick bars
-    3. Trade markers keep original red/green coloring
-    4. X-axis shows real timestamps at regular bar intervals
-    """
-    import backtesting._plotting as _bp
-    from bokeh.models import Segment, VBar
-
-    GRAY = "#999999"
-
-    # Force ALL figures to the same height by patching _figure
-    orig_figure = _bp._figure
-
-    def equal_height_figure(*args, **kwargs):
-        kwargs["height"] = panel_height
-        return orig_figure(*args, **kwargs)
-
-    orig_indicator_height = _bp._INDICATOR_HEIGHT
-    _bp._INDICATOR_HEIGHT = panel_height
-    _bp._figure = equal_height_figure
-
-    try:
-        fig = bt.plot(
-            filename=filename,
-            open_browser=False,
-            plot_drawdown=True,
-            plot_volume=True,
-        )
-    finally:
-        _bp._INDICATOR_HEIGHT = orig_indicator_height
-        _bp._figure = orig_figure
-
-    if fig is None:
-        return
-
-    # Collect all sub-figures from the gridplot
-    children = []
-    if hasattr(fig, "children"):
-        for row in fig.children:
-            if hasattr(row, "__iter__"):
-                for child in row:
-                    if child is not None:
-                        children.append(child)
-            elif row is not None:
-                children.append(row)
-
-    # Find the OHLC figure (the one with VBar renderers = candlesticks)
-    fig_ohlc = None
-    for child in children:
-        for renderer in getattr(child, "renderers", []):
-            if isinstance(getattr(renderer, "glyph", None), VBar):
-                fig_ohlc = child
-                break
-        if fig_ohlc:
-            break
-
-    if fig_ohlc is None:
-        return
-
-    # Replace candlestick vbars with gray HLC tick bars
-    source = None
-    for renderer in list(fig_ohlc.renderers):
-        glyph = getattr(renderer, "glyph", None)
-        if isinstance(glyph, VBar):
-            source = renderer.data_source
-            renderer.visible = False  # Hide candlestick body
-
-    if source is not None:
-        tick_w = 0.35
-        source.data["open_x0"] = [x - tick_w for x in source.data["index"]]
-        source.data["open_x1"] = list(source.data["index"])
-        source.data["close_x0"] = list(source.data["index"])
-        source.data["close_x1"] = [x + tick_w for x in source.data["index"]]
-
-        # Open tick (left horizontal)
-        fig_ohlc.segment(
-            x0="open_x0", y0="Open", x1="open_x1", y1="Open",
-            source=source, color=GRAY, line_width=1.0,
-        )
-        # Close tick (right horizontal)
-        fig_ohlc.segment(
-            x0="close_x0", y0="Close", x1="close_x1", y1="Close",
-            source=source, color=GRAY, line_width=1.0,
-        )
-
-    # Gray out only the HL vertical segment (first Segment renderer = OHLC HL line)
-    # Trade position lines are MultiLine, not Segment, so this is safe
-    for renderer in fig_ohlc.renderers:
-        glyph = getattr(renderer, "glyph", None)
-        if isinstance(glyph, Segment) and hasattr(glyph, "line_color"):
-            # Only gray the original HL segment (color="black"), not our new ticks
-            if glyph.line_color == "black":
-                glyph.line_color = GRAY
-
-    # Add timestamp labels to x-axis if timestamps provided
-    if timestamps is not None:
-        from bokeh.models import CustomJSTickFormatter, FixedTicker
-
-        n_bars = len(timestamps)
-        # ~20 evenly spaced ticks across the full range
-        step = max(1, n_bars // 20)
-        tick_positions = list(range(0, n_bars, step))
-
-        # Build JS lookup: bar_index → "YYYY-MM-DD HH:MM"
-        ts_map = {}
-        for pos in tick_positions:
-            if pos < n_bars:
-                ts_map[pos] = str(timestamps[pos])[:16]  # "YYYY-MM-DD HH:MM"
-
-        js_map = "var m = {" + ",".join(f"{k}:'{v}'" for k, v in ts_map.items()) + "};"
-        js_code = js_map + " return m[tick] || '';"
-
-        formatter = CustomJSTickFormatter(code=js_code)
-        ticker = FixedTicker(ticks=tick_positions)
-
-        for child in children:
-            if hasattr(child, "xaxis"):
-                child.xaxis[0].ticker = ticker
-                child.xaxis[0].formatter = formatter
-                child.xaxis[0].major_label_orientation = 0.7  # ~40 degrees
-
-    # Re-save with modifications
-    from bokeh.io import output_file as bokeh_output_file
-    from bokeh.io import save as bokeh_save
-
-    bokeh_output_file(filename)
-    bokeh_save(fig)
+from scripts.gen800.plotting import plot_tall as _plot_tall  # noqa: E402
 
 
 def main():
@@ -351,7 +221,13 @@ def main():
         default="atr32_up85_dn10_ao50__wl1d__bullish_only__p7_slt035_mb10",
         help="Config ID to reconstruct",
     )
+    parser.add_argument("--symbol", default=SYMBOL, help="Symbol (e.g. BTCUSDT)")
+    parser.add_argument("--threshold", type=int, default=THRESHOLD, help="Threshold in dbps")
     args = parser.parse_args()
+
+    symbol = args.symbol
+    threshold = args.threshold
+    bar_range = threshold / 100_000.0
 
     cfg = parse_config_id(args.config_id)
     print(f"Reconstructing: {args.config_id}")
@@ -363,8 +239,8 @@ def main():
     print(f"  Barrier: phase1={cfg['phase1_bars']} sl_tight={cfg['sl_tight_mult']} max_bars={cfg['max_bars']}")
 
     # 1. Load data
-    print(f"\nLoading {SYMBOL} @{THRESHOLD}dbps...")
-    df = load_range_bars(symbol=SYMBOL, threshold=THRESHOLD)
+    print(f"\nLoading {symbol} @{threshold}dbps...")
+    df = load_range_bars(symbol=symbol, threshold=threshold)
     print(f"  {len(df)} bars ({df.index[0]} to {df.index[-1]})")
 
     # 2. Compute Laguerre regimes (needs DatetimeIndex)
@@ -400,14 +276,22 @@ def main():
     Gen800Strategy.sl_tight_mult = cfg["sl_tight_mult"]
     Gen800Strategy.phase1_bars = cfg["phase1_bars"]
     Gen800Strategy.max_bars = cfg["max_bars"]
-    Gen800Strategy.bar_range = BAR_RANGE
+    Gen800Strategy.bar_range = bar_range
     Gen800Strategy.warmup_bars = max(cfg["atr_period"], 20) + 10
 
-    print("\nRunning backtest (hedging=True)...")
+    # Futures-style margin: 1/leverage.  With margin=0.01 (100x leverage),
+    # position sizing is price-agnostic — even BTC at $100K works with
+    # size=0.01 (1% of equity) because margin requirement is only 1% of
+    # notional.  This matches Binance USDM perpetual futures mechanics.
+    MARGIN = 0.01  # 100x leverage
+    CASH = 1_000_000  # Large enough to never hit margin limits
+
+    print("\nRunning backtest (hedging=True, margin=100x)...")
     bt = Backtest(
         df,
         Gen800Strategy,
-        cash=100_000,
+        cash=CASH,
+        margin=MARGIN,
         commission=0,
         hedging=True,
         exclusive_orders=False,
@@ -426,7 +310,8 @@ def main():
     # 5. Write JSONL trade log
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     safe_id = args.config_id.replace("__", "_")
-    jsonl_path = RESULTS_DIR / f"trades_{safe_id}.jsonl"
+    sym_suffix = f"_{symbol}_{threshold}" if symbol != SYMBOL or threshold != THRESHOLD else ""
+    jsonl_path = RESULTS_DIR / f"trades_{safe_id}{sym_suffix}.jsonl"
 
     returns = []
     with open(jsonl_path, "w") as f:
@@ -490,8 +375,8 @@ def main():
     # 7. Write summary JSON
     summary = {
         "config_id": args.config_id,
-        "symbol": SYMBOL,
-        "threshold": THRESHOLD,
+        "symbol": symbol,
+        "threshold": threshold,
         "n_bars": len(df),
         "n_trades": n_trades,
         "hedging": True,
@@ -518,13 +403,13 @@ def main():
             "max_bars": cfg["max_bars"],
         },
     }
-    summary_path = RESULTS_DIR / f"summary_{safe_id}.json"
+    summary_path = RESULTS_DIR / f"summary_{safe_id}{sym_suffix}.json"
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=2)
     print(f"  Summary: {summary_path}")
 
     # 8. Generate HTML plot with tall canvas
-    plot_path = RESULTS_DIR / f"equity_{safe_id}.html"
+    plot_path = RESULTS_DIR / f"equity_{safe_id}{sym_suffix}.html"
     _plot_tall(bt, str(plot_path), timestamps=timestamps)
     print(f"  Equity plot: {plot_path}")
 
