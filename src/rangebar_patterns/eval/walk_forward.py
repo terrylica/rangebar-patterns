@@ -122,7 +122,8 @@ def evaluate_barriers_in_fold(
     Returns
     -------
     pl.DataFrame with one row per barrier: barrier_id, n_trades, win_rate,
-    profit_factor, omega, rachev, cdar, total_return, avg_return, max_drawdown.
+    profit_factor, omega, rachev, cdar, total_return, avg_return, max_drawdown,
+    underwater_ratio, max_underwater_bars, avg_recovery_bars.
     """
     test_arr = np.asarray(test_idx)
     test_set = set(test_arr.tolist())
@@ -152,6 +153,21 @@ def evaluate_barriers_in_fold(
         drawdowns = running_max - cum
         mdd = float(np.max(drawdowns)) if len(drawdowns) > 0 else 0.0
 
+        # Stagnation metrics: underwater = equity below running max
+        underwater = drawdowns > 1e-12
+        underwater_ratio = float(np.mean(underwater)) if n > 0 else 0.0
+
+        if n > 0 and np.any(underwater):
+            changes = np.diff(underwater.astype(int), prepend=0, append=0)
+            starts = np.where(changes == 1)[0]
+            ends = np.where(changes == -1)[0]
+            durations = ends - starts
+            max_underwater_bars = int(np.max(durations))
+            avg_recovery_bars = float(np.mean(durations))
+        else:
+            max_underwater_bars = 0
+            avg_recovery_bars = 0.0
+
         # PF division cases:
         #   gross_loss > 0: normal PF = profit/loss, capped at PF_CAP
         #   gross_loss ≈ 0, gross_profit > 0: 100% WR → capped at PF_CAP
@@ -177,6 +193,9 @@ def evaluate_barriers_in_fold(
             "total_return": float(arr.sum()),
             "avg_return": float(arr.mean()),
             "max_drawdown": mdd,
+            "underwater_ratio": underwater_ratio,
+            "max_underwater_bars": max_underwater_bars,
+            "avg_recovery_bars": avg_recovery_bars,
         })
 
     return pl.DataFrame(rows)
@@ -195,6 +214,9 @@ def _empty_barrier_row(barrier_id: str) -> dict:
         "total_return": 0.0,
         "avg_return": 0.0,
         "max_drawdown": 0.0,
+        "underwater_ratio": 0.0,
+        "max_underwater_bars": 0,
+        "avg_recovery_bars": 0.0,
     }
 
 

@@ -296,6 +296,48 @@ def test_parse_barrier_id_zero():
         parse_barrier_id("invalid_format")
 
 
+def test_evaluate_barriers_stagnation_metrics():
+    """Known sequential losses produce high underwater_ratio and max_underwater_bars."""
+    # 5 wins then 10 losses then 5 wins → 10-bar underwater streak
+    returns = [0.01] * 5 + [-0.01] * 10 + [0.01] * 5
+    n = len(returns)
+    df = pl.DataFrame({
+        "signal_idx": list(range(n)),
+        "barrier_id": ["p5_slt010_mb50"] * n,
+        "return_pct": returns,
+        "exit_type": ["TP"] * 5 + ["SL"] * 10 + ["TP"] * 5,
+    })
+    test_idx = np.arange(n)
+    result = evaluate_barriers_in_fold(df, test_idx)
+
+    assert len(result) == 1
+    row = result.to_dicts()[0]
+    assert row["n_trades"] == 20
+    assert row["max_underwater_bars"] >= 10, (
+        f"Expected max_underwater_bars >= 10, got {row['max_underwater_bars']}"
+    )
+    assert row["underwater_ratio"] > 0.0
+    assert row["avg_recovery_bars"] > 0.0
+
+
+def test_evaluate_barriers_stagnation_all_wins():
+    """All positive returns → zero stagnation."""
+    n = 10
+    df = pl.DataFrame({
+        "signal_idx": list(range(n)),
+        "barrier_id": ["p5_slt010_mb50"] * n,
+        "return_pct": [0.01] * n,
+        "exit_type": ["TP"] * n,
+    })
+    test_idx = np.arange(n)
+    result = evaluate_barriers_in_fold(df, test_idx)
+
+    row = result.to_dicts()[0]
+    assert row["max_underwater_bars"] == 0
+    assert row["underwater_ratio"] == 0.0
+    assert row["avg_recovery_bars"] == 0.0
+
+
 def test_evaluate_barriers_zero_return_pf_nan():
     """Barrier with all zero-return trades → PF=NaN (not inf)."""
     # Build signal_data where all returns are exactly 0.0
