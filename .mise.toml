@@ -100,6 +100,7 @@ includes = [
     ".mise/tasks/gen610.toml",
     ".mise/tasks/gen710.toml",
     ".mise/tasks/gen720.toml",
+    ".mise/tasks/gen800.toml",
     ".mise/tasks/eval.toml",
     ".mise/tasks/trade.toml",
 ]

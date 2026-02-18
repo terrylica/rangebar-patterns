@@ -1,0 +1,16 @@
+# Gen800: Brute-force regime-conditioned signal sweep
+# Python-only (Laguerre RSI is Python-computed, no SQL generation)
+# GitHub Issue: TBD
+
+["gen800:sweep"]
+description = "Run Gen800 regime-conditioned sweep on SOLUSDT @750"
+run = "uv run -p 3.13 python scripts/gen800_sweep.py"
+
+["gen800:rank"]
+description = "Rank Gen800 results by stagnation minimization"
+run = "uv run -p 3.13 python scripts/gen800_rank.py"
+
+["gen800:validate"]
+description = "CPCV + bootstrap validation on Gen800 top-50"
+run = "uv run -p 3.13 python scripts/gen800_sweep.py --validate-top50"
+depends = ["gen800:rank"]

@@ -25,6 +25,7 @@ backtesting = ["backtesting>=0.3"]
 nautilus = ["nautilus_trader>=1.200"]
 optimize = ["optuna>=4.7", "pymcdm>=1.2", "pymoo>=0.6"]
 wfo = ["arch>=7.0", "hmmlearn>=0.3", "skfolio>=0.5", "pandera[polars]>=0.20"]
+gen800 = ["atr-adaptive-laguerre>=2.0"]
 dev = ["pytest>=7.0", "ruff>=0.1", "duckdb>=1.0"]
 
 [tool.ruff]
