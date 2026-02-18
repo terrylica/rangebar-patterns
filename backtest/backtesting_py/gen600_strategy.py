@@ -90,6 +90,45 @@ def _detect_3down(direction):
     return mask
 
 
+def _compute_opposite_wick_pct(opens, highs, lows, closes):
+    """Compute opposite wick percentage for each bar.
+
+    For DOWN bars (close <= open): upper wick = (high - open) / (high - low)
+    For UP bars (close > open): lower wick = (open - low) / (high - low)
+    """
+    n = len(opens)
+    result = np.full(n, np.nan)
+    for i in range(n):
+        hl_range = highs[i] - lows[i]
+        if hl_range == 0:
+            continue
+        if closes[i] <= opens[i]:  # DOWN bar: upper wick
+            result[i] = (highs[i] - opens[i]) / hl_range
+        else:  # UP bar: lower wick
+            result[i] = (opens[i] - lows[i]) / hl_range
+    return result
+
+
+def _detect_wl1d(direction, wick_pct):
+    """1 wickless DOWN bar: dir[i]=0, opposite_wick_pct[i] < 0.001."""
+    mask = np.zeros(len(direction), dtype=bool)
+    for i in range(len(direction)):
+        if direction[i] == 0 and not np.isnan(wick_pct[i]) and wick_pct[i] < 0.001:
+            mask[i] = True
+    return mask
+
+
+def _detect_wl2d(direction, wick_pct):
+    """2 consecutive wickless DOWN bars."""
+    mask = np.zeros(len(direction), dtype=bool)
+    for i in range(1, len(direction)):
+        if (direction[i] == 0 and direction[i - 1] == 0
+                and not np.isnan(wick_pct[i]) and wick_pct[i] < 0.001
+                and not np.isnan(wick_pct[i - 1]) and wick_pct[i - 1] < 0.001):
+            mask[i] = True
+    return mask
+
+
 def _rolling_p75(x, window=1000):
     """Compute rolling p75 with fixed window (matches SQL ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING)."""
     result = np.empty(len(x))
@@ -113,6 +152,17 @@ PATTERN_DETECTORS = {
     "3down": _detect_3down,
 }
 
+# Wickless patterns need OHLC data (opposite_wick_pct < 0.001).
+# Detectors take (direction, wick_pct) instead of just (direction).
+WICKLESS_DETECTORS = {
+    "wl1d": _detect_wl1d,
+    "wl2d": _detect_wl2d,
+}
+
+# Pure price-action patterns: no TI/kyle microstructure gates.
+# Signal = pattern_mask only (+ warmup window).
+PURE_PRICEACTION_PATTERNS = {"wl1d", "wl2d"}
+
 # Exhaustion patterns use different champion gates (no TI/kyle)
 EXHAUSTION_PATTERNS = {"exh_l", "exh_l_ng"}
 
@@ -128,7 +178,7 @@ class Gen600Strategy(Strategy):
         feature2_name: Column name for feature 2 (e.g., "lookback_price_range")
         feature2_direction: "lt" or "gt"
         feature2_quantile: Quantile level (e.g., 0.50)
-        tp_mult, sl_mult, max_bars, threshold_pct: Barrier params
+        tp_mult, sl_mult, max_bars, bar_range: Barrier params
     """
 
     ti_window = 1000
@@ -145,10 +195,10 @@ class Gen600Strategy(Strategy):
     feature2_quantile = 0.50
 
     # Barrier parameters
-    tp_mult = 0.50
-    sl_mult = 0.50
+    tp_mult = 2.5
+    sl_mult = 5.0
     max_bars = 50
-    threshold_pct = 0.10  # @1000dbps = 0.10
+    bar_range = 0.01  # @1000dbps = 1.0%
 
     def init(self):
         opens = np.array(self.data.Open)
@@ -259,9 +309,9 @@ class Gen600Strategy(Strategy):
                 # Set exact TP/SL from actual fill price
                 actual_entry = trade.entry_price
                 if self.tp_mult > 0:
-                    trade.tp = actual_entry * (1.0 + self.tp_mult * self.threshold_pct)
+                    trade.tp = actual_entry * (1.0 + self.tp_mult * self.bar_range)
                 if self.sl_mult > 0:
-                    trade.sl = actual_entry * (1.0 - self.sl_mult * self.threshold_pct)
+                    trade.sl = actual_entry * (1.0 - self.sl_mult * self.bar_range)
 
         # 2. Check time barrier for each open trade
         for trade in list(self.trades):
@@ -297,7 +347,7 @@ class Gen600Strategy(Strategy):
         approx_entry = self.data.Close[-1]
         kwargs = {"size": 0.01}
         if self.tp_mult > 0:
-            kwargs["tp"] = approx_entry * (1.0 + self.tp_mult * self.threshold_pct)
+            kwargs["tp"] = approx_entry * (1.0 + self.tp_mult * self.bar_range)
         if self.sl_mult > 0:
-            kwargs["sl"] = approx_entry * (1.0 - self.sl_mult * self.threshold_pct)
+            kwargs["sl"] = approx_entry * (1.0 - self.sl_mult * self.bar_range)
         self.buy(**kwargs)

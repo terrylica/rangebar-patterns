@@ -37,7 +37,7 @@ INSERT INTO rangebar_cache.barrier_results
      win_rate, profit_factor, avg_win_pct, avg_loss_pct, risk_reward,
      expected_value_pct, avg_bars_held, kelly_fraction)
 WITH
--- threshold_pct = threshold_decimal_bps / 10000.0 = 0.025 for @250dbps
+-- bar_range = threshold_decimal_bps / 100000.0 = 0.0025 for @250dbps
 -- CTEs 1-5 identical to Gen200 (signal detection + forward arrays)
 -- CTE 1: Base bars — OHLCV + microstructure features + row numbering
 base_bars AS (
@@ -126,19 +126,19 @@ param_expanded AS (
         fwd_lows,
         fwd_opens,
         fwd_closes,
-        arrayJoin([0.5, 1.0, 1.5, 2.0, 3.0]) AS tp_mult,
-        arrayJoin([0.25, 0.5, 0.75, 1.0, 1.5]) AS trail_mult,
+        arrayJoin([5.0, 10.0, 15.0, 20.0, 30.0]) AS tp_mult,
+        arrayJoin([2.5, 5.0, 7.5, 10.0, 15.0]) AS trail_mult,
         arrayJoin(CAST([5, 10, 20, 50], 'Array(UInt32)')) AS max_bars
     FROM forward_arrays
 ),
 -- CTE 6b: Pre-compute TP price + trailing SL arrays
 -- Running max at each bar i = max(entry_price, max(fwd_highs[1..i]))
--- Trailing SL at each bar i = running_max[i] * (1 - trail_mult * threshold_pct)
+-- Trailing SL at each bar i = running_max[i] * (1 - trail_mult * bar_range)
 param_with_trailing AS (
     SELECT
         *,
-        entry_price * (1.0 + tp_mult * 0.025) AS tp_price,
-        trail_mult * 0.025 AS trail_pct,
+        entry_price * (1.0 + tp_mult * 0.0025) AS tp_price,
+        trail_mult * 0.0025 AS trail_pct,
         -- Per-bar running max (seeded with entry_price)
         arrayMap(
             i -> greatest(entry_price, arrayReduce('max', arraySlice(fwd_highs, 1, i))),
@@ -233,8 +233,8 @@ SELECT
     tp_mult,
     trail_mult AS sl_mult,  -- Store trail_mult in sl_mult column for schema compat
     max_bars,
-    tp_mult * 0.025 AS tp_pct,
-    trail_mult * 0.025 AS sl_pct,  -- trail_pct stored in sl_pct column
+    tp_mult * 0.0025 AS tp_pct,
+    trail_mult * 0.0025 AS sl_pct,  -- trail_pct stored in sl_pct column
     -- Counts
     toUInt32(count(*)) AS total_signals,
     toUInt32(countIf(exit_type = 'TP')) AS tp_count,

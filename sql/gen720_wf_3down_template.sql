@@ -121,12 +121,12 @@ barrier_grid AS (
         sl_tight_mult,
         max_bars,
         concat('p', toString(phase1_bars),
-               '_slt', lpad(toString(toUInt32(sl_tight_mult * 100)), 3, '0'),
+               '_slt', lpad(toString(toUInt32(sl_tight_mult * 10)), 3, '0'),
                '_mb', toString(max_bars)) AS barrier_id
     FROM (
         SELECT
             arrayJoin([2, 3, 5, 7, 10, 15, 20, 30]) AS phase1_bars,
-            arrayJoin([0.75, 0.50, 0.35, 0.25, 0.10, 0.05, 0.00]) AS sl_tight_mult,
+            arrayJoin([7.5, 5.0, 3.5, 2.5, 1.0, 0.5, 0.0]) AS sl_tight_mult,
             arrayJoin([10, 15, 20, 30, 50, 75, 100, 150, 200]) AS max_bars
     )
     WHERE phase1_bars < max_bars
@@ -146,9 +146,9 @@ signal_barrier AS (
         g.sl_tight_mult,
         g.max_bars,
         -- Barrier prices (LONG direction)
-        s.entry_price * (1.0 + 0.25 * (__THRESHOLD_DBPS__ / 10000.0)) AS tp_price,
-        s.entry_price * (1.0 - 0.50 * (__THRESHOLD_DBPS__ / 10000.0)) AS sl_wide_price,
-        s.entry_price * (1.0 - g.sl_tight_mult * (__THRESHOLD_DBPS__ / 10000.0)) AS sl_tight_price
+        s.entry_price * (1.0 + 2.5 * (__THRESHOLD_DBPS__ / 100000.0)) AS tp_price,
+        s.entry_price * (1.0 - 5.0 * (__THRESHOLD_DBPS__ / 100000.0)) AS sl_wide_price,
+        s.entry_price * (1.0 - g.sl_tight_mult * (__THRESHOLD_DBPS__ / 100000.0)) AS sl_tight_price
     FROM formation_signals s
     CROSS JOIN barrier_grid g
 ),

@@ -60,8 +60,8 @@ def _config_id(pattern, f1_name, f1_dir, f1_q, f2_name, f2_dir, f2_q):
     return f"{pattern}__{f1_name}_{f1_dir}_{q1_str}__{f2_name}_{f2_dir}_{q2_str}"
 
 
-def _threshold_pct(threshold_dbps: int) -> float:
-    return threshold_dbps / 10000.0
+def _bar_range(threshold_dbps: int) -> float:
+    return threshold_dbps / 100_000.0
 
 
 def _extra_columns(f1_name: str, f2_name: str) -> list[str]:
@@ -85,7 +85,7 @@ def run_single(
     from backtest.backtesting_py.gen600_strategy import Gen600Strategy
 
     config_id = _config_id(pattern, f1_name, f1_dir, f1_q, f2_name, f2_dir, f2_q)
-    threshold_pct = _threshold_pct(threshold)
+    bar_range = _bar_range(threshold)
 
     extras = _extra_columns(f1_name, f2_name)
 
@@ -126,7 +126,7 @@ def run_single(
     Gen600Strategy.tp_mult = TP_MULT
     Gen600Strategy.sl_mult = SL_MULT
     Gen600Strategy.max_bars = MAX_BARS
-    Gen600Strategy.threshold_pct = threshold_pct
+    Gen600Strategy.bar_range = bar_range
 
     try:
         # Cash must be large enough for size=0.01 (1% equity) to cover 1 unit

@@ -51,16 +51,17 @@ forward_arrays AS (
 
 **Symptom**: `arrayFirstIndex()` returns wrong barrier index. ClickHouse Bug [#45028](https://github.com/ClickHouse/ClickHouse/issues/45028).
 
-**Root Cause**: Lambda functions in ClickHouse don't reliably capture columns from enclosing CTEs. Expressions like `x -> x >= entry_price * (1 + tp_mult * 0.025)` may use stale or incorrect values.
+**Root Cause**: Lambda functions in ClickHouse don't reliably capture columns from enclosing CTEs. Expressions like `x -> x >= entry_price * (1 + tp_mult * bar_range)` may use stale or incorrect values.
 
 **Resolution**: Pre-compute barrier prices as columns in a separate CTE. Lambda references the column directly.
 
 ```sql
 -- CORRECT: Pre-compute in CTE
+-- bar_range = threshold_dbps / 100000.0 (e.g., @250dbps → 0.0025)
 param_with_prices AS (
     SELECT *,
-        entry_price * (1.0 + tp_mult * 0.025) AS tp_price,
-        entry_price * (1.0 - sl_mult * 0.025) AS sl_price
+        entry_price * (1.0 + tp_mult * (__THRESHOLD_DBPS__ / 100000.0)) AS tp_price,
+        entry_price * (1.0 - sl_mult * (__THRESHOLD_DBPS__ / 100000.0)) AS sl_price
     FROM param_expanded
 ),
 barrier_scan AS (
@@ -69,7 +70,7 @@ barrier_scan AS (
 )
 
 -- WRONG: Expression in lambda closure
-SELECT arrayFirstIndex(x -> x >= entry_price * (1.0 + tp_mult * 0.025), fwd_highs) ...
+SELECT arrayFirstIndex(x -> x >= entry_price * (1.0 + tp_mult * bar_range), fwd_highs) ...
 ```
 
 **Files**: gen200 lines 189-196, gen201 lines 143-153, gen202 lines 137-157.
@@ -226,16 +227,17 @@ arrayFirstIndex(x -> x >= tp_price, fwd_highs) AS raw_tp_bar
 
 **Root Cause**: Gen111 was calibrated at 1000dbps. Applying absolute percentages to 250/500dbps bars changes the economic meaning.
 
-**Resolution**: Express parameters as threshold-relative multipliers.
+**Resolution**: Express parameters as bar_range-relative multipliers (in bar-widths).
+`bar_range = threshold_dbps / 100,000` (aligned with rangebar-py SSoT).
 
 ```sql
--- CORRECT: Threshold-relative
-entry_price * (1.0 + tp_mult * 0.025) AS tp_price  -- @250dbps: 0.025 = 250/10000
-entry_price * (1.0 + tp_mult * 0.05)  AS tp_price  -- @500dbps: 0.05  = 500/10000
+-- CORRECT: bar_range-relative (multipliers in bar-widths)
+entry_price * (1.0 + tp_mult * 0.0025) AS tp_price  -- @250dbps: bar_range = 250/100000 = 0.25%
+entry_price * (1.0 + tp_mult * 0.005)  AS tp_price  -- @500dbps: bar_range = 500/100000 = 0.50%
 
--- Grid: tp_mult in [0.5, 1.0, 1.5, 2.0, 3.0]
--- @250dbps: TP absolute = [0.0125, 0.025, 0.0375, 0.05, 0.075]
--- @500dbps: TP absolute = [0.025,  0.05,  0.075,  0.10, 0.15]
+-- Grid: tp_mult in [2.5, 5.0, 7.5, 10.0, 15.0] (bar-widths)
+-- @250dbps: TP absolute = [0.625%, 1.25%, 1.875%, 2.50%, 3.75%]
+-- @500dbps: TP absolute = [1.25%,  2.50%, 3.75%,  5.00%, 7.50%]
 
 -- WRONG: Same absolute % at all thresholds
 entry_price * 1.01 AS tp_price  -- 1% regardless of threshold
@@ -304,9 +306,9 @@ quantileExactExclusive(0.95)(trade_intensity) OVER (
 if self._needs_barrier_setup and self.trades:
     actual_entry = self.trades[-1].entry_price
     if self.tp_mult > 0:
-        self.trades[-1].tp = actual_entry * (1.0 + self.tp_mult * self.threshold_pct)
+        self.trades[-1].tp = actual_entry * (1.0 + self.tp_mult * self.bar_range)
     if self.sl_mult > 0:
-        self.trades[-1].sl = actual_entry * (1.0 - self.sl_mult * self.threshold_pct)
+        self.trades[-1].sl = actual_entry * (1.0 - self.sl_mult * self.bar_range)
     self._needs_barrier_setup = False
 ```
 

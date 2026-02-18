@@ -97,8 +97,10 @@ For mean-reversion patterns, the optimal barriers are the **inverse** of intuiti
 Barriers must scale with the range bar threshold. A 1% TP at @250dbps spans ~3 bar moves; at @1000dbps it's ~1 bar move.
 
 ```
-tp_price = entry_price * (1.0 + tp_mult * threshold_pct)
-sl_price = entry_price * (1.0 - sl_mult * threshold_pct)
+tp_price = entry_price * (1.0 + tp_mult * bar_range)
+sl_price = entry_price * (1.0 - sl_mult * bar_range)
+-- bar_range = threshold_dbps / 100,000 (aligned with rangebar-py)
+-- tp_mult/sl_mult are in bar-widths (e.g., tp_mult=2.5 = TP at 2.5 bar-widths)
 ```
 
 The @750dbps sweet spot (40.7% positive configs vs 21.7% at @500) suggests this threshold captures the best signal-to-noise ratio for 2-feature patterns.

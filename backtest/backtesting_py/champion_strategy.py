@@ -38,13 +38,13 @@ class ChampionMeanRevLong(Strategy):
 
     ti_window = 1000  # Rolling window size for trade_intensity p95
 
-    # Barrier parameters (threshold-relative multipliers)
-    # Set to 0 to disable that barrier. threshold_pct must be set for barriers.
-    tp_mult = 0.0     # TP = entry * (1 + tp_mult * threshold_pct)
-    sl_mult = 0.0     # Fixed SL = entry * (1 - sl_mult * threshold_pct)
-    trail_mult = 0.0  # Trailing SL = running_max * (1 - trail_mult * threshold_pct)
+    # Barrier parameters (bar_range-relative multipliers)
+    # Set to 0 to disable that barrier. bar_range must be set for barriers.
+    tp_mult = 0.0     # TP = entry * (1 + tp_mult * bar_range)
+    sl_mult = 0.0     # Fixed SL = entry * (1 - sl_mult * bar_range)
+    trail_mult = 0.0  # Trailing SL = running_max * (1 - trail_mult * bar_range)
     max_bars = 0       # Time barrier: exit after N bars (0 = disabled)
-    threshold_pct = 0.025  # @250dbps = 0.025, @500dbps = 0.05
+    bar_range = 0.0025  # @250dbps = 0.25%
 
     def init(self):
         ti = self.data.trade_intensity
@@ -66,11 +66,11 @@ class ChampionMeanRevLong(Strategy):
                 actual_entry = self.trades[-1].entry_price
                 self._peak_price = actual_entry
                 if self.tp_mult > 0:
-                    self.trades[-1].tp = actual_entry * (1.0 + self.tp_mult * self.threshold_pct)
+                    self.trades[-1].tp = actual_entry * (1.0 + self.tp_mult * self.bar_range)
                 if self.sl_mult > 0:
-                    self.trades[-1].sl = actual_entry * (1.0 - self.sl_mult * self.threshold_pct)
+                    self.trades[-1].sl = actual_entry * (1.0 - self.sl_mult * self.bar_range)
                 elif self.trail_mult > 0:
-                    self.trades[-1].sl = actual_entry * (1.0 - self.trail_mult * self.threshold_pct)
+                    self.trades[-1].sl = actual_entry * (1.0 - self.trail_mult * self.bar_range)
                 self._needs_barrier_setup = False
 
             # Trailing stop: ratchet SL upward
@@ -78,7 +78,7 @@ class ChampionMeanRevLong(Strategy):
                 current_high = self.data.High[-1]
                 if current_high > self._peak_price:
                     self._peak_price = current_high
-                    new_sl = self._peak_price * (1.0 - self.trail_mult * self.threshold_pct)
+                    new_sl = self._peak_price * (1.0 - self.trail_mult * self.bar_range)
                     for trade in self.trades:
                         if trade.sl is None or new_sl > trade.sl:
                             trade.sl = new_sl
@@ -120,11 +120,11 @@ class ChampionMeanRevLong(Strategy):
             approx_entry = self.data.Close[-1]
             kwargs = {}
             if self.tp_mult > 0:
-                kwargs['tp'] = approx_entry * (1.0 + self.tp_mult * self.threshold_pct)
+                kwargs['tp'] = approx_entry * (1.0 + self.tp_mult * self.bar_range)
             if self.sl_mult > 0:
-                kwargs['sl'] = approx_entry * (1.0 - self.sl_mult * self.threshold_pct)
+                kwargs['sl'] = approx_entry * (1.0 - self.sl_mult * self.bar_range)
             elif self.trail_mult > 0:
-                kwargs['sl'] = approx_entry * (1.0 - self.trail_mult * self.threshold_pct)
+                kwargs['sl'] = approx_entry * (1.0 - self.trail_mult * self.bar_range)
             self.buy(**kwargs)
             self._bars_in_trade = 0
             self._peak_price = 0.0

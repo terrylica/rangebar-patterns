@@ -38,11 +38,11 @@ No SHORT signals (they lose on SOL).
 
 Exit logic uses triple barrier method:
 
-| Barrier     | Best Config (Gen510) | Description             |
-| ----------- | -------------------- | ----------------------- |
-| Take Profit | 0.25x threshold      | Tight TP captures edge  |
-| Stop Loss   | 0.50x threshold      | Wide SL avoids whipsaws |
-| Max Bars    | 100                  | Time-based expiry       |
+| Barrier     | Best Config (Gen510) | Description          |
+| ----------- | -------------------- | -------------------- |
+| Take Profit | 2.5x bar_range       | TP at 2.5 bar-widths |
+| Stop Loss   | 5.0x bar_range       | SL at 5.0 bar-widths |
+| Max Bars    | 100                  | Time-based expiry    |
 
 - **Gen200**: PF=1.27 @500dbps (97/100 combos > 1.0)
 - **Gen201**: Trailing stop adds no value (PF=1.26 vs 1.27)

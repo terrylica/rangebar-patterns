@@ -22,10 +22,10 @@ from backtest.backtesting_py.champion_strategy import ChampionMeanRevLong
 from backtest.backtesting_py.data_loader import load_range_bars
 
 # Fixed params for atomic validation
-TP_MULT = 1.0
-SL_MULT = 0.5
+TP_MULT = 10.0
+SL_MULT = 5.0
 MAX_BARS = 10
-THRESHOLD_PCT = 0.05  # @500dbps
+BAR_RANGE = 0.005  # @500dbps
 THRESHOLD_DBPS = 500
 
 
@@ -46,7 +46,7 @@ def run_backtesting_py():
         tp_mult=TP_MULT,
         sl_mult=SL_MULT,
         max_bars=MAX_BARS,
-        threshold_pct=THRESHOLD_PCT,
+        bar_range=BAR_RANGE,
     )
 
     trades = stats["_trades"]

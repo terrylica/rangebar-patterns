@@ -27,10 +27,10 @@ from backtest.backtesting_py.data_loader import load_range_bars
 from backtest.backtesting_py.gen300_strategy import Gen300DurationFilterLong
 
 # Gen300 winner: duration_us_gt_p75 with 2:1 R:R barriers
-TP_MULT = 0.5
-SL_MULT = 0.25
+TP_MULT = 5.0
+SL_MULT = 2.5
 MAX_BARS = 50
-THRESHOLD_PCT = 0.05  # @500dbps
+BAR_RANGE = 0.005  # @500dbps
 THRESHOLD_DBPS = 500
 
 
@@ -51,7 +51,7 @@ def run_backtesting_py():
         tp_mult=TP_MULT,
         sl_mult=SL_MULT,
         max_bars=MAX_BARS,
-        threshold_pct=THRESHOLD_PCT,
+        bar_range=BAR_RANGE,
     )
 
     trades = stats["_trades"]

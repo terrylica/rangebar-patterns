@@ -143,8 +143,8 @@ barrier_params AS (
         s.timestamp_ms,
         s.entry_price,
         s.fwd_highs, s.fwd_lows, s.fwd_opens, s.fwd_closes,
-        s.entry_price * (1.0 + __TP_MULT__ * (__THRESHOLD_DBPS__ / 10000.0)) AS tp_price,
-        s.entry_price * (1.0 - __SL_MULT__ * (__THRESHOLD_DBPS__ / 10000.0)) AS sl_price,
+        s.entry_price * (1.0 + __TP_MULT__ * (__THRESHOLD_DBPS__ / 100000.0)) AS tp_price,
+        s.entry_price * (1.0 - __SL_MULT__ * (__THRESHOLD_DBPS__ / 100000.0)) AS sl_price,
         toUInt32(__MAX_BARS__) AS max_bars
     FROM signals s
 ),

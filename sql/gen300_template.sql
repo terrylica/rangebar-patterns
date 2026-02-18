@@ -13,8 +13,8 @@
 --   __FEATURE_NAME__   — Human-readable name (e.g., OFI)
 --
 -- BARRIERS (fixed for Phase 1):
---   TP = 0.5x threshold = entry + 2.5% at @500dbps (reward)
---   SL = 0.25x threshold = entry - 1.25% at @500dbps (risk)
+--   TP = 5.0x bar_range = entry + 2.5% at @500dbps (reward)
+--   SL = 2.5x bar_range = entry - 1.25% at @500dbps (risk)
 --   R:R = 2:1 (TP > SL)
 --   max_bars = 50
 --
@@ -29,7 +29,7 @@
 --   AP-03: arrayFirstIndex 0-not-found guards in all CASE branches
 --   AP-07: leadInFrame with ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
 --   AP-08: arraySlice before arrayFirstIndex
---   AP-09: Threshold-relative multipliers (0.5x, 0.25x at @500dbps = 0.05)
+--   AP-09: Threshold-relative multipliers (5.0x, 2.5x at @500dbps = 0.005)
 --   AP-10: Rolling 1000-bar/signal window quantiles (no lookahead)
 --   AP-11: TP/SL from entry_price (next bar's open), not signal close
 --   AP-12: SL wins same-bar ties (raw_sl_bar <= raw_tp_bar)
@@ -140,7 +140,7 @@ forward_arrays AS (
     GROUP BY s.timestamp_ms, s.entry_price, s.rn
 ),
 -- CTE 7: Fixed barrier parameters (no arrayJoin — single config)
--- AP-09: Threshold-relative multipliers. @500dbps: threshold_pct = 0.05
+-- AP-09: Threshold-relative multipliers. @500dbps: bar_range = 0.005
 -- AP-02: Pre-compute tp_price/sl_price as columns
 param_with_prices AS (
     SELECT
@@ -148,8 +148,8 @@ param_with_prices AS (
         __TP_MULT__ AS tp_mult,
         __SL_MULT__ AS sl_mult,
         toUInt32(__MAX_BARS__) AS max_bars,
-        entry_price * (1.0 + __TP_MULT__ * 0.05) AS tp_price,
-        entry_price * (1.0 - __SL_MULT__ * 0.05) AS sl_price
+        entry_price * (1.0 + __TP_MULT__ * 0.005) AS tp_price,
+        entry_price * (1.0 - __SL_MULT__ * 0.005) AS sl_price
     FROM forward_arrays
 ),
 -- CTE 8: Barrier scan
@@ -227,8 +227,8 @@ SELECT
     __TP_MULT__ AS tp_mult,
     __SL_MULT__ AS sl_mult,
     __MAX_BARS__ AS max_bars,
-    __TP_MULT__ * 0.05 AS tp_pct,
-    __SL_MULT__ * 0.05 AS sl_pct,
+    __TP_MULT__ * 0.005 AS tp_pct,
+    __SL_MULT__ * 0.005 AS sl_pct,
     toUInt32(count(*)) AS filtered_signals,
     toUInt32(countIf(exit_type = 'TP')) AS tp_count,
     toUInt32(countIf(exit_type = 'SL')) AS sl_count,

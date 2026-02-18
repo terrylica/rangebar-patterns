@@ -107,8 +107,8 @@ barrier_params AS (
     SELECT
         s.timestamp_ms,
         s.entry_price,
-        s.entry_price * (1.0 + 0.25 * (__THRESHOLD__ / 10000.0)) AS tp_price,
-        s.entry_price * (1.0 - 0.50 * (__THRESHOLD__ / 10000.0)) AS sl_price,
+        s.entry_price * (1.0 + 2.5 * (__THRESHOLD__ / 100000.0)) AS tp_price,
+        s.entry_price * (1.0 - 5.0 * (__THRESHOLD__ / 100000.0)) AS sl_price,
         toUInt32(100) AS max_bars,
         s.fwd_highs, s.fwd_lows, s.fwd_opens, s.fwd_closes
     FROM signals s

@@ -154,8 +154,8 @@ param_with_prices AS (
         __TP_MULT__ AS tp_mult,
         __SL_MULT__ AS sl_mult,
         toUInt32(__MAX_BARS__) AS max_bars,
-        entry_price * (1.0 + __TP_MULT__ * 0.05) AS tp_price,
-        entry_price * (1.0 - __SL_MULT__ * 0.05) AS sl_price
+        entry_price * (1.0 + __TP_MULT__ * 0.005) AS tp_price,
+        entry_price * (1.0 - __SL_MULT__ * 0.005) AS sl_price
     FROM forward_arrays
 ),
 -- CTE 8: Barrier scan

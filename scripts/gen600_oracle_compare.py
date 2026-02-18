@@ -77,7 +77,7 @@ def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
 
     end_date = pd.Timestamp(end_ts_ms, unit="ms").strftime("%Y-%m-%d")
 
-    threshold_pct = threshold / 10000.0
+    bar_range = threshold / 100_000.0
     tp_mult = config["tp_mult"]
     sl_mult = config["sl_mult"]
 
@@ -111,7 +111,7 @@ def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
     Gen600Strategy.tp_mult = tp_mult
     Gen600Strategy.sl_mult = sl_mult
     Gen600Strategy.max_bars = config["max_bars"]
-    Gen600Strategy.threshold_pct = threshold_pct
+    Gen600Strategy.bar_range = bar_range
 
     bt = Backtest(
         df,
@@ -134,9 +134,9 @@ def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
 
         signal_ts = str(signal_ts_list[i]) if i < len(signal_ts_list) else "0"
 
-        if threshold_pct > 0:
-            tp_price = entry_price * (1.0 + tp_mult * threshold_pct)
-            sl_price = entry_price * (1.0 - sl_mult * threshold_pct)
+        if bar_range > 0:
+            tp_price = entry_price * (1.0 + tp_mult * bar_range)
+            sl_price = entry_price * (1.0 - sl_mult * bar_range)
             if exit_price >= tp_price * 0.999:
                 exit_type = "TP"
             elif exit_price <= sl_price * 1.001:

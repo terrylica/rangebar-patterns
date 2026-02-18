@@ -119,7 +119,7 @@ def run_backtesting_py(symbol, threshold, *, config):
     from backtest.backtesting_py.data_loader import load_range_bars
     from backtest.backtesting_py.gen720_strategy import Gen720Strategy
 
-    threshold_pct = threshold / 10000.0
+    bar_range = threshold / 100_000.0
     tp_mult = config["tp_mult"]
     sl_mult = config["sl_mult"]
     sl_tight_mult = config["sl_tight_mult"]
@@ -160,7 +160,7 @@ def run_backtesting_py(symbol, threshold, *, config):
     Gen720Strategy.sl_tight_mult = sl_tight_mult
     Gen720Strategy.phase1_bars = phase1_bars
     Gen720Strategy.max_bars = config["max_bars"]
-    Gen720Strategy.threshold_pct = threshold_pct
+    Gen720Strategy.bar_range = bar_range
 
     bt = Backtest(
         df,
@@ -184,11 +184,11 @@ def run_backtesting_py(symbol, threshold, *, config):
         signal_ts = str(signal_ts_list[i]) if i < len(signal_ts_list) else "0"
 
         # Detect exit type from price proximity
-        if threshold_pct > 0:
-            tp_price = entry_price * (1.0 + tp_mult * threshold_pct)
+        if bar_range > 0:
+            tp_price = entry_price * (1.0 + tp_mult * bar_range)
             # SL could be wide or tight depending on when trade exited
-            sl_wide = entry_price * (1.0 - sl_mult * threshold_pct)
-            sl_tight = entry_price * (1.0 - sl_tight_mult * threshold_pct)
+            sl_wide = entry_price * (1.0 - sl_mult * bar_range)
+            sl_tight = entry_price * (1.0 - sl_tight_mult * bar_range)
 
             if exit_price >= tp_price * 0.999:
                 exit_type = "TP"

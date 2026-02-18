@@ -20,17 +20,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from backtesting import Backtest
 
-from backtest.backtesting_py.champion_strategy import ChampionLong
+from backtest.backtesting_py.champion_strategy import ChampionMeanRevLong
 from backtest.backtesting_py.data_loader import load_range_bars
 
 # Gen600 uses @750 threshold with 3 barrier profiles
 THRESHOLD_DBPS = 750
-THRESHOLD_PCT = THRESHOLD_DBPS / 10000.0
+BAR_RANGE = THRESHOLD_DBPS / 100_000.0
 
 BARRIER_PROFILES = {
-    "inverted":  {"tp_mult": 0.25, "sl_mult": 0.50, "max_bars": 100},
-    "symmetric": {"tp_mult": 0.50, "sl_mult": 0.50, "max_bars": 50},
-    "momentum":  {"tp_mult": 0.75, "sl_mult": 0.25, "max_bars": 50},
+    "inverted":  {"tp_mult": 2.5, "sl_mult": 5.0, "max_bars": 100},
+    "symmetric": {"tp_mult": 5.0, "sl_mult": 5.0, "max_bars": 50},
+    "momentum":  {"tp_mult": 7.5, "sl_mult": 2.5, "max_bars": 50},
 }
 
 
@@ -39,7 +39,7 @@ def run_backtesting_py(tp_mult, sl_mult, max_bars):
     df = load_range_bars(symbol="SOLUSDT", threshold=THRESHOLD_DBPS)
     bt = Backtest(
         df,
-        ChampionLong,
+        ChampionMeanRevLong,
         cash=100_000,
         commission=0.0,
         exclusive_orders=True,
@@ -48,7 +48,7 @@ def run_backtesting_py(tp_mult, sl_mult, max_bars):
         tp_mult=tp_mult,
         sl_mult=sl_mult,
         max_bars=max_bars,
-        threshold_pct=THRESHOLD_PCT,
+        bar_range=BAR_RANGE,
     )
     return stats["_trades"], stats, df
 

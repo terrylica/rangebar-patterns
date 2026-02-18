@@ -16,11 +16,12 @@ import os
 # ---- Data Selection ----
 SYMBOL: str = os.environ.get("RBP_SYMBOL", "SOLUSDT")
 THRESHOLD_DBPS: int = int(os.environ.get("RBP_THRESHOLD_DBPS", "500"))
-THRESHOLD_PCT: float = THRESHOLD_DBPS / 10000.0
+BAR_RANGE: float = THRESHOLD_DBPS / 100_000.0  # Aligned with rangebar-py: 500 dbps = 0.005 = 0.5%
 
 # ---- Default Barrier Configuration ----
-TP_MULT: float = float(os.environ.get("RBP_TP_MULT", "0.5"))
-SL_MULT: float = float(os.environ.get("RBP_SL_MULT", "0.25"))
+# Multipliers are in bar-widths: tp_mult=5.0 means TP at 5.0× the bar range from entry
+TP_MULT: float = float(os.environ.get("RBP_TP_MULT", "5.0"))
+SL_MULT: float = float(os.environ.get("RBP_SL_MULT", "2.5"))
 MAX_BARS: int = int(os.environ.get("RBP_MAX_BARS", "50"))
 
 # ---- Evaluation Parameters ----
@@ -35,8 +36,8 @@ MIN_TRADES_RACHEV: int = int(os.environ.get("RBP_MIN_TRADES_RACHEV", "20"))
 MIN_TRADES_CDAR: int = int(os.environ.get("RBP_MIN_TRADES_CDAR", "10"))
 CSCV_RANKER: str = os.environ.get("RBP_CSCV_RANKER", "tamrs")
 CSCV_SPLITS: int = int(os.environ.get("RBP_CSCV_SPLITS", "8"))
-TP_EMP: float = TP_MULT * THRESHOLD_PCT  # Derived: 0.5 * 0.05 = 0.025
-SL_EMP: float = SL_MULT * THRESHOLD_PCT  # Derived: 0.25 * 0.05 = 0.0125
+TP_EMP: float = TP_MULT * BAR_RANGE  # Derived: 5.0 * 0.005 = 0.025
+SL_EMP: float = SL_MULT * BAR_RANGE  # Derived: 2.5 * 0.005 = 0.0125
 
 # ---- Screening Tier Thresholds (Issue #16) ----
 SCREEN_TAMRS_MIN: tuple[float, ...] = (

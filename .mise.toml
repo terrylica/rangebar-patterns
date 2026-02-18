@@ -31,8 +31,8 @@ RBP_THRESHOLD_DBPS = "500"
 # ---- Research: Default Barrier Configuration ----
 # Used by eval.extraction and gen300/gen400 fixed-barrier queries.
 # Gen510 barrier grid sweeps override these via arrayJoin.
-RBP_TP_MULT = "0.5"
-RBP_SL_MULT = "0.25"
+RBP_TP_MULT = "5.0"
+RBP_SL_MULT = "2.5"
 RBP_MAX_BARS = "50"
 
 # ---- Research: Evaluation Parameters ----

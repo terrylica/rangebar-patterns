@@ -85,7 +85,7 @@ INSERT INTO rangebar_cache.barrier_results
      win_rate, profit_factor, avg_win_pct, avg_loss_pct, risk_reward,
      expected_value_pct, avg_bars_held, kelly_fraction)
 WITH
--- threshold_pct = threshold_decimal_bps / 10000.0 = 0.025 for @250dbps
+-- bar_range = threshold_decimal_bps / 100000.0 = 0.0025 for @250dbps
 -- CTE 1: Base bars — OHLCV + microstructure features + row numbering
 base_bars AS (
     SELECT
@@ -181,8 +181,8 @@ param_expanded AS (
         fwd_lows,
         fwd_opens,
         fwd_closes,
-        arrayJoin([0.5, 1.0, 1.5, 2.0, 3.0]) AS tp_mult,
-        arrayJoin([0.25, 0.5, 0.75, 1.0, 1.5]) AS sl_mult,
+        arrayJoin([5.0, 10.0, 15.0, 20.0, 30.0]) AS tp_mult,
+        arrayJoin([2.5, 5.0, 7.5, 10.0, 15.0]) AS sl_mult,
         arrayJoin(CAST([5, 10, 20, 50], 'Array(UInt32)')) AS max_bars
     FROM forward_arrays
 ),
@@ -191,8 +191,8 @@ param_expanded AS (
 param_with_prices AS (
     SELECT
         *,
-        entry_price * (1.0 + tp_mult * 0.025) AS tp_price,
-        entry_price * (1.0 - sl_mult * 0.025) AS sl_price
+        entry_price * (1.0 + tp_mult * 0.0025) AS tp_price,
+        entry_price * (1.0 - sl_mult * 0.0025) AS sl_price
     FROM param_expanded
 ),
 -- CTE 7: Barrier scan — arraySlice + arrayFirstIndex with 0-guards
@@ -273,8 +273,8 @@ SELECT
     tp_mult,
     sl_mult,
     max_bars,
-    tp_mult * 0.025 AS tp_pct,
-    sl_mult * 0.025 AS sl_pct,
+    tp_mult * 0.0025 AS tp_pct,
+    sl_mult * 0.0025 AS sl_pct,
     -- Counts
     toUInt32(count(*)) AS total_signals,
     toUInt32(countIf(exit_type = 'TP')) AS tp_count,

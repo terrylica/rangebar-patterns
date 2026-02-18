@@ -109,7 +109,7 @@ forward_arrays AS (
     GROUP BY s.timestamp_ms, s.entry_price, s.rn
 ),
 -- CTE 7: Barrier grid via arrayJoin
--- AP-09: Threshold-relative multipliers. @500dbps: threshold_pct = 0.05
+-- AP-09: Threshold-relative multipliers. @500dbps: bar_range = 0.005
 -- AP-02: Pre-compute tp_price/sl_price as columns
 param_grid AS (
     SELECT
@@ -117,13 +117,13 @@ param_grid AS (
         tp_m AS tp_mult,
         sl_m AS sl_mult,
         mb AS max_bars,
-        fa.entry_price * (1.0 + tp_m * 0.05) AS tp_price,
-        fa.entry_price * (1.0 - sl_m * 0.05) AS sl_price
+        fa.entry_price * (1.0 + tp_m * 0.005) AS tp_price,
+        fa.entry_price * (1.0 - sl_m * 0.005) AS sl_price
     FROM forward_arrays fa
     CROSS JOIN (
         SELECT
-            arrayJoin([0.25, 0.50, 0.75, 1.00]) AS tp_m,
-            arrayJoin([0.125, 0.25, 0.50]) AS sl_m,
+            arrayJoin([2.5, 5.0, 7.5, 10.0]) AS tp_m,
+            arrayJoin([1.25, 2.5, 5.0]) AS sl_m,
             arrayJoin([toUInt32(20), toUInt32(50), toUInt32(100)]) AS mb
     ) params
 ),
@@ -191,8 +191,8 @@ SELECT
     tp_mult,
     sl_mult,
     max_bars,
-    tp_mult * 0.05 AS tp_pct,
-    sl_mult * 0.05 AS sl_pct,
+    tp_mult * 0.005 AS tp_pct,
+    sl_mult * 0.005 AS sl_pct,
     tp_mult / sl_mult AS rr_ratio,
     toUInt32(count(*)) AS filtered_signals,
     toUInt32(countIf(exit_type = 'TP')) AS tp_count,

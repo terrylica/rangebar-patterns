@@ -142,15 +142,15 @@ barrier_params AS (
         bp.tp_mult,
         bp.sl_mult,
         bp.max_bars,
-        s.entry_price * (1.0 - bp.tp_mult * (__THRESHOLD_DBPS__ / 10000.0)) AS tp_price,
-        s.entry_price * (1.0 + bp.sl_mult * (__THRESHOLD_DBPS__ / 10000.0)) AS sl_price
+        s.entry_price * (1.0 - bp.tp_mult * (__THRESHOLD_DBPS__ / 100000.0)) AS tp_price,
+        s.entry_price * (1.0 + bp.sl_mult * (__THRESHOLD_DBPS__ / 100000.0)) AS sl_price
     FROM signals s
     CROSS JOIN (
-        SELECT 'inverted' AS barrier_profile, 0.25 AS tp_mult, 0.50 AS sl_mult, toUInt32(100) AS max_bars
+        SELECT 'inverted' AS barrier_profile, 2.5 AS tp_mult, 5.0 AS sl_mult, toUInt32(100) AS max_bars
         UNION ALL
-        SELECT 'symmetric', 0.50, 0.50, toUInt32(50)
+        SELECT 'symmetric', 5.0, 5.0, toUInt32(50)
         UNION ALL
-        SELECT 'momentum', 0.75, 0.25, toUInt32(50)
+        SELECT 'momentum', 7.5, 2.5, toUInt32(50)
     ) bp
 ),
 barrier_scan AS (
