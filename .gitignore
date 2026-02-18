@@ -15,5 +15,13 @@ results/eval/trade_returns.jsonl
 # Gen720 raw TSVs (collected from BigBlack, too large for git)
 results/eval/gen720/raw/
 
+# Gen720 intermediate artifacts (individual combo JSONs + Parquet chunks)
+results/eval/gen720/combos/_combo_*.json
+results/eval/gen720/folds/_chunk_*.parquet
+
+# Gen720 uncompressed combo JSONL (use .br compressed versions)
+results/eval/gen720/combos/long_combos.jsonl
+results/eval/gen720/combos/short_combos.jsonl
+
 # Node.js (semantic-release only)
 node_modules/
