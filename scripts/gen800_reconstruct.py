@@ -292,7 +292,7 @@ def main():
         Gen800Strategy,
         cash=CASH,
         margin=MARGIN,
-        commission=0,
+        commission=0.0005,  # Binance USDM taker fee: 5 bps per side (10 bps RT)
         hedging=True,
         exclusive_orders=False,
     )
