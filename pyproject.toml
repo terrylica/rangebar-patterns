@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "opendeviationbar-patterns"
-version = "2.1.0"
+version = "2.2.0"
 description = "Open deviation bar pattern discovery: ClickHouse SQL brute-force analysis of microstructure features"
 readme = "README.md"
 requires-python = ">=3.13"

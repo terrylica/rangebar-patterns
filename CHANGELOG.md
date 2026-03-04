@@ -1,3 +1,22 @@
+# [2.2.0](https://github.com/terrylica/rangebar-patterns/compare/v2.1.0...v2.2.0) (2026-03-04)
+
+
+### Features
+
+* add results/published/ hierarchy for presentation-ready artifacts ([3443bd9](https://github.com/terrylica/rangebar-patterns/commit/3443bd96fef7884d33a0c7a01c97b8aa7e2ef829)), closes [#1](https://github.com/terrylica/rangebar-patterns/issues/1)
+* Cloudflare Workers static hosting for published equity charts ([bc38c64](https://github.com/terrylica/rangebar-patterns/commit/bc38c645b0c639ce79305be6fe3c0b79401aed11))
+* **eval:** add trade-level stagnation metrics to walk_forward evaluation ([f66c003](https://github.com/terrylica/rangebar-patterns/commit/f66c0031bf2bb5ecd85846235fa0218748347af7)), closes [#40](https://github.com/terrylica/rangebar-patterns/issues/40) [#41](https://github.com/terrylica/rangebar-patterns/issues/41)
+* **gen800:** add Binance USDM taker fee (5 bps/side) to backtesting ([68e3f69](https://github.com/terrylica/rangebar-patterns/commit/68e3f69b627741487f1153a0162241a364187de0))
+* **gen800:** add infrastructure — mise tasks, Laguerre dependency, LFS tracking ([5d94acd](https://github.com/terrylica/rangebar-patterns/commit/5d94acd254fa5ac4d689e70ad64db80fabe7de83)), closes [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+* **gen800:** add Laguerre RSI wrapper and barrier simulator modules ([976944a](https://github.com/terrylica/rangebar-patterns/commit/976944a02e8543df7012b14c88218080626877f8)), closes [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+* **gen800:** cross-asset validation — 13 assets @ 750dbps, all profitable ([96cd093](https://github.com/terrylica/rangebar-patterns/commit/96cd093838a1a0fc289ab07ae5fa325861abf723)), closes [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+* **gen800:** log scale equity, cube-root volume transform in Bokeh plots ([5026162](https://github.com/terrylica/rangebar-patterns/commit/50261626cebf411e008ec3cdb1e06fde46b6e6e2))
+* **gen800:** re-run SOL baseline configs with futures margin (100x) ([4b928de](https://github.com/terrylica/rangebar-patterns/commit/4b928de40b118b57ffcf7b2e91a9ee05a22f59aa)), closes [#1](https://github.com/terrylica/rangebar-patterns/issues/1) [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+* **gen800:** reconstruct script with RangeIndex plotting (AP-20 fix) ([4543faf](https://github.com/terrylica/rangebar-patterns/commit/4543fafe4cb7782d6d6cb18b286969c05b1dd346)), closes [#42](https://github.com/terrylica/rangebar-patterns/issues/42) [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+* **gen800:** rolling 90-day return/drawdown ratio cross-asset ranking ([9543142](https://github.com/terrylica/rangebar-patterns/commit/954314206cd1f739b05def0658a79e455be385fb)), closes [#1](https://github.com/terrylica/rangebar-patterns/issues/1) [#2](https://github.com/terrylica/rangebar-patterns/issues/2) [#3](https://github.com/terrylica/rangebar-patterns/issues/3) [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+* **gen800:** sweep + rank scripts with bar-level stagnation (AP-18 fix) ([583ee1b](https://github.com/terrylica/rangebar-patterns/commit/583ee1bb0f6acd54e5c1022e27838efdcba83229)), closes [#41](https://github.com/terrylica/rangebar-patterns/issues/41) [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+* **gen800:** sweep results — 86,400 configs, bar-level stagnation ranking ([405f89b](https://github.com/terrylica/rangebar-patterns/commit/405f89bfb4851af8f7e994284ce86e0ef807daa5)), closes [#40](https://github.com/terrylica/rangebar-patterns/issues/40)
+
 # [2.1.0](https://github.com/terrylica/opendeviationbar-patterns/compare/v2.0.0...v2.1.0) (2026-02-18)
 
 
