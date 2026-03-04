@@ -1,11 +1,11 @@
 """Test CSCV/PBO computation helpers.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 import numpy as np
 
-from rangebar_patterns.eval.cscv import compute_sharpe
+from opendeviationbar_patterns.eval.cscv import compute_sharpe
 
 
 def test_compute_sharpe_positive():

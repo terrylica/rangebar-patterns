@@ -1,7 +1,7 @@
 # Brute Force Microstructure Feature Analysis
 
 **Date**: 2026-02-05
-**Database**: `rangebar_cache.feature_combinations` (ClickHouse)
+**Database**: `opendeviationbar_cache.feature_combinations` (ClickHouse)
 **Asset**: SOLUSDT @ 1000 dbps (10% range bars)
 **Method**: Progressive evolutionary brute-force search
 
@@ -155,25 +155,25 @@
 
 ## SQL Queries for Reference
 
-All results stored in `rangebar_cache.feature_combinations`:
+All results stored in `opendeviationbar_cache.feature_combinations`:
 
 ```sql
 -- View best combinations
 SELECT combo_name, hit_rate, edge_pct, z_score, signal_count
-FROM rangebar_cache.feature_combinations
+FROM opendeviationbar_cache.feature_combinations
 WHERE generation IN (1,2) AND symbol = 'SOLUSDT'
 ORDER BY hit_rate DESC
 LIMIT 20;
 
 -- Temporal stability
 SELECT combo_name, hit_rate, signal_count
-FROM rangebar_cache.feature_combinations
+FROM opendeviationbar_cache.feature_combinations
 WHERE generation = 4 AND combo_name LIKE 'ti_p95%'
 ORDER BY combo_name;
 
 -- Cross-asset comparison
 SELECT symbol, combo_name, hit_rate, z_score
-FROM rangebar_cache.feature_combinations
+FROM opendeviationbar_cache.feature_combinations
 WHERE generation = 5
 ORDER BY symbol;
 ```

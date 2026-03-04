@@ -1,11 +1,11 @@
 """Test signal temporal regularity via KDE peak-finding.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
 import numpy as np
 
-from rangebar_patterns.eval.signal_regularity import compute_signal_regularity
+from opendeviationbar_patterns.eval.signal_regularity import compute_signal_regularity
 
 
 def test_insufficient_data_returns_none():

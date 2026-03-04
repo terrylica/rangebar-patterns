@@ -9,7 +9,7 @@ Rolling window approach (per Gemini 3 Pro prescription): for each trade entry,
 calibrate OU on the preceding 1000 bars, producing a per-trade ou_barrier_ratio.
 Per-config ratio is the median across all trades in that config.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -19,8 +19,8 @@ import os
 
 import numpy as np
 
-from rangebar_patterns.config import SYMBOL, THRESHOLD_DBPS, TP_EMP
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import SYMBOL, THRESHOLD_DBPS, TP_EMP
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 OU_LOOKBACK = 1000
 
@@ -100,8 +100,8 @@ def _get_ch_client():
     """Create ClickHouse client using env config."""
     import clickhouse_connect
 
-    host = os.environ.get("RANGEBAR_CH_HOST", "localhost")
-    database = os.environ.get("RANGEBAR_CH_DATABASE", "rangebar_cache")
+    host = os.environ.get("OPENDEVIATIONBAR_CH_HOST", "localhost")
+    database = os.environ.get("OPENDEVIATIONBAR_CH_DATABASE", "opendeviationbar_cache")
     return clickhouse_connect.get_client(host=host, database=database)
 
 
@@ -111,7 +111,7 @@ def _load_bar_series(symbol: str, threshold: int) -> tuple[np.ndarray, np.ndarra
     Checks /tmp/{symbol}_{threshold}_ts_close.tsv first (avoids SSH issues).
     Falls back to ClickHouse query_arrow if file not found.
 
-    Returns (timestamps_ms, closes) as numpy arrays sorted by time.
+    Returns (close_times_ms, closes) as numpy arrays sorted by time.
     """
     cache_path = f"/tmp/{symbol.lower()}_{threshold}_ts_close.tsv"
     if os.path.exists(cache_path):
@@ -122,11 +122,12 @@ def _load_bar_series(symbol: str, threshold: int) -> tuple[np.ndarray, np.ndarra
     print("Cache not found, querying ClickHouse...")
     client = _get_ch_client()
     result = client.query_arrow(
-        f"SELECT timestamp_ms, close FROM rangebar_cache.range_bars "
+        f"SELECT close_time_ms, close FROM opendeviationbar_cache.open_deviation_bars "
         f"WHERE symbol = '{symbol}' AND threshold_decimal_bps = {threshold} "
-        f"ORDER BY timestamp_ms"
+        f"AND ouroboros_mode = 'month' "
+        f"ORDER BY close_time_ms"
     )
-    timestamps = result.column("timestamp_ms").to_numpy()
+    timestamps = result.column("close_time_ms").to_numpy()
     closes = result.column("close").to_numpy()
     return timestamps, closes
 
@@ -169,7 +170,7 @@ def main():
 
     for i, cfg in enumerate(trade_data):
         config_id = cfg["config_id"]
-        timestamps = cfg.get("timestamps_ms", [])
+        timestamps = cfg.get("close_times_ms", [])
         n_trades = len(timestamps)
         n_total_trades += n_trades
 

@@ -26,7 +26,7 @@
 --   AP-15: Current row IS the last pattern bar
 --   Rolling 1000-bar quantile for trade_intensity (never expanding)
 --
--- GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+-- GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 -- ============================================================================
 
 WITH
@@ -35,52 +35,53 @@ aligned_bars AS (
     SELECT *
     FROM (
         SELECT *
-        FROM rangebar_cache.range_bars
+        FROM opendeviationbar_cache.open_deviation_bars
         WHERE symbol = '__SYMBOL__'
           AND threshold_decimal_bps = __THRESHOLD_DBPS__
-          AND timestamp_ms <= __END_TS_MS__
-        ORDER BY timestamp_ms DESC
+          AND close_time_ms <= __END_TS_MS__
+          AND ouroboros_mode = 'month'
+        ORDER BY close_time_ms DESC
         LIMIT __BAR_COUNT__
     )
-    ORDER BY timestamp_ms ASC
+    ORDER BY close_time_ms ASC
 ),
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         -- Forward arrays (AP-14: window-based, NOT self-join)
         -- max max_bars = 200, so 201 FOLLOWING captures all
         arraySlice(groupArray(high) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_highs,
         arraySlice(groupArray(low) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_lows,
         arraySlice(groupArray(open) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_opens,
         arraySlice(groupArray(close) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_closes,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
+        row_number() OVER (ORDER BY close_time_ms) AS rn
     FROM aligned_bars
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
 ),
 running_stats AS (
     SELECT
         *,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS ti_p95_rolling
     FROM base_bars
 ),
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         direction,
         rn,
@@ -91,7 +92,7 @@ signal_detection AS (
         lagInFrame(direction, 2) OVER w AS dir_2,
         lagInFrame(ti_p95_rolling, 0) OVER w AS ti_p95_prior,
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price,
         fwd_highs,
@@ -99,7 +100,7 @@ signal_detection AS (
         fwd_opens,
         fwd_closes
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 -- 3down formation: 3 consecutive DOWN bars + ti>p95 + kyle>0
 formation_signals AS (
@@ -134,7 +135,7 @@ barrier_grid AS (
 -- CROSS JOIN: each signal × each barrier config
 signal_barrier AS (
     SELECT
-        s.timestamp_ms AS signal_ts_ms,
+        s.close_time_ms AS signal_ts_ms,
         s.entry_price,
         s.fwd_highs,
         s.fwd_lows,

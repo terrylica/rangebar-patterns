@@ -15,7 +15,7 @@ WITH
 -- CTE 1: Base bars with all candidate features
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
@@ -28,17 +28,18 @@ base_bars AS (
         aggregation_density,
         duration_us,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 500
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 -- CTE 2: Running stats — rolling 1000-bar p95 for trade_intensity (no-lookahead)
 running_stats AS (
     SELECT
         *,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS ti_p95_rolling
     FROM base_bars
@@ -46,7 +47,7 @@ running_stats AS (
 -- CTE 3: Signal detection — lag features + entry price
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         rn,
         -- Champion pattern features (lagged)
         lagInFrame(trade_intensity, 1) OVER w AS ti_1,
@@ -64,7 +65,7 @@ signal_detection AS (
         lagInFrame(aggregation_density, 1) OVER w AS aggregation_density_lag1,
         lagInFrame(duration_us, 1) OVER w AS duration_us_lag1
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 -- CTE 4: Champion signals only
 signals AS (

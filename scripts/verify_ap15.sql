@@ -8,29 +8,29 @@
 WITH
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT'
       AND threshold_decimal_bps = 500
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
 ),
 running_stats AS (
     SELECT
         *,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS ti_p95_rolling
     FROM base_bars
 ),
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, close,
         -- AP-15: current row IS the 2nd DOWN bar
         trade_intensity AS ti_0,
@@ -39,12 +39,12 @@ signal_detection AS (
         lagInFrame(direction, 1) OVER w AS dir_1,
         lagInFrame(ti_p95_rolling, 0) OVER w AS ti_p95_prior,
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price,
         rn
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 champion_signals AS (
     SELECT *
@@ -59,7 +59,7 @@ champion_signals AS (
       AND entry_price > 0
 )
 SELECT
-    timestamp_ms,
+    close_time_ms,
     open AS signal_open,
     close AS signal_close,
     entry_price,
@@ -69,5 +69,5 @@ SELECT
     dir_0,
     dir_1
 FROM champion_signals
-ORDER BY timestamp_ms
+ORDER BY close_time_ms
 FORMAT TabSeparatedWithNames;

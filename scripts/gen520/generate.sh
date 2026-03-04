@@ -25,9 +25,9 @@ TEMPLATE="sql/gen500_2feature_template.sql"
 TEMPLATE_SHA=$(shasum -a 256 "$TEMPLATE" | cut -d' ' -f1)
 
 # Barrier parameters from mise [env]
-TP_MULT="${RBP_TP_MULT:-0.5}"
-SL_MULT="${RBP_SL_MULT:-0.25}"
-MAX_BARS="${RBP_MAX_BARS:-50}"
+TP_MULT="${OPENDEVIATIONBAR_TP_MULT:-0.5}"
+SL_MULT="${OPENDEVIATIONBAR_SL_MULT:-0.25}"
+MAX_BARS="${OPENDEVIATIONBAR_MAX_BARS:-50}"
 MAX_BARS_PLUS1=$((MAX_BARS + 1))
 GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 

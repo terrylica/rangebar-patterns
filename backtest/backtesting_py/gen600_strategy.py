@@ -1,7 +1,7 @@
 """Gen600: Parameterized multi-pattern + dual feature filter strategy.
 
 ADR: docs/adr/2026-02-06-repository-creation.md
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/14
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/14
 
 Based on champion_strategy.py barrier/exit logic.
 Supports all 22 Gen600 pattern types with any 2-feature filter combination.
@@ -33,7 +33,7 @@ def _rolling_quantile_on_signals(feature_arr, is_signal_arr, quantile_pct, windo
     """Compute rolling quantile of a feature over SIGNAL bars only.
 
     Mirrors SQL: quantileExactExclusive(pct)(feature) OVER (
-        ORDER BY timestamp_ms ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
+        ORDER BY close_time_ms ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
     ) — but computed over the signal set, not all bars.
 
     Args:
@@ -259,7 +259,7 @@ class Gen600Strategy(Strategy):
 
         self._is_champion_signal = is_signal
         self._direction = direction
-        self._signal_timestamps = []  # signal_bar_timestamp_ms for oracle matching
+        self._signal_timestamps = []  # signal_bar_close_time_ms for oracle matching
         # Per-trade time barrier: id(trade) -> entry_bar_index
         self._trade_entry_bar = {}
         self._known_trades = set()

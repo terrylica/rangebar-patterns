@@ -15,23 +15,24 @@
 
 WITH
 -- Step 1: Get all base data with row numbers
--- NOTE: Added secondary ORDER BY on timestamp_ms for deterministic ordering
+-- NOTE: Added secondary ORDER BY on close_time_ms for deterministic ordering
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         trade_intensity,
         kyle_lambda_proxy,
-        ROW_NUMBER() OVER (ORDER BY timestamp_ms) as bar_idx
-    FROM rangebar_cache.range_bars
+        ROW_NUMBER() OVER (ORDER BY close_time_ms) as bar_idx
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 
 -- Step 2: Pick a specific test bar (around bar 50,000 for rigorous testing)
 test_bar_selection AS (
     SELECT
-        timestamp_ms as test_timestamp,
+        close_time_ms as test_timestamp,
         bar_idx as test_bar_idx,
         direction as test_direction,
         trade_intensity as test_trade_intensity,
@@ -49,7 +50,7 @@ manual_p95_computation AS (
     SELECT
         quantileExactExclusive(0.95)(trade_intensity) as manual_p95,
         count(*) as bars_used_in_p95,
-        max(timestamp_ms) as last_bar_used_ts,
+        max(close_time_ms) as last_bar_used_ts,
         max(bar_idx) as last_bar_idx
     FROM base_bars
     WHERE bar_idx < (SELECT test_bar_idx FROM test_bar_selection)
@@ -58,13 +59,13 @@ manual_p95_computation AS (
 -- Step 4: SQL WINDOW FUNCTION OUTPUT - what our query actually produces
 window_computation AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         bar_idx,
         direction,
         trade_intensity,
         kyle_lambda_proxy,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         ) as window_p95,
         lagInFrame(direction, 1) OVER w as dir_1,
@@ -72,7 +73,7 @@ window_computation AS (
         lagInFrame(trade_intensity, 1) OVER w as ti_1,
         lagInFrame(kyle_lambda_proxy, 1) OVER w as kyle_1
     FROM base_bars
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 
 -- Step 5: Get values at our test bar
@@ -84,7 +85,7 @@ test_bar_window_values AS (
 
 -- Step 6: Get actual directions of t-1 and t-2 bars for verification
 prev_bars AS (
-    SELECT bar_idx, direction, timestamp_ms
+    SELECT bar_idx, direction, close_time_ms
     FROM base_bars
     WHERE bar_idx IN (
         (SELECT test_bar_idx FROM test_bar_selection) - 1,
@@ -147,7 +148,7 @@ SELECT
     '=== DIRECTION LAG VERIFICATION ===' as section,
     bar_idx,
     direction,
-    timestamp_ms,
+    close_time_ms,
     CASE
         WHEN bar_idx = (SELECT test_bar_idx - 1 FROM test_bar_selection) THEN 'Should match dir_1'
         WHEN bar_idx = (SELECT test_bar_idx - 2 FROM test_bar_selection) THEN 'Should match dir_2'
@@ -164,11 +165,12 @@ ORDER BY bar_idx DESC;
 -- =============================================================================
 SELECT
     '=== TIMESTAMP TIE CHECK ===' as section,
-    timestamp_ms,
+    close_time_ms,
     count(*) as bars_with_same_ts,
     CASE WHEN count(*) > 1 THEN '⚠️ TIES EXIST' ELSE '✅ UNIQUE' END as tie_status
-FROM rangebar_cache.range_bars
+FROM opendeviationbar_cache.open_deviation_bars
 WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-GROUP BY timestamp_ms
+AND ouroboros_mode = 'month'
+GROUP BY close_time_ms
 HAVING count(*) > 1
 LIMIT 10;

@@ -6,7 +6,7 @@
 -- configs = 48 single-feature configurations, plus multi-feature combos (Phase 2).
 -- ============================================================================
 
-CREATE TABLE IF NOT EXISTS rangebar_cache.gen300_results (
+CREATE TABLE IF NOT EXISTS opendeviationbar_cache.gen300_results (
     symbol String,
     threshold_decimal_bps UInt32,
     generation UInt32,

@@ -1,11 +1,11 @@
 """Test multi-tier screening logic.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
-from rangebar_patterns.eval.screening import TIERS, individual_gate_pass, passes_tier
+from opendeviationbar_patterns.eval.screening import TIERS, individual_gate_pass, passes_tier
 
 
 def test_tiers_defined():

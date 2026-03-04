@@ -14,15 +14,15 @@ ASSET_DIR="${REMOTE_DIR}/SOLUSDT_${THRESHOLD}"
 LOG_FILE="/tmp/gen520_SOLUSDT_${THRESHOLD}.jsonl"
 
 # Read metadata
-METADATA=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
+METADATA=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
 TEMPLATE_SHA=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_sha'])")
 GIT_COMMIT=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['git_commit'])")
 TEMPLATE_FILE=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_file'])")
 
-TOTAL=$(ssh "${RANGEBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
+TOTAL=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
 echo "Total configs: ${TOTAL}"
 
-DONE=$(ssh "${RANGEBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
+DONE=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
 echo "Already completed: ${DONE}"
 
 if [ "$DONE" -ge "$TOTAL" ]; then
@@ -31,7 +31,7 @@ if [ "$DONE" -ge "$TOTAL" ]; then
 fi
 
 # Reuse Gen500 wrapper (same NDJSON schema, just different generation number)
-ssh "${RANGEBAR_CH_HOST}" 'cat > /tmp/gen520_run_job.sh' << 'WRAPPER'
+ssh "${OPENDEVIATIONBAR_CH_HOST}" 'cat > /tmp/gen520_run_job.sh' << 'WRAPPER'
 #!/bin/bash
 set -euo pipefail
 CONFIG_ID="$1"
@@ -106,12 +106,12 @@ LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":520,\"config_id\":\"${CONFI
 flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
 WRAPPER
 
-ssh "${RANGEBAR_CH_HOST}" "chmod +x /tmp/gen520_run_job.sh"
-ssh "${RANGEBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "chmod +x /tmp/gen520_run_job.sh"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
 
 DONE_IDS=""
 if [ "$DONE" -gt 0 ]; then
-    DONE_IDS=$(ssh "${RANGEBAR_CH_HOST}" "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
+    DONE_IDS=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
 fi
 
 SUBMITTED=0
@@ -120,9 +120,9 @@ while read -r SQL_PATH; do
     if [ -n "$DONE_IDS" ] && echo "$DONE_IDS" | grep -q "^${FILENAME}$" 2>/dev/null; then
         continue
     fi
-    ssh -n "${RANGEBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen520_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' 'SOLUSDT' '${THRESHOLD}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
+    ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen520_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' 'SOLUSDT' '${THRESHOLD}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
     SUBMITTED=$((SUBMITTED + 1))
-done < <(ssh -n "${RANGEBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql")
+done < <(ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql")
 
 echo "Submitted ${SUBMITTED} jobs for SOLUSDT@${THRESHOLD}"
-echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"
+echo "Monitor: ssh ${OPENDEVIATIONBAR_CH_HOST} 'pueue status -g p1'"

@@ -1,4 +1,4 @@
-# ADR: rangebar-patterns Repository Creation
+# ADR: opendeviationbar-patterns Repository Creation
 
 **Date**: 2026-02-06
 **Status**: Accepted
@@ -12,7 +12,7 @@ functionality (DSL compiler, plugin system, etc.).
 
 ## Decision
 
-Create a dedicated repository `terrylica/rangebar-patterns` to house:
+Create a dedicated repository `terrylica/opendeviationbar-patterns` to house:
 
 1. **SQL pattern discovery** - 15 ClickHouse SQL files across 8 generations + NLA corrections
 2. **Research findings** - 7 analysis documents from brute-force pattern discovery

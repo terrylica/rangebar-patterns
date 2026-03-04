@@ -29,7 +29,7 @@ for asset_entry in "${ASSETS[@]}"; do
     LOCAL="logs/gen610/${SYMBOL}_${THRESHOLD}.jsonl"
 
     echo -n "  ${SYMBOL}@${THRESHOLD}: "
-    scp "${RANGEBAR_CH_HOST}:${LOG}" "$LOCAL" 2>/dev/null && {
+    scp "${OPENDEVIATIONBAR_CH_HOST}:${LOG}" "$LOCAL" 2>/dev/null && {
         LINES=$(wc -l < "$LOCAL" | tr -d ' ')
         echo "${LINES} lines"
         TOTAL_LINES=$((TOTAL_LINES + LINES))

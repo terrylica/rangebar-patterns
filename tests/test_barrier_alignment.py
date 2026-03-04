@@ -1,6 +1,6 @@
 """Atomic validation: Gen200 SQL vs backtesting.py barrier outcomes.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/6
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/6
 
 Compares individual trade outcomes between:
 - Gen200 SQL (ClickHouse): signal timestamp, entry price, exit type, exit price, bars held
@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from backtesting import Backtest
 
 from backtest.backtesting_py.champion_strategy import ChampionMeanRevLong
-from backtest.backtesting_py.data_loader import load_range_bars
+from backtest.backtesting_py.data_loader import load_open_deviation_bars
 
 # Fixed params for atomic validation
 TP_MULT = 10.0
@@ -32,7 +32,7 @@ THRESHOLD_DBPS = 500
 def run_backtesting_py():
     """Run backtesting.py with barrier params and return trade log."""
     print("Loading @500dbps data...")
-    df = load_range_bars(symbol="SOLUSDT", threshold=THRESHOLD_DBPS)
+    df = load_open_deviation_bars(symbol="SOLUSDT", threshold=THRESHOLD_DBPS)
     print(f"  {len(df)} bars loaded")
 
     bt = Backtest(

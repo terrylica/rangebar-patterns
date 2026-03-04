@@ -1,6 +1,6 @@
 """Shared I/O utilities for the eval subpackage.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ def git_commit_short() -> str:
     """Return short git commit hash, or 'unknown' on failure.
 
     Resolution order:
-    1. ``RBP_GIT_COMMIT`` environment variable — for rsync-deployed
+    1. ``OPENDEVIATIONBAR_GIT_COMMIT`` environment variable — for rsync-deployed
        environments (e.g., BigBlack) where ``.git/`` is absent. The
        generate/submit scripts capture ``git rev-parse --short HEAD``
        locally and thread it through as an env var.
@@ -29,7 +29,7 @@ def git_commit_short() -> str:
     """
     import os
 
-    env_commit = os.environ.get("RBP_GIT_COMMIT", "").strip()
+    env_commit = os.environ.get("OPENDEVIATIONBAR_GIT_COMMIT", "").strip()
     if env_commit:
         return env_commit
 
@@ -48,7 +48,7 @@ def git_commit_short() -> str:
 def provenance_dict(*, include_env: bool = False) -> dict:
     """Build standard provenance metadata for telemetry records.
 
-    GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+    GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
     """
     p: dict = {
         "git_commit": git_commit_short(),
@@ -56,7 +56,7 @@ def provenance_dict(*, include_env: bool = False) -> dict:
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
     }
     if include_env:
-        from rangebar_patterns import config as cfg
+        from opendeviationbar_patterns import config as cfg
 
         p["environment"] = {
             "symbol": cfg.SYMBOL,

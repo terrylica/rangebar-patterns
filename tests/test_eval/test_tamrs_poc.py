@@ -3,15 +3,15 @@
 Validates Rachev, CDaR, OU calibration, and TAMRS composite
 against synthetic profiles with known expected ranges.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 import numpy as np
 
-from rangebar_patterns.eval.cdar import compute_cdar
-from rangebar_patterns.eval.ou_barriers import calibrate_ou
-from rangebar_patterns.eval.rachev import compute_rachev
-from rangebar_patterns.eval.tamrs import compute_tamrs
+from opendeviationbar_patterns.eval.cdar import compute_cdar
+from opendeviationbar_patterns.eval.ou_barriers import calibrate_ou
+from opendeviationbar_patterns.eval.rachev import compute_rachev
+from opendeviationbar_patterns.eval.tamrs import compute_tamrs
 
 # --- Rachev tests ---
 

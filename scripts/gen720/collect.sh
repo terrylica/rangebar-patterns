@@ -11,7 +11,7 @@ set -euo pipefail
 #   collect.sh           # Collect ALL TSVs
 #   collect.sh 2down     # Collect only 2down_*.tsv files
 #
-# GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+# GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 echo "=== Gen720: Collect WFO Barrier Results ==="
 
@@ -19,7 +19,7 @@ FILTER_FMT="${1:-}"
 LOCAL_DIR="results/eval/gen720/raw"
 REMOTE_DIR="/tmp/gen720_tsv"
 
-CH_HOST="${RANGEBAR_CH_HOST:?Set RANGEBAR_CH_HOST}"
+CH_HOST="${OPENDEVIATIONBAR_CH_HOST:?Set OPENDEVIATIONBAR_CH_HOST}"
 
 mkdir -p "$LOCAL_DIR"
 

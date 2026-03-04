@@ -11,7 +11,7 @@ set -euo pipefail
 # Total: 48 SQL files
 #
 # Template: sql/gen710_time_decay_template.sql
-# GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/27
+# GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/27
 
 echo "=== Gen710: Time-Decay Barrier Sweep ==="
 

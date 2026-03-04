@@ -1,9 +1,9 @@
 """Test Omega Ratio computation.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
-from rangebar_patterns.eval.omega import compute_omega
+from opendeviationbar_patterns.eval.omega import compute_omega
 
 
 def test_all_gains():

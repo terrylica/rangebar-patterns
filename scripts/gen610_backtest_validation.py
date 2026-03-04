@@ -1,6 +1,6 @@
 """Gen610: Multi-position backtesting.py validation of top 10 cross-asset configs.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/14
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/14
 
 Validates the top 10 cross-asset survivor configs (from cross_asset.sh) using
 backtesting.py with hedging=True, exclusive_orders=False (AP-16 compliant).
@@ -81,7 +81,7 @@ def run_single(
     """Run a single config on a single asset. Returns result dict."""
     from backtesting import Backtest
 
-    from backtest.backtesting_py.data_loader import load_range_bars
+    from backtest.backtesting_py.data_loader import load_open_deviation_bars
     from backtest.backtesting_py.gen600_strategy import Gen600Strategy
 
     config_id = _config_id(pattern, f1_name, f1_dir, f1_q, f2_name, f2_dir, f2_q)
@@ -91,7 +91,7 @@ def run_single(
 
     start_time = time.time()
     try:
-        df = load_range_bars(
+        df = load_open_deviation_bars(
             symbol=symbol,
             threshold=threshold,
             end="2026-02-05",

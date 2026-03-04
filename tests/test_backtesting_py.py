@@ -18,7 +18,7 @@ def test_champion_strategy_importable():
 
 def test_data_loader_importable():
     mod = importlib.import_module("backtest.backtesting_py.data_loader")
-    assert hasattr(mod, "load_range_bars")
+    assert hasattr(mod, "load_open_deviation_bars")
 
 
 def test_champion_strategy_has_init_and_next():

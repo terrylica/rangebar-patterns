@@ -31,9 +31,9 @@ TEMPLATE_3F="sql/gen400_3feature_template.sql"
 TEMPLATE_4F="sql/gen400_4feature_template.sql"
 
 # Barrier parameters from mise [env]
-TP_MULT="${RBP_TP_MULT:-0.5}"
-SL_MULT="${RBP_SL_MULT:-0.25}"
-MAX_BARS="${RBP_MAX_BARS:-50}"
+TP_MULT="${OPENDEVIATIONBAR_TP_MULT:-0.5}"
+SL_MULT="${OPENDEVIATIONBAR_SL_MULT:-0.25}"
+MAX_BARS="${OPENDEVIATIONBAR_MAX_BARS:-50}"
 MAX_BARS_PLUS1=$((MAX_BARS + 1))
 
 SHA_2F=$(shasum -a 256 "$TEMPLATE_2F" | cut -d' ' -f1)

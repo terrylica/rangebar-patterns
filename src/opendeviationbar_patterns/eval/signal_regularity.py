@@ -8,7 +8,7 @@ computes the CV (coefficient of variation) of inter-peak distances.
 Low kde_peak_cv = regular signal spacing (good).
 High kde_peak_cv = irregular bursts (crash-only, pump-only patterns).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
 from __future__ import annotations
@@ -19,28 +19,28 @@ import numpy as np
 from scipy.signal import find_peaks
 from scipy.stats import gaussian_kde
 
-from rangebar_patterns.config import MIN_TRADES_REGULARITY
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import MIN_TRADES_REGULARITY
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 def compute_signal_regularity(
-    timestamps_ms: list[int],
+    close_times_ms: list[int],
     min_trades: int = MIN_TRADES_REGULARITY,
 ) -> dict | None:
     """Compute signal temporal regularity metrics.
 
     Args:
-        timestamps_ms: Trade entry timestamps in milliseconds.
+        close_times_ms: Trade entry timestamps in milliseconds.
         min_trades: Minimum trades for meaningful KDE.
 
     Returns:
         Dict with kde_peak_cv, n_peaks, raw_iat_cv, temporal_coverage.
         None if insufficient data.
     """
-    if len(timestamps_ms) < min_trades:
+    if len(close_times_ms) < min_trades:
         return None
 
-    ts = np.array(sorted(timestamps_ms), dtype=np.float64)
+    ts = np.array(sorted(close_times_ms), dtype=np.float64)
     ts_range = ts[-1] - ts[0]
     if ts_range <= 0:
         return None
@@ -114,7 +114,7 @@ def main():
     for data in trade_data:
         config_id = data["config_id"]
         n_trades = data.get("n_trades", 0)
-        timestamps = data.get("timestamps_ms", [])
+        timestamps = data.get("close_times_ms", [])
 
         null_result = {
             "config_id": config_id, "n_trades": n_trades,

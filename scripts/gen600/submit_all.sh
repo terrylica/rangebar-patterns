@@ -9,11 +9,11 @@ REMOTE_DIR="/tmp/gen600_sql"
 
 # Upload all SQL files to remote host (one rsync for everything)
 echo "--- Uploading SQL files ---"
-rsync -az --info=progress2 /tmp/gen600_sql/ "${RANGEBAR_CH_HOST}:${REMOTE_DIR}/"
+rsync -az --info=progress2 /tmp/gen600_sql/ "${OPENDEVIATIONBAR_CH_HOST}:${REMOTE_DIR}/"
 
 # Clean pueue before starting
 echo "--- Cleaning pueue group p1 ---"
-ssh "${RANGEBAR_CH_HOST}" "pueue clean -g p1 2>/dev/null || true"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "pueue clean -g p1 2>/dev/null || true"
 
 # 22 pattern IDs
 PATTERNS=(
@@ -52,5 +52,5 @@ echo "=== All ${TOTAL_UNITS} units submitted ==="
 echo "  22 patterns x 10 combos = 220 units"
 echo "  30,096 configs per combo x 10 combos = 300,960 total jobs"
 echo "  Each job produces 3 result rows = 902,880 expected result rows"
-echo "  Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"
+echo "  Monitor: ssh ${OPENDEVIATIONBAR_CH_HOST} 'pueue status -g p1'"
 echo "  ETA: ~21 hours at 8 parallel x 2s/query"

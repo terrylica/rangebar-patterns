@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Gen 202: Combined Barrier (TP + Trailing SL + Time) in ClickHouse SQL
--- GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/5
+-- GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/5
 -- Copied from: gen200_triple_barrier.sql
 --
 -- PURPOSE: Combine fixed TP (from Gen200) with trailing stop loss (from Gen201)
@@ -27,10 +27,10 @@
 -- ============================================================================
 
 -- Clear previous Gen202 results for this threshold
-ALTER TABLE rangebar_cache.barrier_results
+ALTER TABLE opendeviationbar_cache.barrier_results
     DELETE WHERE generation = 202 AND symbol = 'SOLUSDT' AND threshold_decimal_bps = 250;
 
-INSERT INTO rangebar_cache.barrier_results
+INSERT INTO opendeviationbar_cache.barrier_results
     (symbol, threshold_decimal_bps, pattern_name, generation,
      tp_mult, sl_mult, max_bars, tp_pct, sl_pct,
      total_signals, tp_count, sl_count, time_count, incomplete_count,
@@ -42,28 +42,29 @@ WITH
 -- CTE 1: Base bars — OHLCV + microstructure features + row numbering
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 250
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 -- CTE 2: Running stats — expanding p95 for trade_intensity (no-lookahead)
 running_stats AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         direction,
         rn,
-        count(*) OVER (ORDER BY timestamp_ms ROWS UNBOUNDED PRECEDING) AS bar_count,
+        count(*) OVER (ORDER BY close_time_ms ROWS UNBOUNDED PRECEDING) AS bar_count,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         ) AS ti_p95_expanding
     FROM base_bars
@@ -71,7 +72,7 @@ running_stats AS (
 -- CTE 3: Signal detection — lag features + entry price
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         direction,
         rn,
@@ -82,11 +83,11 @@ signal_detection AS (
         lagInFrame(direction, 2) OVER w AS dir_2,
         lagInFrame(ti_p95_expanding, 0) OVER w AS ti_p95_prior,
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 -- CTE 4: Filter to champion pattern signals ONLY
 signals AS (
@@ -104,7 +105,7 @@ signals AS (
 -- CTE 5: Forward array collection via self-join
 forward_arrays AS (
     SELECT
-        s.timestamp_ms,
+        s.close_time_ms,
         s.entry_price,
         s.rn AS signal_rn,
         groupArray(b.high) AS fwd_highs,
@@ -114,12 +115,12 @@ forward_arrays AS (
     FROM signals s
     INNER JOIN base_bars b
         ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
-    GROUP BY s.timestamp_ms, s.entry_price, s.rn
+    GROUP BY s.close_time_ms, s.entry_price, s.rn
 ),
 -- CTE 6: Parameter expansion — tp_mult + trail_mult (NOT sl_mult)
 param_expanded AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         signal_rn,
         fwd_highs,
@@ -149,7 +150,7 @@ param_with_trailing AS (
 -- CTE 6c: Compute per-bar trailing SL from running maxes
 param_with_prices AS (
     SELECT
-        timestamp_ms, entry_price, signal_rn,
+        close_time_ms, entry_price, signal_rn,
         fwd_highs, fwd_lows, fwd_opens, fwd_closes,
         tp_mult, trail_mult, max_bars, tp_price, trail_pct,
         running_maxes,
@@ -159,7 +160,7 @@ param_with_prices AS (
 -- CTE 7: Barrier scan — TP fixed + trailing SL dynamic
 barrier_scan AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_mult,
         trail_mult,
@@ -184,7 +185,7 @@ barrier_scan AS (
 -- CTE 8: Trade outcomes — trailing SL wins ties (same-bar ambiguity rule)
 trade_outcomes AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_mult,
         trail_mult,

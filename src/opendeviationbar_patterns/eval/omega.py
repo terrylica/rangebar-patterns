@@ -14,7 +14,7 @@ See also: Keating & Shadwick (2002) recommend L=risk-free as default;
 Kapsos et al. (2014) "On the (Ab)use of Omega?" warn that Omega-optimal
 portfolios can violate second-order stochastic dominance.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ import json
 
 import numpy as np
 
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 def compute_omega(returns: list[float], threshold: float = 0.0) -> float:

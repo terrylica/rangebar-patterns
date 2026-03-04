@@ -1,11 +1,11 @@
 """Test Cornish-Fisher quantile expansion.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from scipy.stats import norm
 
-from rangebar_patterns.eval.cornish_fisher import cf_expected_shortfall, cf_var, cornish_fisher_quantile
+from opendeviationbar_patterns.eval.cornish_fisher import cf_expected_shortfall, cf_var, cornish_fisher_quantile
 
 
 def test_gaussian_case():

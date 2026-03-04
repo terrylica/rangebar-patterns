@@ -11,7 +11,7 @@ ALL sizes are in bar counts (integers). NO timestamps, NO timedeltas.
 Range bars form on fixed price movement, not fixed time — bar-index space
 is the only valid coordinate system for CV, bootstrap, and regime detection.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations
@@ -22,10 +22,10 @@ from dataclasses import dataclass
 import numpy as np
 import polars as pl
 
-from rangebar_patterns import config
-from rangebar_patterns.eval.cdar import compute_cdar
-from rangebar_patterns.eval.omega import compute_omega
-from rangebar_patterns.eval.rachev import compute_rachev
+from opendeviationbar_patterns import config
+from opendeviationbar_patterns.eval.cdar import compute_cdar
+from opendeviationbar_patterns.eval.omega import compute_omega
+from opendeviationbar_patterns.eval.rachev import compute_rachev
 
 # ---- Data Structures ----
 
@@ -270,7 +270,7 @@ def build_fold_metadata(
     ----------
     folds : list of (train_idx, test_idx) pairs.
     signal_df : pl.DataFrame
-        Must have columns: signal_idx, timestamp_ms (for diagnostic timestamps).
+        Must have columns: signal_idx, close_time_ms (for diagnostic timestamps).
     purge_bars : int
         Purge gap used when building folds.
     embargo_bars : int
@@ -289,7 +289,7 @@ def build_fold_metadata(
         test_end = int(test_idx.max())
 
         # Calendar timestamps (diagnostic only — NOT used in CV)
-        ts_col = "timestamp_ms"
+        ts_col = "close_time_ms"
         if ts_col in signal_df.columns:
             train_signals = signal_df.filter(pl.col("signal_idx").is_in(train_idx.tolist()))
             test_signals = signal_df.filter(pl.col("signal_idx").is_in(test_idx.tolist()))
@@ -842,7 +842,7 @@ def compute_vorob_stability(
     """
     import multiprocessing
 
-    from rangebar_patterns.eval.ranking import _flip_to_minimize
+    from opendeviationbar_patterns.eval.ranking import _flip_to_minimize
 
     # All 4 metrics are benefits (higher = better) → type=1
     types = np.ones(matrix.shape[1], dtype=int)

@@ -21,11 +21,11 @@ total_configs_analyzed: 15300
 test_space_size: 16128
 
 # Cross-references
-parent_issue_url: https://github.com/terrylica/rangebar-patterns/issues/9
-github_issue_url: https://github.com/terrylica/rangebar-patterns/issues/11
+parent_issue_url: https://github.com/terrylica/opendeviationbar-patterns/issues/9
+github_issue_url: https://github.com/terrylica/opendeviationbar-patterns/issues/11
 related_issues:
-  - https://github.com/terrylica/rangebar-patterns/issues/8
-  - https://github.com/terrylica/rangebar-patterns/issues/9
+  - https://github.com/terrylica/opendeviationbar-patterns/issues/8
+  - https://github.com/terrylica/opendeviationbar-patterns/issues/9
 ---
 
 # Overnight Sweep Forensic Analysis — Gen500/510/520
@@ -501,13 +501,13 @@ The 7-asset winners (`aggregation_density` configs) across ADA, BTC, ETH, DOT, L
 
 | Issue                                                                                | Relevance                                |
 | ------------------------------------------------------------------------------------ | ---------------------------------------- |
-| [#11 Forensic Analysis](https://github.com/terrylica/rangebar-patterns/issues/11)    | **This analysis** — GitHub issue mirror  |
-| [#9 Research Consolidation](https://github.com/terrylica/rangebar-patterns/issues/9) | Master reference for all research phases |
-| [#8 Anti-Pattern Registry](https://github.com/terrylica/rangebar-patterns/issues/8)  | ClickHouse SQL constraints               |
+| [#11 Forensic Analysis](https://github.com/terrylica/opendeviationbar-patterns/issues/11)    | **This analysis** — GitHub issue mirror  |
+| [#9 Research Consolidation](https://github.com/terrylica/opendeviationbar-patterns/issues/9) | Master reference for all research phases |
+| [#8 Anti-Pattern Registry](https://github.com/terrylica/opendeviationbar-patterns/issues/8)  | ClickHouse SQL constraints               |
 
 ### Methodology
 
 - **Quantile method**: Rolling 1000-signal window (`ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING`)
 - **Barrier model**: Triple barrier (TP/SL/max_bars) per [Gen200-202 framework](/sql/CLAUDE.md)
 - **Statistical test**: z = Kelly × sqrt(N), Bonferroni correction for multiple comparisons
-- **Data source**: Remote ClickHouse (`rangebar_cache.range_bars`)
+- **Data source**: Remote ClickHouse (`opendeviationbar_cache.open_deviation_bars`)

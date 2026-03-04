@@ -4,7 +4,7 @@ Runs 4 synthetic trade profiles matching Gemini 3 Pro worked examples,
 computes all TAMRS components, and validates against expected ranges.
 If any profile fails its expected range, the POC is NO-GO.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -15,9 +15,9 @@ from pathlib import Path
 
 import numpy as np
 
-from rangebar_patterns.eval._io import provenance_dict
-from rangebar_patterns.eval.cdar import compute_cdar
-from rangebar_patterns.eval.rachev import compute_rachev
+from opendeviationbar_patterns.eval._io import provenance_dict
+from opendeviationbar_patterns.eval.cdar import compute_cdar
+from opendeviationbar_patterns.eval.rachev import compute_rachev
 
 PROFILES = [
     {

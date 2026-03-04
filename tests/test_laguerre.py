@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from rangebar_patterns.laguerre import LaguerreRegimeConfig, compute_laguerre_regimes
+from opendeviationbar_patterns.laguerre import LaguerreRegimeConfig, compute_laguerre_regimes
 
 
 def _make_synthetic_ohlcv(n: int = 100, seed: int = 42) -> pd.DataFrame:

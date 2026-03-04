@@ -9,16 +9,16 @@ LOG_FILE="/tmp/gen510_barrier_grid.jsonl"
 
 # Upload SQL files
 echo "--- Uploading SQL files ---"
-rsync -az /tmp/gen510_sql/ "${RANGEBAR_CH_HOST}:${REMOTE_DIR}/"
+rsync -az /tmp/gen510_sql/ "${OPENDEVIATIONBAR_CH_HOST}:${REMOTE_DIR}/"
 
 # Read metadata
-METADATA=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
+METADATA=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
 TEMPLATE_SHA=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_sha'])")
 GIT_COMMIT=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['git_commit'])")
 TEMPLATE_FILE=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['template_file'])")
 
 # Create wrapper script — parses 36-row barrier grid output
-ssh "${RANGEBAR_CH_HOST}" 'cat > /tmp/gen510_run_job.sh' << 'WRAPPER'
+ssh "${OPENDEVIATIONBAR_CH_HOST}" 'cat > /tmp/gen510_run_job.sh' << 'WRAPPER'
 #!/bin/bash
 set -euo pipefail
 CONFIG_ID="$1"
@@ -61,19 +61,19 @@ echo "$OUTPUT" | tail -n +2 | while IFS=$'\t' read -r cfg tp_mult sl_mult max_ba
 done
 WRAPPER
 
-ssh "${RANGEBAR_CH_HOST}" "chmod +x /tmp/gen510_run_job.sh"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "chmod +x /tmp/gen510_run_job.sh"
 
 # Ensure pueue group exists
-ssh "${RANGEBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
 
 # Submit all SQL files
 SUBMITTED=0
 while read -r SQL_PATH; do
     FILENAME=$(basename "$SQL_PATH" .sql)
-    ssh -n "${RANGEBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen510_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
+    ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen510_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
     SUBMITTED=$((SUBMITTED + 1))
-done < <(ssh -n "${RANGEBAR_CH_HOST}" "ls ${REMOTE_DIR}/*.sql")
+done < <(ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "ls ${REMOTE_DIR}/*.sql")
 
 echo "Submitted ${SUBMITTED} jobs (each produces 36 barrier combos)"
 echo "Expected: $((SUBMITTED * 36)) total result rows"
-echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"
+echo "Monitor: ssh ${OPENDEVIATIONBAR_CH_HOST} 'pueue status -g p1'"

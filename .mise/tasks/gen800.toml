@@ -1,6 +1,7 @@
 # Gen800: Brute-force regime-conditioned signal sweep
 # Python-only (Laguerre RSI is Python-computed, no SQL generation)
-# GitHub Issue: TBD
+# GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/40
+# Champion: atr32_up85_dn10_ao50__wl1d__bullish_only__p7_slt035_mb10 (XRPUSDT @750, Issue #44)
 
 ["gen800:sweep"]
 description = "Run Gen800 regime-conditioned sweep on SOLUSDT @750"
@@ -18,3 +19,21 @@ depends = ["gen800:rank"]
 ["gen800:rolling-rdd"]
 description = "Rolling 90-day return/drawdown ratio distributions for cross-asset ranking"
 run = "uv run -p 3.13 python scripts/gen800_rolling_rdd.py"
+
+["gen800:reconstruct"]
+description = "Reconstruct Gen800 champion via backtesting.py — writes trade JSONL + summary JSON + equity HTML (Issue #44)"
+run = """
+uv run -p 3.13 python scripts/gen800_reconstruct.py \
+  --config-id "${GEN800_CONFIG_ID:-atr32_up85_dn10_ao50__wl1d__bullish_only__p7_slt035_mb10}" \
+  --symbol "${GEN800_SYMBOL:-XRPUSDT}" \
+  --threshold "${GEN800_THRESHOLD:-750}"
+"""
+
+["gen800:publish"]
+description = "Copy Gen800 equity HTML to results/published/ and deploy to Cloudflare Workers"
+run = "bash scripts/gen800_publish.sh"
+
+["gen800:full"]
+description = "Full pipeline: reconstruct XRPUSDT @750 → copy to published/ → deploy to Cloudflare"
+depends = ["gen800:reconstruct", "gen800:publish"]
+env = {GEN800_SYMBOL = "XRPUSDT", GEN800_THRESHOLD = "750", GEN800_CONFIG_ID = "atr32_up85_dn10_ao50__wl1d__bullish_only__p7_slt035_mb10"}

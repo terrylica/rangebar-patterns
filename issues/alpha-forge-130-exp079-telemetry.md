@@ -58,7 +58,7 @@ exp079 implements rich per-bar telemetry for SOL trading simulation, enabling:
 Run on remote GPU workstation (RTX 4090):
 
 ```bash
-ssh $RANGEBAR_CH_HOST "cd ~/alpha-forge-research/examples/research && uv run python exp079_sol_rich_telemetry.py --arm all"
+ssh $OPENDEVIATIONBAR_CH_HOST "cd ~/alpha-forge-research/examples/research && uv run python exp079_sol_rich_telemetry.py --arm all"
 ```
 
 Estimated runtime: ~24 hours (3 arms x 8 origins x 10 seeds)

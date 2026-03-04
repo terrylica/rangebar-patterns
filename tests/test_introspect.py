@@ -1,6 +1,6 @@
 """Test introspect.py — parse_config_id roundtrip + rendering.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/13
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/13
 """
 
 import pytest
@@ -8,8 +8,8 @@ import pytest
 
 def test_parse_config_id_roundtrip():
     """Every config from generate_configs() must roundtrip through parse_config_id."""
-    from rangebar_patterns.eval.extraction import generate_configs
-    from rangebar_patterns.introspect import parse_config_id
+    from opendeviationbar_patterns.eval.extraction import generate_configs
+    from opendeviationbar_patterns.introspect import parse_config_id
 
     configs = generate_configs()
     assert len(configs) == 1008
@@ -27,7 +27,7 @@ def test_parse_config_id_roundtrip():
 
 def test_parse_config_id_known_values():
     """Multi-word features parse correctly."""
-    from rangebar_patterns.introspect import parse_config_id
+    from opendeviationbar_patterns.introspect import parse_config_id
 
     # volume_per_trade (3-word feature)
     result = parse_config_id("volume_per_trade_gt_p75__duration_us_lt_p25")
@@ -50,7 +50,7 @@ def test_parse_config_id_known_values():
 
 def test_parse_config_id_simple_features():
     """Single-word features parse correctly."""
-    from rangebar_patterns.introspect import parse_config_id
+    from opendeviationbar_patterns.introspect import parse_config_id
 
     result = parse_config_id("ofi_gt_p50__price_impact_lt_p50")
     assert result["feature_col_1"] == "ofi"
@@ -63,7 +63,7 @@ def test_parse_config_id_simple_features():
 
 def test_parse_config_id_invalid_no_separator():
     """Missing __ separator raises ValueError."""
-    from rangebar_patterns.introspect import parse_config_id
+    from opendeviationbar_patterns.introspect import parse_config_id
 
     with pytest.raises(ValueError, match="exactly one '__'"):
         parse_config_id("ofi_gt_p50_price_impact_lt_p50")
@@ -71,7 +71,7 @@ def test_parse_config_id_invalid_no_separator():
 
 def test_parse_config_id_invalid_unknown_feature():
     """Unknown feature raises ValueError."""
-    from rangebar_patterns.introspect import parse_config_id
+    from opendeviationbar_patterns.introspect import parse_config_id
 
     with pytest.raises(ValueError, match="Cannot parse config half"):
         parse_config_id("unknown_feature_gt_p50__ofi_lt_p50")
@@ -79,7 +79,7 @@ def test_parse_config_id_invalid_unknown_feature():
 
 def test_parse_config_id_invalid_unknown_qualifier():
     """Unknown qualifier raises ValueError."""
-    from rangebar_patterns.introspect import parse_config_id
+    from opendeviationbar_patterns.introspect import parse_config_id
 
     with pytest.raises(ValueError, match="Cannot parse config half"):
         parse_config_id("ofi_gt_p99__price_impact_lt_p50")
@@ -92,7 +92,7 @@ def test_parse_config_id_invalid_unknown_qualifier():
 
 def test_build_inspect_sql_trade_list():
     """trade_list SQL contains expected clauses and no unresolved placeholders."""
-    from rangebar_patterns.introspect import build_inspect_sql, parse_config_id
+    from opendeviationbar_patterns.introspect import build_inspect_sql, parse_config_id
 
     config = parse_config_id("ofi_gt_p50__price_impact_lt_p50")
     sql = build_inspect_sql(config, "trade_list")
@@ -100,7 +100,7 @@ def test_build_inspect_sql_trade_list():
     assert "row_number() OVER" in sql
     assert "trade_outcomes" in sql
     assert "exit_type != 'INCOMPLETE'" in sql
-    assert "ORDER BY timestamp_ms" in sql
+    assert "ORDER BY close_time_ms" in sql
     # No unresolved format placeholders
     assert "{" not in sql
     assert "}" not in sql
@@ -108,7 +108,7 @@ def test_build_inspect_sql_trade_list():
 
 def test_build_inspect_sql_trade_detail():
     """trade_detail SQL contains ARRAY JOIN and barrier columns."""
-    from rangebar_patterns.introspect import build_inspect_sql, parse_config_id
+    from opendeviationbar_patterns.introspect import build_inspect_sql, parse_config_id
 
     config = parse_config_id(
         "price_impact_lt_p10__volume_per_trade_gt_p75"
@@ -129,7 +129,7 @@ def test_build_inspect_sql_trade_detail():
 
 def test_build_inspect_sql_trade_detail_requires_signal_ts():
     """trade_detail without signal_ts raises ValueError."""
-    from rangebar_patterns.introspect import build_inspect_sql, parse_config_id
+    from opendeviationbar_patterns.introspect import build_inspect_sql, parse_config_id
 
     config = parse_config_id("ofi_gt_p50__price_impact_lt_p50")
     with pytest.raises(ValueError, match="signal_ts required"):
@@ -138,7 +138,7 @@ def test_build_inspect_sql_trade_detail_requires_signal_ts():
 
 def test_build_inspect_sql_unknown_mode():
     """Unknown mode raises ValueError."""
-    from rangebar_patterns.introspect import build_inspect_sql, parse_config_id
+    from opendeviationbar_patterns.introspect import build_inspect_sql, parse_config_id
 
     config = parse_config_id("ofi_gt_p50__price_impact_lt_p50")
     with pytest.raises(ValueError, match="Unknown mode"):
@@ -162,7 +162,7 @@ def _make_synthetic_detail():
             "direction_1": ">",
             "direction_2": "<",
         },
-        "trade_meta": {"trade_n": 42, "timestamp_ms": 1700000000000},
+        "trade_meta": {"trade_n": 42, "close_time_ms": 1700000000000},
         "signal_ts": 1700000000000,
         "entry_price": 152.340,
         "exit_price": 152.720,
@@ -205,7 +205,7 @@ def _make_synthetic_detail():
 
 def test_render_summary_contains_key_fields():
     """Summary includes trade number, config, entry/exit, P&L."""
-    from rangebar_patterns.introspect import render_summary
+    from opendeviationbar_patterns.introspect import render_summary
 
     detail = _make_synthetic_detail()
     output = render_summary(detail, total_trades=1503)
@@ -220,7 +220,7 @@ def test_render_summary_contains_key_fields():
 
 def test_render_feature_diagnostic_pass_fail():
     """Feature diagnostic shows YES/NO for quantile pass/fail."""
-    from rangebar_patterns.introspect import render_feature_diagnostic
+    from opendeviationbar_patterns.introspect import render_feature_diagnostic
 
     detail = _make_synthetic_detail()
     output = render_feature_diagnostic(detail)
@@ -234,7 +234,7 @@ def test_render_feature_diagnostic_pass_fail():
 
 def test_render_barrier_progression_header():
     """Barrier progression has correct column headers."""
-    from rangebar_patterns.introspect import render_barrier_progression
+    from opendeviationbar_patterns.introspect import render_barrier_progression
 
     detail = _make_synthetic_detail()
     output = render_barrier_progression(detail)
@@ -251,7 +251,7 @@ def test_export_json_valid():
     """JSON export produces valid JSON."""
     import json
 
-    from rangebar_patterns.introspect import export_json
+    from opendeviationbar_patterns.introspect import export_json
 
     detail = _make_synthetic_detail()
     output = export_json(detail)

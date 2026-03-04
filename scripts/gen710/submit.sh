@@ -9,7 +9,7 @@ set -euo pipefail
 # 48 barrier combos (phase1_bars × sl_tight × max_bars)
 #
 # Usage: submit.sh
-# GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/27
+# GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/27
 
 echo "=== Gen710: Submit Time-Decay Barrier Sweep ==="
 
@@ -19,7 +19,7 @@ THRESHOLD="500"
 REMOTE_DIR="/tmp/gen710_sql"
 LOG_FILE="/tmp/gen710_results.jsonl"
 
-CH_HOST="${RANGEBAR_CH_HOST:?Set RANGEBAR_CH_HOST}"
+CH_HOST="${OPENDEVIATIONBAR_CH_HOST:?Set OPENDEVIATIONBAR_CH_HOST}"
 
 # Upload SQL files
 echo "--- Uploading SQL files ---"

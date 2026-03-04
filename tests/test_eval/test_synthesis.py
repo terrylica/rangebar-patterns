@@ -1,9 +1,9 @@
 """Test synthesis: e-BH and Romano-Wolf procedures.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
-from rangebar_patterns.eval.synthesis import ebh_procedure, romano_wolf_stepdown
+from opendeviationbar_patterns.eval.synthesis import ebh_procedure, romano_wolf_stepdown
 
 
 def test_ebh_no_evalues():

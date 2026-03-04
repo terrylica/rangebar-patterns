@@ -5,7 +5,7 @@ Usage:
 
 Gates:
     1. Signal count: |N_SQL - N_PY| / max(N_SQL, N_PY) < 5%
-    2. Timestamp match: >95% of signals have identical timestamp_ms
+    2. Timestamp match: >95% of signals have identical close_time_ms
     3. Entry price match: >95% of matched signals have <0.01% price difference
 """
 
@@ -16,10 +16,10 @@ def load_tsv(path):
     """Load TSV file, skip noise lines before header."""
     rows = []
     with open(path) as f:
-        # Find the header line (starts with "timestamp_ms")
+        # Find the header line (starts with "close_time_ms")
         header_line = None
         for line in f:
-            if line.startswith("timestamp_ms"):
+            if line.startswith("close_time_ms"):
                 header_line = line
                 break
         if header_line is None:
@@ -58,8 +58,8 @@ def main():
     print(f"\nGate 1 - Signal Count: diff={count_diff:.4f} (<5% required) → {'PASS' if gate1 else 'FAIL'}")
 
     # Build lookup by timestamp
-    sql_by_ts = {row["timestamp_ms"]: row for row in sql_rows}
-    py_by_ts = {row["timestamp_ms"]: row for row in py_rows}
+    sql_by_ts = {row["close_time_ms"]: row for row in sql_rows}
+    py_by_ts = {row["close_time_ms"]: row for row in py_rows}
 
     # Gate 2: Timestamp overlap
     sql_ts = set(sql_by_ts.keys())

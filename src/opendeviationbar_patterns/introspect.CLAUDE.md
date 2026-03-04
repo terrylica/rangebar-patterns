@@ -1,6 +1,6 @@
 # introspect — Atomic Trade Reconstruction
 
-**Navigation**: [Root CLAUDE.md](/CLAUDE.md) | [Eval Metrics](/src/rangebar_patterns/eval/CLAUDE.md) | [Issue #13](https://github.com/terrylica/rangebar-patterns/issues/13)
+**Navigation**: [Root CLAUDE.md](/CLAUDE.md) | [Eval Metrics](/src/opendeviationbar_patterns/eval/CLAUDE.md) | [Issue #13](https://github.com/terrylica/opendeviationbar-patterns/issues/13)
 
 ---
 
@@ -21,10 +21,10 @@ For each trade you see:
 ```
 YOU TYPE:                                    YOU SEE:
 
-  RBP_INSPECT_CONFIG_ID=                     ══════════════════════════
+  OPENDEVIATIONBAR_INSPECT_CONFIG_ID=                     ══════════════════════════
     price_impact_lt_p10__                      Trade #4 / 370
     volume_per_trade_gt_p75                  ══════════════════════════
-  RBP_INSPECT_TRADE_N=4                        Config: price_impact...
+  OPENDEVIATIONBAR_INSPECT_TRADE_N=4                        Config: price_impact...
   mise run trade:inspect                       Entry:  3.0876
                                                Exit:   3.0490 (SL)
          |                                     P&L:   -1.25%
@@ -65,12 +65,12 @@ YOU TYPE:                                    YOU SEE:
 ## File Map
 
 ```
-rangebar-patterns/
+opendeviationbar-patterns/
   |
-  +-- src/rangebar_patterns/
+  +-- src/opendeviationbar_patterns/
   |     |
   |     +-- introspect.py        <-- THIS MODULE (parse + query + render)
-  |     +-- config.py            <-- Reads RBP_* env vars (symbol, barriers)
+  |     +-- config.py            <-- Reads OPENDEVIATIONBAR_* env vars (symbol, barriers)
   |     |
   |     +-- eval/
   |           +-- extraction.py  <-- Shares: _CTE_TEMPLATE, FEATURES, GRID
@@ -79,7 +79,7 @@ rangebar-patterns/
   |     +-- trade.toml           <-- Defines "mise run trade:inspect"
   |
   +-- .mise.toml                 <-- Sets env vars (symbol, threshold, barriers)
-  +-- .mise.local.toml           <-- Sets RANGEBAR_CH_HOST=bigblack (gitignored)
+  +-- .mise.local.toml           <-- Sets OPENDEVIATIONBAR_CH_HOST=bigblack (gitignored)
   |
   +-- backtest/backtesting_py/
   |     +-- ssh_tunnel.py        <-- SSHTunnel class (reused for ClickHouse)
@@ -94,7 +94,7 @@ rangebar-patterns/
 | -------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
 | `introspect.py`      | The whole tool — parses config, builds SQL, queries ClickHouse, renders output                             | The entire sports replay system            |
 | `extraction.py`      | Provides the shared SQL template (`_CTE_TEMPLATE`) that builds 10 CTEs from raw bar data to trade outcomes | The stadium (shared infrastructure)        |
-| `config.py`          | Reads `RBP_*` environment variables into typed Python constants                                            | The settings panel                         |
+| `config.py`          | Reads `OPENDEVIATIONBAR_*` environment variables into typed Python constants                                            | The settings panel                         |
 | `ssh_tunnel.py`      | Creates an SSH tunnel so your laptop can reach ClickHouse on bigblack                                      | The cable connecting your TV to the camera |
 | `trade.toml`         | One-line mise task definition so you can type `mise run trade:inspect`                                     | The remote control button                  |
 | `test_introspect.py` | 14 automated tests: 6 for parsing, 4 for SQL, 4 for rendering                                              | Quality control                            |
@@ -200,21 +200,21 @@ Reading this: "On bar 1, the high was 0.077 away from TP and the low was only 0.
 
 ```bash
 # Basic: inspect trade #1 of any config
-RBP_INSPECT_CONFIG_ID=price_impact_lt_p10__volume_per_trade_gt_p75 \
-RBP_INSPECT_TRADE_N=1 \
+OPENDEVIATIONBAR_INSPECT_CONFIG_ID=price_impact_lt_p10__volume_per_trade_gt_p75 \
+OPENDEVIATIONBAR_INSPECT_TRADE_N=1 \
 mise run trade:inspect
 
 # Change trade number to see different trades
-RBP_INSPECT_TRADE_N=4    # SL exit example
-RBP_INSPECT_TRADE_N=59   # TIME exit example
+OPENDEVIATIONBAR_INSPECT_TRADE_N=4    # SL exit example
+OPENDEVIATIONBAR_INSPECT_TRADE_N=59   # TIME exit example
 
 # JSON output (for feeding into ML pipelines)
-RBP_INSPECT_CONFIG_ID=... \
-python -m rangebar_patterns.introspect -- --json
+OPENDEVIATIONBAR_INSPECT_CONFIG_ID=... \
+python -m opendeviationbar_patterns.introspect -- --json
 
 # Try different configs (any of the 1,008 2-feature combos)
-RBP_INSPECT_CONFIG_ID=ofi_gt_p50__aggression_ratio_gt_p50
-RBP_INSPECT_CONFIG_ID=duration_us_lt_p25__volume_per_trade_gt_p90
+OPENDEVIATIONBAR_INSPECT_CONFIG_ID=ofi_gt_p50__aggression_ratio_gt_p50
+OPENDEVIATIONBAR_INSPECT_CONFIG_ID=duration_us_lt_p25__volume_per_trade_gt_p90
 ```
 
 ### Config ID Format Explained
@@ -256,8 +256,8 @@ This is asymmetric by design: the take-profit target is 2x wider than the stop-l
 ```
 introspect.py
     |
-    +-- rangebar_patterns.config        (SYMBOL, THRESHOLD_DBPS, TP_MULT, SL_MULT, MAX_BARS)
-    +-- rangebar_patterns.eval.extraction (_CTE_TEMPLATE, FEATURES, GRID)
+    +-- opendeviationbar_patterns.config        (SYMBOL, THRESHOLD_DBPS, TP_MULT, SL_MULT, MAX_BARS)
+    +-- opendeviationbar_patterns.eval.extraction (_CTE_TEMPLATE, FEATURES, GRID)
     +-- clickhouse_connect              (ClickHouse client — lazy import in main())
     +-- backtest.backtesting_py.ssh_tunnel (SSHTunnel — lazy import in main())
     +-- json, os, sys, datetime         (stdlib only)

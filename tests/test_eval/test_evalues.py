@@ -1,9 +1,9 @@
 """Test E-value and GROW computation.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
-from rangebar_patterns.eval.evalues import compute_evalues
+from opendeviationbar_patterns.eval.evalues import compute_evalues
 
 
 def test_positive_kelly_positive_returns():

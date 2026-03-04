@@ -8,7 +8,7 @@ Also tests scale with generated benchmark data (1K, 10K, 50K strategies).
 Performance is the primary concern — this determines which MCDM method
 we integrate into rank_optimize.py for production WFO at scale.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations
@@ -20,8 +20,8 @@ from pathlib import Path
 
 import numpy as np
 
-from rangebar_patterns.eval._io import provenance_dict
-from rangebar_patterns.eval.ranking import _flip_to_minimize, topsis_rank
+from opendeviationbar_patterns.eval._io import provenance_dict
+from opendeviationbar_patterns.eval.ranking import _flip_to_minimize, topsis_rank
 
 
 def _scale_timing_record(method: str, n_strategies: int, n_metrics: int,

@@ -1,4 +1,4 @@
-# rangebar-patterns mise configuration (Hub)
+# opendeviationbar-patterns mise configuration (Hub)
 # Range bar pattern discovery research
 #
 # Task files (spokes):
@@ -17,72 +17,72 @@ python = "3.13"
 GH_ACCOUNT = "terrylica"
 # GH_TOKEN / GITHUB_TOKEN: set in .mise.local.toml (gitignored)
 
-# ClickHouse — override RANGEBAR_CH_HOST in .mise.local.toml for remote access
-RANGEBAR_CH_HOST = "localhost"
-RANGEBAR_CH_DATABASE = "rangebar_cache"
-RANGEBAR_CH_TABLE = "range_bars"
+# ClickHouse — override OPENDEVIATIONBAR_CH_HOST in .mise.local.toml for remote access
+OPENDEVIATIONBAR_CH_HOST = "localhost"
+OPENDEVIATIONBAR_CH_DATABASE = "opendeviationbar_cache"
+OPENDEVIATIONBAR_CH_TABLE = "open_deviation_bars"
 
 # ---- Research: Data Selection ----
 # Default symbol and threshold for single-asset experiments.
 # Multi-asset sweeps (gen500) override these per-config in generate.sh.
-RBP_SYMBOL = "SOLUSDT"
-RBP_THRESHOLD_DBPS = "500"
+OPENDEVIATIONBAR_SYMBOL = "SOLUSDT"
+OPENDEVIATIONBAR_THRESHOLD_DBPS = "500"
 
 # ---- Research: Default Barrier Configuration ----
 # Used by eval.extraction and gen300/gen400 fixed-barrier queries.
 # Gen510 barrier grid sweeps override these via arrayJoin.
-RBP_TP_MULT = "5.0"
-RBP_SL_MULT = "2.5"
-RBP_MAX_BARS = "50"
+OPENDEVIATIONBAR_TP_MULT = "5.0"
+OPENDEVIATIONBAR_SL_MULT = "2.5"
+OPENDEVIATIONBAR_MAX_BARS = "50"
 
 # ---- Research: Evaluation Parameters ----
 # N_TRIALS = number of configs tested (for DSR/MinBTL multiple-testing correction)
 # Adjust when changing sweep size: gen500 2F=1008, gen400 all=14224
-RBP_N_TRIALS = "1008"
+OPENDEVIATIONBAR_N_TRIALS = "1008"
 # Significance level for hypothesis tests (e-BH, Romano-Wolf)
-RBP_ALPHA = "0.05"
+OPENDEVIATIONBAR_ALPHA = "0.05"
 # DSR pass threshold (Bailey & Lopez de Prado). 0.95 = strict, -1 = disabled
-RBP_DSR_THRESHOLD = "0.95"
+OPENDEVIATIONBAR_DSR_THRESHOLD = "0.95"
 
 # ---- Research: TAMRS Parameters (Issue #16) ----
 # Rachev ratio tail percentile (5% = look at worst/best 5% of trades)
-RBP_RACHEV_ALPHA = "0.05"
+OPENDEVIATIONBAR_RACHEV_ALPHA = "0.05"
 # CDaR confidence level (0.95 = worst 5% of drawdowns)
-RBP_CDAR_ALPHA = "0.95"
+OPENDEVIATIONBAR_CDAR_ALPHA = "0.95"
 # Minimum trades for stable Rachev ratio (= ceil(1/RACHEV_ALPHA))
-RBP_MIN_TRADES_RACHEV = "20"
+OPENDEVIATIONBAR_MIN_TRADES_RACHEV = "20"
 # Minimum trades for meaningful equity curve / CDaR
-RBP_MIN_TRADES_CDAR = "10"
+OPENDEVIATIONBAR_MIN_TRADES_CDAR = "10"
 # CSCV ranker: "tamrs" (default) or "sharpe" (legacy fallback)
-RBP_CSCV_RANKER = "tamrs"
+OPENDEVIATIONBAR_CSCV_RANKER = "tamrs"
 # CSCV number of time blocks (C(N,N/2) combinations)
-RBP_CSCV_SPLITS = "8"
+OPENDEVIATIONBAR_CSCV_SPLITS = "8"
 
 # ---- Research: Screening Tier Thresholds (Issue #16) ----
 # Tier 1 (Exploratory) / Tier 2 (Balanced) / Tier 3 (Strict)
-RBP_SCREEN_TAMRS_MIN_T1 = "0.0"
-RBP_SCREEN_TAMRS_MIN_T2 = "0.05"
-RBP_SCREEN_TAMRS_MIN_T3 = "0.15"
-RBP_SCREEN_RACHEV_MIN_T1 = "0.0"
-RBP_SCREEN_RACHEV_MIN_T2 = "0.30"
-RBP_SCREEN_RACHEV_MIN_T3 = "0.50"
-RBP_SCREEN_OU_RATIO_MIN_T1 = "0.0"
-RBP_SCREEN_OU_RATIO_MIN_T2 = "0.30"
-RBP_SCREEN_OU_RATIO_MIN_T3 = "0.50"
+OPENDEVIATIONBAR_SCREEN_TAMRS_MIN_T1 = "0.0"
+OPENDEVIATIONBAR_SCREEN_TAMRS_MIN_T2 = "0.05"
+OPENDEVIATIONBAR_SCREEN_TAMRS_MIN_T3 = "0.15"
+OPENDEVIATIONBAR_SCREEN_RACHEV_MIN_T1 = "0.0"
+OPENDEVIATIONBAR_SCREEN_RACHEV_MIN_T2 = "0.30"
+OPENDEVIATIONBAR_SCREEN_RACHEV_MIN_T3 = "0.50"
+OPENDEVIATIONBAR_SCREEN_OU_RATIO_MIN_T1 = "0.0"
+OPENDEVIATIONBAR_SCREEN_OU_RATIO_MIN_T2 = "0.30"
+OPENDEVIATIONBAR_SCREEN_OU_RATIO_MIN_T3 = "0.50"
 
 # ---- Research: Signal Regularity Parameters (Issue #17) ----
 # Minimum trades for meaningful KDE density estimation
-RBP_MIN_TRADES_REGULARITY = "10"
+OPENDEVIATIONBAR_MIN_TRADES_REGULARITY = "10"
 # Screening gate: max KDE peak CV (lower = more regular signal spacing)
 # None/T1: no gate, T2: < 0.80, T3: < 0.50
-RBP_SCREEN_REGULARITY_CV_MAX_T1 = "999.0"
-RBP_SCREEN_REGULARITY_CV_MAX_T2 = "0.80"
-RBP_SCREEN_REGULARITY_CV_MAX_T3 = "0.50"
+OPENDEVIATIONBAR_SCREEN_REGULARITY_CV_MAX_T1 = "999.0"
+OPENDEVIATIONBAR_SCREEN_REGULARITY_CV_MAX_T2 = "0.80"
+OPENDEVIATIONBAR_SCREEN_REGULARITY_CV_MAX_T3 = "0.50"
 # Screening gate: min temporal coverage (fraction of timeline with signals)
 # None/T1: no gate, T2: >= 0.50, T3: >= 0.70
-RBP_SCREEN_COVERAGE_MIN_T1 = "0.0"
-RBP_SCREEN_COVERAGE_MIN_T2 = "0.50"
-RBP_SCREEN_COVERAGE_MIN_T3 = "0.70"
+OPENDEVIATIONBAR_SCREEN_COVERAGE_MIN_T1 = "0.0"
+OPENDEVIATIONBAR_SCREEN_COVERAGE_MIN_T2 = "0.50"
+OPENDEVIATIONBAR_SCREEN_COVERAGE_MIN_T3 = "0.70"
 
 [task_config]
 includes = [

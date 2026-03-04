@@ -11,9 +11,9 @@ model_version: "2026-02"
 tools: []
 
 claude_code_uuid: d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b
-claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-rangebar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
+claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-opendeviationbar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
 
-github_issue_url: "https://github.com/terrylica/rangebar-patterns/issues/28"
+github_issue_url: "https://github.com/terrylica/opendeviationbar-patterns/issues/28"
 ---
 
 [Sign in](https://accounts.google.com/ServiceLogin?passive=1209600&continue=https://gemini.google.com/share/9206991eebb0&followup=https://gemini.google.com/share/9206991eebb0&ec=GAZAkgU)

@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from backtesting import Backtest
 
-from backtest.backtesting_py.data_loader import load_range_bars
+from backtest.backtesting_py.data_loader import load_open_deviation_bars
 from backtest.backtesting_py.gen300_strategy import Gen300DurationFilterLong
 
 # Gen300 winner: duration_us_gt_p75 with 2:1 R:R barriers
@@ -37,7 +37,7 @@ THRESHOLD_DBPS = 500
 def run_backtesting_py():
     """Run backtesting.py with Gen300 winner params and return trade log."""
     print("Loading @500dbps data...")
-    df = load_range_bars(symbol="SOLUSDT", threshold=THRESHOLD_DBPS)
+    df = load_open_deviation_bars(symbol="SOLUSDT", threshold=THRESHOLD_DBPS)
     print(f"  {len(df)} bars loaded")
 
     bt = Backtest(

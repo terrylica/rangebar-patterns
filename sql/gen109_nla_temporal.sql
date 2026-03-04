@@ -2,7 +2,7 @@
 -- Test the champion pattern (2 DOWN + ti>p95_prior + kyle>0) across years
 -- Uses PRIOR-YEAR percentiles to eliminate lookahead
 
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -11,21 +11,23 @@ WITH
 -- Compute percentiles PER YEAR
 yearly_percentiles AS (
     SELECT
-        toYear(fromUnixTimestamp64Milli(timestamp_ms)) as year,
+        toYear(fromUnixTimestamp64Milli(close_time_ms)) as year,
         quantile(0.95)(trade_intensity) as ti_p95
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
+    AND ouroboros_mode = 'month'
     GROUP BY year
 ),
 bars AS (
     SELECT
-        timestamp_ms,
-        toYear(fromUnixTimestamp64Milli(timestamp_ms)) as year,
+        close_time_ms,
+        toYear(fromUnixTimestamp64Milli(close_time_ms)) as year,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         trade_intensity as ti, kyle_lambda_proxy as kyle
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 bars_with_percentiles AS (
     SELECT
@@ -44,7 +46,7 @@ lagged AS (
         lagInFrame(direction, 2) OVER w as dir_2,
         lagInFrame(ti_p95, 1) OVER w as ti_p95_prior
     FROM bars_with_percentiles
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT',
@@ -72,7 +74,7 @@ WHERE dir_2 IS NOT NULL AND ti_p95_prior IS NOT NULL
 GROUP BY year;
 
 -- Also test the simpler pattern (2 DOWN + kyle>0) which has no percentile threshold
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -80,13 +82,14 @@ INSERT INTO rangebar_cache.feature_combinations
 WITH
 bars AS (
     SELECT
-        timestamp_ms,
-        toYear(fromUnixTimestamp64Milli(timestamp_ms)) as year,
+        close_time_ms,
+        toYear(fromUnixTimestamp64Milli(close_time_ms)) as year,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         kyle_lambda_proxy as kyle
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 lagged AS (
     SELECT
@@ -96,7 +99,7 @@ lagged AS (
         lagInFrame(direction, 1) OVER w as dir_1,
         lagInFrame(direction, 2) OVER w as dir_2
     FROM bars
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT',

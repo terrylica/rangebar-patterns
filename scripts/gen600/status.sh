@@ -7,7 +7,7 @@ echo ""
 
 # Pueue status
 echo "--- Pueue Group p1 ---"
-ssh "${RANGEBAR_CH_HOST}" "pueue status -g p1 2>/dev/null | tail -5" || echo "  (pueue not running)"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "pueue status -g p1 2>/dev/null | tail -5" || echo "  (pueue not running)"
 echo ""
 
 # 22 pattern IDs
@@ -46,8 +46,8 @@ for PATTERN in "${PATTERNS[@]}"; do
     for asset_entry in "${ASSETS[@]}"; do
         IFS='|' read -r SYMBOL THRESHOLD <<< "$asset_entry"
         LOG="/tmp/gen600_${PATTERN}_${SYMBOL}_${THRESHOLD}.jsonl"
-        LINES=$(ssh -n "${RANGEBAR_CH_HOST}" "wc -l < ${LOG} 2>/dev/null || echo 0" | tr -d '[:space:]')
-        ERRS=$(ssh -n "${RANGEBAR_CH_HOST}" "grep -c '\"error\":true' ${LOG} 2>/dev/null || echo 0" | tr -d '[:space:]')
+        LINES=$(ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "wc -l < ${LOG} 2>/dev/null || echo 0" | tr -d '[:space:]')
+        ERRS=$(ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "grep -c '\"error\":true' ${LOG} 2>/dev/null || echo 0" | tr -d '[:space:]')
 
         # Only print non-zero rows to keep output manageable
         if [ "$LINES" -gt 0 ]; then

@@ -36,7 +36,7 @@ for PATTERN in "${PATTERNS[@]}"; do
         LOCAL="logs/gen600/${PATTERN}_${SYMBOL}_${THRESHOLD}.jsonl"
 
         echo -n "  ${PATTERN} ${SYMBOL}@${THRESHOLD}: "
-        scp "${RANGEBAR_CH_HOST}:${LOG}" "$LOCAL" 2>/dev/null && {
+        scp "${OPENDEVIATIONBAR_CH_HOST}:${LOG}" "$LOCAL" 2>/dev/null && {
             LINES=$(wc -l < "$LOCAL" | tr -d ' ')
             echo "${LINES} lines"
             TOTAL_LINES=$((TOTAL_LINES + LINES))

@@ -7,11 +7,11 @@ measures its OOS rank.
 
 PBO = fraction of splits where the IS-winner underperforms the OOS median.
 
-Ranker controlled by RBP_CSCV_RANKER (mise env): "tamrs" (default) or "sharpe".
-Splits controlled by RBP_CSCV_SPLITS (mise env): default 8 -> C(8,4)=70 combos.
+Ranker controlled by OPENDEVIATIONBAR_CSCV_RANKER (mise env): "tamrs" (default) or "sharpe".
+Splits controlled by OPENDEVIATIONBAR_CSCV_SPLITS (mise env): default 8 -> C(8,4)=70 combos.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -22,8 +22,8 @@ from itertools import combinations
 
 import numpy as np
 
-from rangebar_patterns.config import CSCV_RANKER, CSCV_SPLITS, SL_EMP
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import CSCV_RANKER, CSCV_SPLITS, SL_EMP
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 N_SPLITS = CSCV_SPLITS
 
@@ -46,8 +46,8 @@ def compute_tamrs_for_block(
     Computes Rachev * min(1, |SL|/CDaR) * ou_ratio for a single block.
     Returns 0.0 if insufficient trades for stable Rachev/CDaR.
     """
-    from rangebar_patterns.eval.cdar import compute_cdar
-    from rangebar_patterns.eval.rachev import compute_rachev
+    from opendeviationbar_patterns.eval.cdar import compute_cdar
+    from opendeviationbar_patterns.eval.rachev import compute_rachev
 
     rr = compute_rachev(returns.tolist())
     cd = compute_cdar(returns.tolist())
@@ -79,7 +79,7 @@ def main():
 
     all_data = load_jsonl(input_file)
     print(f"Loaded {len(all_data)} configs from {input_file}")
-    print(f"Ranker: {CSCV_RANKER} (RBP_CSCV_RANKER)")
+    print(f"Ranker: {CSCV_RANKER} (OPENDEVIATIONBAR_CSCV_RANKER)")
 
     # Load OU calibration for TAMRS ranker (per-config or global)
     ou_per_config: dict[str, float] = {}
@@ -107,8 +107,8 @@ def main():
     # Collect all timestamps to define time blocks
     all_timestamps = set()
     for d in all_data:
-        if d.get("timestamps_ms"):
-            all_timestamps.update(d["timestamps_ms"])
+        if d.get("close_times_ms"):
+            all_timestamps.update(d["close_times_ms"])
 
     if not all_timestamps:
         print("ERROR: No timestamps found in data")
@@ -127,7 +127,7 @@ def main():
     block_returns = []
     for d in all_data:
         returns = d.get("returns", [])
-        timestamps = d.get("timestamps_ms", [])
+        timestamps = d.get("close_times_ms", [])
         blocks = [[] for _ in range(N_SPLITS)]
         for r, ts in zip(returns, timestamps, strict=True):
             block_idx = min(int((ts - ts_min) / block_size), N_SPLITS - 1)

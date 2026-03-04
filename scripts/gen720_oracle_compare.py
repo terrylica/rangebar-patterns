@@ -3,7 +3,7 @@
 Adapted from gen600_oracle_compare.py for two-segment SL time-decay barriers.
 Tests a SINGLE barrier config from the Gen720 434-barrier grid.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 Usage:
     # Single-SL baseline (sl_tight == sl_wide, no tightening):
@@ -28,7 +28,7 @@ Usage:
 
 Gates:
     1. Signal count: |N_SQL - N_PY| / max(N_SQL, N_PY) < 5%
-    2. Timestamp match: >95% of signals have identical timestamp_ms
+    2. Timestamp match: >95% of signals have identical close_time_ms
     3. Entry price match: >95% of matched signals have <0.01% price difference
     4. Exit type match: >90% of matched signals have same exit type (TP/SL/TIME)
     5. PF (profit factor): |PF_SQL - PF_PY| < 0.08 (wider than Gen600's 0.02 Kelly
@@ -112,11 +112,11 @@ def run_backtesting_py(symbol, threshold, *, config):
         config: dict with keys: pattern, tp_mult, sl_mult, sl_tight_mult,
             phase1_bars, max_bars
 
-    Returns list of dicts with: timestamp_ms, entry_price, exit_type, exit_price, pnl_pct
+    Returns list of dicts with: close_time_ms, entry_price, exit_type, exit_price, pnl_pct
     """
     from backtesting import Backtest
 
-    from backtest.backtesting_py.data_loader import load_range_bars
+    from backtest.backtesting_py.data_loader import load_open_deviation_bars
     from backtest.backtesting_py.gen720_strategy import Gen720Strategy
 
     bar_range = threshold / 100_000.0
@@ -143,7 +143,7 @@ def run_backtesting_py(symbol, threshold, *, config):
         align_msg += f" bar_count={bar_count}"
 
     print(f"Loading {symbol}@{threshold} range bars...{align_msg}")
-    df = load_range_bars(
+    df = load_open_deviation_bars(
         symbol=symbol,
         threshold=threshold,
         start="2017-01-01",
@@ -200,7 +200,7 @@ def run_backtesting_py(symbol, threshold, *, config):
             exit_type = "TIME"
 
         py_trades.append({
-            "timestamp_ms": signal_ts,
+            "close_time_ms": signal_ts,
             "entry_price": str(entry_price),
             "exit_type": exit_type,
             "exit_price": str(exit_price),
@@ -339,7 +339,7 @@ def main():
     # Gate 2: Timestamp match — bidirectional overlap
     # ================================================================
     sql_by_ts = {row["signal_ts_ms"]: row for row in sql_rows}
-    py_by_ts = {row["timestamp_ms"]: row for row in py_trades}
+    py_by_ts = {row["close_time_ms"]: row for row in py_trades}
 
     sql_ts = set(sql_by_ts.keys())
     py_ts = set(py_by_ts.keys())

@@ -8,7 +8,7 @@ Usage:
     python scripts/gen720_query.py strategy-comparison
     python scripts/gen720_query.py custom --sql "SELECT ..."
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations

@@ -133,7 +133,7 @@ done
 
 ## Data Provenance
 
-- **Source**: Remote ClickHouse (`rangebar_cache.range_bars`)
-- **Collection**: `scp $RANGEBAR_CH_HOST:/tmp/gen{NNN}_*.jsonl logs/gen{NNN}/`
+- **Source**: Remote ClickHouse (`opendeviationbar_cache.open_deviation_bars`)
+- **Collection**: `scp $OPENDEVIATIONBAR_CH_HOST:/tmp/gen{NNN}_*.jsonl logs/gen{NNN}/`
 - **Validation**: All lines must pass `json.loads()` before commit
 - **Fixes applied**: `nan` → `null`, `\N` → `NULL` (ClickHouse NULL representation)

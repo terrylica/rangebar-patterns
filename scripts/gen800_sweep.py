@@ -1,6 +1,6 @@
 """Gen800: Brute-force regime-conditioned signal sweep.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 Python-only sweep (no SQL) because ATR-Adaptive Laguerre RSI is Python-computed.
 Sweeps 288 Laguerre configs × 300 inner combos = 86,400 total configs on SOLUSDT @750.
@@ -69,10 +69,10 @@ def _load_data():
     bt_path = str(Path(__file__).resolve().parent.parent / "backtest" / "backtesting_py")
     if bt_path not in sys.path:
         sys.path.insert(0, bt_path)
-    from data_loader import load_range_bars
+    from data_loader import load_open_deviation_bars
 
     print(f"Loading {SYMBOL} @{THRESHOLD}dbps...")
-    df = load_range_bars(symbol=SYMBOL, threshold=THRESHOLD)
+    df = load_open_deviation_bars(symbol=SYMBOL, threshold=THRESHOLD)
     print(f"  Loaded {len(df)} bars")
     return df
 
@@ -109,9 +109,9 @@ def _process_laguerre_config(
     """
     import pandas as pd
 
-    from rangebar_patterns.barrier_sim import BarrierConfig, simulate_barriers
-    from rangebar_patterns.eval.omega import compute_omega
-    from rangebar_patterns.laguerre import LaguerreRegimeConfig, compute_laguerre_regimes
+    from opendeviationbar_patterns.barrier_sim import BarrierConfig, simulate_barriers
+    from opendeviationbar_patterns.eval.omega import compute_omega
+    from opendeviationbar_patterns.laguerre import LaguerreRegimeConfig, compute_laguerre_regimes
 
     # Build pandas DataFrame for Laguerre (needs Title-case OHLCV + DatetimeIndex)
     df = pd.DataFrame({
@@ -121,7 +121,7 @@ def _process_laguerre_config(
         "Close": ohlcv["closes"],
         "Volume": ohlcv["volumes"],
     })
-    df.index = pd.to_datetime(ohlcv["timestamps_ms"], unit="ms")
+    df.index = pd.to_datetime(ohlcv["close_times_ms"], unit="ms")
 
     config = LaguerreRegimeConfig(
         atr_period=laguerre_params["atr_period"],
@@ -302,7 +302,7 @@ def main():
     lows = np.array(df["Low"], dtype=float)
     closes = np.array(df["Close"], dtype=float)
     volumes = np.array(df["Volume"], dtype=float)
-    timestamps_ms = np.array(df["timestamp_ms"], dtype=np.int64)
+    close_times_ms = np.array(df["close_time_ms"], dtype=np.int64)
     n_bars = len(opens)
 
     # Direction for pattern detection
@@ -337,7 +337,7 @@ def main():
         "lows": lows,
         "closes": closes,
         "volumes": volumes,
-        "timestamps_ms": timestamps_ms,
+        "close_times_ms": close_times_ms,
     }
 
     # 5. Sweep

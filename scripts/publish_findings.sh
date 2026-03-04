@@ -66,6 +66,10 @@ while IFS= read -r html_file; do
 
   # Start new section for each generation
   if [ "$gen_dir" != "$CURRENT_GEN" ]; then
+    # Close previous list if open (multi-gen case)
+    if [ -n "$CURRENT_GEN" ]; then
+      echo "  </ul>" >> "$INDEX"
+    fi
     CURRENT_GEN="$gen_dir"
     gen_upper=$(echo "$gen_dir" | tr '[:lower:]' '[:upper:]')
     echo "  <h2>$gen_upper</h2>" >> "$INDEX"
@@ -94,7 +98,7 @@ TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
 cat >> "$INDEX" << FOOTER
   <footer>
     Published: $TIMESTAMP | $FOUND charts |
-    <a href="https://github.com/terrylica/rangebar-patterns">GitHub</a>
+    <a href="https://github.com/terrylica/opendeviationbar-patterns">GitHub</a>
   </footer>
 </body>
 </html>

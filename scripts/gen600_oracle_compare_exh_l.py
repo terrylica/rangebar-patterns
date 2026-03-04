@@ -1,7 +1,7 @@
 """Gen600 Oracle: exh_l pattern variant — thin wrapper around gen600_oracle_compare.py.
 
 ADR: docs/adr/2026-02-06-repository-creation.md
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/14
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/14
 
 Delegates to the parameterized oracle comparison script with exh_l-specific defaults.
 

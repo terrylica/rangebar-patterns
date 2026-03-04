@@ -17,15 +17,15 @@ ASSET_DIR="${REMOTE_DIR}/${PATTERN_ID}/${SYMBOL}_${THRESHOLD}"
 LOG_FILE="/tmp/gen600_${PATTERN_ID}_${SYMBOL}_${THRESHOLD}.jsonl"
 
 # Read metadata
-METADATA=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
+METADATA=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "cat ${REMOTE_DIR}/metadata.json")
 GIT_COMMIT=$(echo "$METADATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['git_commit'])")
 
 # Count total files
-TOTAL=$(ssh "${RANGEBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
+TOTAL=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
 echo "Total configs: ${TOTAL}"
 
 # Check for crash recovery — count lines already done (each config produces 3 lines)
-DONE_LINES=$(ssh "${RANGEBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
+DONE_LINES=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
 DONE_CONFIGS=$((DONE_LINES / 3))
 echo "Already completed: ${DONE_CONFIGS} configs (${DONE_LINES} lines)"
 
@@ -35,7 +35,7 @@ if [ "$DONE_CONFIGS" -ge "$TOTAL" ]; then
 fi
 
 # Create the wrapper script on remote host — parses 3-row barrier output into NDJSON
-ssh "${RANGEBAR_CH_HOST}" 'cat > /tmp/gen600_run_job.sh' << 'WRAPPER'
+ssh "${OPENDEVIATIONBAR_CH_HOST}" 'cat > /tmp/gen600_run_job.sh' << 'WRAPPER'
 #!/bin/bash
 set -euo pipefail
 SQL_FILE="$1"
@@ -111,15 +111,15 @@ fi
 rm -f "$TMPOUT"
 WRAPPER
 
-ssh "${RANGEBAR_CH_HOST}" "chmod +x /tmp/gen600_run_job.sh"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "chmod +x /tmp/gen600_run_job.sh"
 
 # Ensure pueue group exists
-ssh "${RANGEBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 8 -g p1"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 8 -g p1"
 
 # Get already-done config IDs for crash recovery (extract feature_config from NDJSON, deduplicate)
 DONE_IDS=""
 if [ "$DONE_LINES" -gt 0 ]; then
-    DONE_IDS=$(ssh "${RANGEBAR_CH_HOST}" "jq -r '.feature_config' ${LOG_FILE} 2>/dev/null | sort -u")
+    DONE_IDS=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "jq -r '.feature_config' ${LOG_FILE} 2>/dev/null | sort -u")
 fi
 
 # Submit jobs
@@ -132,10 +132,10 @@ while read -r SQL_PATH; do
         continue
     fi
 
-    ssh -n "${RANGEBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen600_run_job.sh '${SQL_PATH}' '${LOG_FILE}' '${SYMBOL}' '${THRESHOLD}' '${GIT_COMMIT}'"
+    ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen600_run_job.sh '${SQL_PATH}' '${LOG_FILE}' '${SYMBOL}' '${THRESHOLD}' '${GIT_COMMIT}'"
     SUBMITTED=$((SUBMITTED + 1))
-done < <(ssh -n "${RANGEBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql 2>/dev/null")
+done < <(ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "ls ${ASSET_DIR}/*.sql 2>/dev/null")
 
 echo "Submitted ${SUBMITTED} new jobs for ${PATTERN_ID} ${SYMBOL}@${THRESHOLD}"
 echo "Each produces 3 result rows (inverted/symmetric/momentum)"
-echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"
+echo "Monitor: ssh ${OPENDEVIATIONBAR_CH_HOST} 'pueue status -g p1'"

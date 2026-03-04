@@ -13,10 +13,10 @@ tools: []
 
 # REQUIRED for Claude Code backtracking + context
 claude_code_uuid: d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b
-claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-rangebar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
+claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-opendeviationbar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
 
 # REQUIRED backlink metadata (filled after ensuring issue exists)
-github_issue_url: https://github.com/terrylica/rangebar-patterns/issues/16
+github_issue_url: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 ---
 
 ## Deep Dive: 3 Most Powerful Tail-Risk Evaluation Methods — Concrete Calculations
@@ -230,7 +230,7 @@ _Note: The middle term penalizes the score if CDaR exceeds the single-trade Stop
 
 ### PART E: Implementation Roadmap
 
-Execute the integration into `src/rangebar_patterns/eval/` in the following strict order:
+Execute the integration into `src/opendeviationbar_patterns/eval/` in the following strict order:
 
 1. **Phase 1: `ou_barriers.py` (New Module)**
    - _Lines of Code_: ~60 lines.

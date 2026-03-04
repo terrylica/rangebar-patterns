@@ -1,6 +1,6 @@
 """Test per-metric percentile ranking with cutoffs and intersection.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
 import importlib
@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from rangebar_patterns.eval.ranking import (
+from opendeviationbar_patterns.eval.ranking import (
     DEFAULT_METRICS,
     MetricSpec,
     _flip_to_minimize,
@@ -138,9 +138,9 @@ def test_resolve_cutoffs_default():
 
 
 def test_resolve_cutoffs_override():
-    """RBP_RANK_CUT_TAMRS=10 -> tamrs cutoff is 10."""
-    with patch.dict(os.environ, {"RBP_RANK_CUT_TAMRS": "10"}):
-        from rangebar_patterns import config
+    """OPENDEVIATIONBAR_RANK_CUT_TAMRS=10 -> tamrs cutoff is 10."""
+    with patch.dict(os.environ, {"OPENDEVIATIONBAR_RANK_CUT_TAMRS": "10"}):
+        from opendeviationbar_patterns import config
 
         importlib.reload(config)
         try:

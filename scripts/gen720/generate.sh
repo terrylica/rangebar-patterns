@@ -10,7 +10,7 @@ set -euo pipefail
 # Templates: sql/gen720_wf_{FORMATION}_template.sql
 # Output: /tmp/gen720_sql/{FORMATION}_{SYMBOL}_{THRESHOLD}.sql
 #
-# GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+# GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 echo "=== Gen720: Walk-Forward Barrier Optimization ==="
 
@@ -85,7 +85,7 @@ fi
 
 # ---- Subsampling for high-density formations ----
 # Prevents ClickHouse OOM when forward arrays × signal count exceeds memory.
-# cityHash64(timestamp_ms) % N = 0 gives deterministic, uniform subsampling.
+# cityHash64(close_time_ms) % N = 0 gives deterministic, uniform subsampling.
 # @500 (200K bars): most high-density formations need subsampling.
 # @750 (85K bars): only exh_l_ng (~49% density → ~42K signals) OOMs without subsampling.
 # @1000 (45K bars): all formations fit in memory.
@@ -134,7 +134,7 @@ for FMT in "${FORMATIONS[@]}"; do
             # Inject subsampling for high-density @500 formations
             MOD=$(get_subsample_mod "$FMT" "$THR")
             if [ "$MOD" != "0" ]; then
-                sed -i.bak "s/AND entry_price > 0$/AND entry_price > 0\n      AND cityHash64(timestamp_ms) % ${MOD} = 0/" "$OUTFILE"
+                sed -i.bak "s/AND entry_price > 0$/AND entry_price > 0\n      AND cityHash64(close_time_ms) % ${MOD} = 0/" "$OUTFILE"
                 rm -f "${OUTFILE}.bak"
             fi
 

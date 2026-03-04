@@ -8,9 +8,9 @@ set -euo pipefail
 #
 # PREREQUISITE: generate.sh must have run first.
 # Usage: poc.sh
-# GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/27
+# GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/27
 
-CH_HOST="${RANGEBAR_CH_HOST:?Set RANGEBAR_CH_HOST}"
+CH_HOST="${OPENDEVIATIONBAR_CH_HOST:?Set OPENDEVIATIONBAR_CH_HOST}"
 
 SQLDIR="/tmp/gen710_sql"
 OUTDIR="/tmp/gen710_poc"

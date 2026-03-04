@@ -20,10 +20,10 @@ tools: []
 
 # REQUIRED for Claude Code backtracking + context
 claude_code_uuid: d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b
-claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-rangebar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
+claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-opendeviationbar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
 
 # REQUIRED backlink metadata
-github_issue_url: https://github.com/terrylica/rangebar-patterns/issues/18
+github_issue_url: https://github.com/terrylica/opendeviationbar-patterns/issues/18
 ---
 
 # Advanced Temporal Distribution Assessment of Clustered Financial Signals

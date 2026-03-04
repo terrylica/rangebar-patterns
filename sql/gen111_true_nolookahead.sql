@@ -15,7 +15,7 @@
 -- Gen 111: Full champion pattern with TRUE expanding-window percentile
 -- ============================================================================
 
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -24,13 +24,14 @@ WITH
 -- Step 1: Get base data with returns direction
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         trade_intensity,
         kyle_lambda_proxy
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 -- Step 2: Compute running p95 using arrayJoin to get proper expanding window
 -- ClickHouse doesn't support quantile in window functions directly, so we use a different approach
@@ -38,15 +39,15 @@ base_bars AS (
 -- For exact no-lookahead, we need running quantile which requires a workaround
 running_stats AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         direction,
         trade_intensity,
         kyle_lambda_proxy,
         -- Use running count and approximate percentile via histogram
-        count(*) OVER (ORDER BY timestamp_ms ROWS UNBOUNDED PRECEDING) as bar_count,
+        count(*) OVER (ORDER BY close_time_ms ROWS UNBOUNDED PRECEDING) as bar_count,
         -- Compute approximate p95 as value at rank 0.95 * count
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         ) as ti_p95_expanding
     FROM base_bars
@@ -54,7 +55,7 @@ running_stats AS (
 -- Step 3: Apply lags — AP-15: current row IS the 2nd DOWN bar (lag reduced by 1)
 lagged AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         -- AP-15: current row is the last pattern bar
         trade_intensity AS ti_0,
         kyle_lambda_proxy AS kyle_0,
@@ -62,12 +63,12 @@ lagged AS (
         lagInFrame(direction, 1) OVER w as dir_1,
         lagInFrame(ti_p95_expanding, 0) OVER w as ti_p95_prior,  -- Use current (already shifted by PRECEDING)
         leadInFrame(direction, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) as next_dir,  -- outcome: is the next bar UP?
         bar_count
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT', 1000,
@@ -99,7 +100,7 @@ WHERE dir_1 IS NOT NULL
 -- This is the control that should match previous results exactly
 -- ============================================================================
 
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -107,12 +108,13 @@ INSERT INTO rangebar_cache.feature_combinations
 WITH
 bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         kyle_lambda_proxy as kyle
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 -- AP-15: current row IS the 2nd DOWN bar (lag reduced by 1)
 lagged AS (
@@ -121,11 +123,11 @@ lagged AS (
         lagInFrame(direction, 1) OVER w as dir_1,
         kyle AS kyle_0,
         leadInFrame(direction, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) as next_dir
     FROM bars
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT', 1000,
@@ -154,7 +156,7 @@ WHERE dir_1 IS NOT NULL;
 -- Baseline for comparison
 -- ============================================================================
 
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -162,11 +164,12 @@ INSERT INTO rangebar_cache.feature_combinations
 WITH
 bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 -- AP-15: current row IS the 2nd DOWN bar (lag reduced by 1)
 lagged AS (
@@ -174,11 +177,11 @@ lagged AS (
         direction AS dir_0,
         lagInFrame(direction, 1) OVER w as dir_1,
         leadInFrame(direction, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) as next_dir
     FROM bars
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT', 1000,

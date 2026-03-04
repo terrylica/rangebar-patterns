@@ -6,7 +6,7 @@ metrics: n_positive_assets, avg_kelly_cross_asset, total_signals.
 These metrics feed into ranking.py as additional MetricSpecs for the
 Optuna Pareto optimizer.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
 from __future__ import annotations

@@ -23,7 +23,7 @@ ap15_status: FIXED (all templates corrected before sweep execution)
 sql_python_verification: ALL 3 GATES PASS (98.45% timestamp match, 100% price match)
 
 # Cross-references
-parent_issue_url: https://github.com/terrylica/rangebar-patterns/issues/14
+parent_issue_url: https://github.com/terrylica/opendeviationbar-patterns/issues/14
 related_findings:
   - findings/2026-02-07-overnight-sweep-forensic-analysis.md
   - findings/2026-02-11-feature-column-provenance-audit.md

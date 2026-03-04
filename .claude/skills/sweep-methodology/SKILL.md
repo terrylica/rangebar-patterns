@@ -8,7 +8,7 @@ description: Brute-force pattern sweep methodology for range bar microstructure 
 Principles distilled from 15,300+ configurations across Gen300-Gen520. These are **guidelines**, not constraints — future generations may discover reasons to deviate. When deviating, document why.
 
 **Companion skill**: [clickhouse-antipatterns](../clickhouse-antipatterns/SKILL.md) (SQL correctness)
-**GitHub Issues**: [#9 Research Consolidation](https://github.com/terrylica/rangebar-patterns/issues/9), [#12 Beyond-Kelly](https://github.com/terrylica/rangebar-patterns/issues/12)
+**GitHub Issues**: [#9 Research Consolidation](https://github.com/terrylica/opendeviationbar-patterns/issues/9), [#12 Beyond-Kelly](https://github.com/terrylica/opendeviationbar-patterns/issues/12)
 
 ---
 
@@ -65,7 +65,7 @@ Champion signals (2 consecutive DOWN bars) have fundamentally different feature 
 feature_quantiles AS (
     SELECT *,
         quantileExactExclusive(__QUANTILE_PCT__)(__FEATURE_COL__) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature_threshold
     FROM champion_signals
@@ -99,7 +99,7 @@ Barriers must scale with the range bar threshold. A 1% TP at @250dbps spans ~3 b
 ```
 tp_price = entry_price * (1.0 + tp_mult * bar_range)
 sl_price = entry_price * (1.0 - sl_mult * bar_range)
--- bar_range = threshold_dbps / 100,000 (aligned with rangebar-py)
+-- bar_range = threshold_dbps / 100,000 (aligned with opendeviationbar-py)
 -- tp_mult/sl_mult are in bar-widths (e.g., tp_mult=2.5 = TP at 2.5 bar-widths)
 ```
 
@@ -174,7 +174,7 @@ Use all 5 metrics together. Kelly alone produces 218 false positives out of 220 
 **Dropped metrics** (Spearman r > 0.95 with Omega — redundant): Sharpe, PSR, GROW, Cornish-Fisher ES.
 **Dropped** (insufficient evidence): E-values (max=1.04, need >= 20).
 
-**Implementation**: `src/rangebar_patterns/eval/` (10 modules, fully tested).
+**Implementation**: `src/opendeviationbar_patterns/eval/` (10 modules, fully tested).
 
 ### DSR Caveat
 
@@ -337,4 +337,4 @@ These are documented for future generations, not prescriptions:
 - [clickhouse-antipatterns skill](../clickhouse-antipatterns/SKILL.md) (SQL correctness)
 - [sql/CLAUDE.md](/sql/CLAUDE.md) (generation evolution table)
 - [findings/CLAUDE.md](/findings/CLAUDE.md) (research findings index)
-- [src/rangebar_patterns/eval/CLAUDE.md](/src/rangebar_patterns/eval/CLAUDE.md) (5-metric stack)
+- [src/opendeviationbar_patterns/eval/CLAUDE.md](/src/opendeviationbar_patterns/eval/CLAUDE.md) (5-metric stack)

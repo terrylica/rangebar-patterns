@@ -25,4 +25,4 @@
 | 2026-02-12 | 2026-02-12-gen600-oracle-validation.md     | **Oracle**: SQL vs backtesting.py 5-gate PASS on 3 assets, hedging=True req'd                                                           |
 | 2026-02-13 | kelly-alternatives-tail-risk-evaluation.md | **Gemini 3 Pro**: CDaR, Rachev Ratio, UPI, e-values, OU barriers, TCP gates                                                             |
 | 2026-02-13 | 2026-02-13-kelly-deep-dive-3-methods.md    | **Gemini 3 Pro**: Rachev Ratio, CDaR, OU barriers, TAMRS composite score                                                                |
-| 2026-02-15 | mcdm-pareto-ranking-methods.md             | **Gemini 3 Pro**: MCDM/TOPSIS/pymoo for threshold-free Pareto ranking ([#28](https://github.com/terrylica/rangebar-patterns/issues/28)) |
+| 2026-02-15 | mcdm-pareto-ranking-methods.md             | **Gemini 3 Pro**: MCDM/TOPSIS/pymoo for threshold-free Pareto ranking ([#28](https://github.com/terrylica/opendeviationbar-patterns/issues/28)) |

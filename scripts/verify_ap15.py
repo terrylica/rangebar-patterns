@@ -15,7 +15,7 @@ import numpy as np
 # Add project root to path
 sys.path.insert(0, ".")
 
-from backtest.backtesting_py.data_loader import load_range_bars
+from backtest.backtesting_py.data_loader import load_open_deviation_bars
 
 
 def rolling_p95(ti_values, window=1000):
@@ -29,7 +29,7 @@ def rolling_p95(ti_values, window=1000):
 
 def main():
     # Load same data as SQL: SOLUSDT @500
-    df = load_range_bars(symbol="SOLUSDT", threshold=500)
+    df = load_open_deviation_bars(symbol="SOLUSDT", threshold=500)
     print(f"# Loaded {len(df)} bars", file=sys.stderr)
 
     # Compute direction: same as SQL CASE WHEN close > open THEN 1 ELSE 0 END
@@ -40,14 +40,14 @@ def main():
     ti_p95 = rolling_p95(ti, window=1000)
 
     kyle = df["kyle_lambda_proxy"].values
-    # df.index is DatetimeIndex[ms] from pd.to_datetime(timestamp_ms, unit="ms")
+    # df.index is DatetimeIndex[ms] from pd.to_datetime(close_time_ms, unit="ms")
     # astype(int64) gives ms directly (no division needed)
     timestamps = df.index.astype(np.int64).values
     opens = df["Open"].values
     closes = df["Close"].values
 
     # Header
-    print("timestamp_ms\tsignal_open\tsignal_close\tentry_price\tti_0\tti_p95_prior\tkyle_0\tdir_0\tdir_1")
+    print("close_time_ms\tsignal_open\tsignal_close\tentry_price\tti_0\tti_p95_prior\tkyle_0\tdir_0\tdir_1")
 
     # Detect champion signals: 2 consecutive DOWN + ti > p95 + kyle > 0
     count = 0

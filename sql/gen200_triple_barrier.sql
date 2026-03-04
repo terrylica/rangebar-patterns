@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Gen 200: Triple Barrier Method in ClickHouse SQL
--- GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/3
+-- GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/3
 -- Copied from: gen111_true_nolookahead.sql (champion pattern base)
 --
 -- PURPOSE: Measure risk-adjusted outcomes (profit factor, risk-reward ratio,
@@ -21,7 +21,7 @@
 -- ============================================================================
 
 -- Step 0: Create destination tables (idempotent)
-CREATE TABLE IF NOT EXISTS rangebar_cache.barrier_results (
+CREATE TABLE IF NOT EXISTS opendeviationbar_cache.barrier_results (
     symbol String,
     threshold_decimal_bps UInt32,
     pattern_name String,
@@ -48,11 +48,11 @@ CREATE TABLE IF NOT EXISTS rangebar_cache.barrier_results (
 ) ENGINE = MergeTree()
 ORDER BY (symbol, threshold_decimal_bps, generation, tp_mult, sl_mult, max_bars);
 
-CREATE TABLE IF NOT EXISTS rangebar_cache.barrier_trade_log (
+CREATE TABLE IF NOT EXISTS opendeviationbar_cache.barrier_trade_log (
     symbol String,
     threshold_decimal_bps UInt32,
     generation UInt32,
-    signal_timestamp_ms UInt64,
+    signal_close_time_ms UInt64,
     entry_price Float64,
     tp_mult Float64,
     sl_mult Float64,
@@ -65,20 +65,20 @@ CREATE TABLE IF NOT EXISTS rangebar_cache.barrier_trade_log (
     pnl_pct Float64,
     created_at DateTime DEFAULT now()
 ) ENGINE = MergeTree()
-ORDER BY (symbol, threshold_decimal_bps, generation, signal_timestamp_ms);
+ORDER BY (symbol, threshold_decimal_bps, generation, signal_close_time_ms);
 
 -- ============================================================================
 -- Main query: Triple barrier sweep for SOL @250dbps
 -- ============================================================================
 
 -- Clear previous Gen200 results for this threshold
-ALTER TABLE rangebar_cache.barrier_results
+ALTER TABLE opendeviationbar_cache.barrier_results
     DELETE WHERE generation = 200 AND symbol = 'SOLUSDT' AND threshold_decimal_bps = 250;
 
-ALTER TABLE rangebar_cache.barrier_trade_log
+ALTER TABLE opendeviationbar_cache.barrier_trade_log
     DELETE WHERE generation = 200 AND symbol = 'SOLUSDT' AND threshold_decimal_bps = 250;
 
-INSERT INTO rangebar_cache.barrier_results
+INSERT INTO opendeviationbar_cache.barrier_results
     (symbol, threshold_decimal_bps, pattern_name, generation,
      tp_mult, sl_mult, max_bars, tp_pct, sl_pct,
      total_signals, tp_count, sl_count, time_count, incomplete_count,
@@ -89,29 +89,30 @@ WITH
 -- CTE 1: Base bars — OHLCV + microstructure features + row numbering
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 250
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 -- CTE 2: Running stats — expanding p95 for trade_intensity (no-lookahead)
 -- Copied from Gen111: quantileExactExclusive with ROWS UNBOUNDED PRECEDING
 running_stats AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         direction,
         rn,
-        count(*) OVER (ORDER BY timestamp_ms ROWS UNBOUNDED PRECEDING) AS bar_count,
+        count(*) OVER (ORDER BY close_time_ms ROWS UNBOUNDED PRECEDING) AS bar_count,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         ) AS ti_p95_expanding
     FROM base_bars
@@ -120,7 +121,7 @@ running_stats AS (
 -- AUDIT #4: leadInFrame uses UNBOUNDED FOLLOWING frame to access next bar's open
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         direction,
         rn,
@@ -132,11 +133,11 @@ signal_detection AS (
         lagInFrame(ti_p95_expanding, 0) OVER w AS ti_p95_prior,
         -- AUDIT #4: Must use UNBOUNDED FOLLOWING to see next bar's open
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 -- CTE 4: Filter to champion pattern signals ONLY (before array collection)
 -- AUDIT #3: Signals-only approach — ~1000 signals vs 1.4M bars
@@ -156,7 +157,7 @@ signals AS (
 -- AUDIT #3: Join signals to base_bars for forward OHLC context (51 bars max)
 forward_arrays AS (
     SELECT
-        s.timestamp_ms,
+        s.close_time_ms,
         s.entry_price,
         s.rn AS signal_rn,
         groupArray(b.high) AS fwd_highs,
@@ -166,7 +167,7 @@ forward_arrays AS (
     FROM signals s
     INNER JOIN base_bars b
         ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
-    GROUP BY s.timestamp_ms, s.entry_price, s.rn
+    GROUP BY s.close_time_ms, s.entry_price, s.rn
 ),
 -- CTE 6: Parameter expansion via inline arrayJoin
 -- AUDIT #7: Inline arrayJoin (not CROSS JOIN)
@@ -174,7 +175,7 @@ forward_arrays AS (
 -- AUDIT #1: Pre-compute tp_price/sl_price as columns
 param_expanded AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         signal_rn,
         fwd_highs,
@@ -200,7 +201,7 @@ param_with_prices AS (
 -- AUDIT #7: arraySlice before search to limit to max_bars
 barrier_scan AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_mult,
         sl_mult,
@@ -221,7 +222,7 @@ barrier_scan AS (
 -- AUDIT #2: Full 0-not-found guard logic
 trade_outcomes AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_mult,
         sl_mult,

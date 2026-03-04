@@ -9,7 +9,7 @@ Returns DataFrame with DatetimeIndex + capitalized OHLCV + microstructure featur
 from __future__ import annotations
 
 
-def load_range_bars(
+def load_open_deviation_bars(
     symbol: str = "SOLUSDT",
     threshold: int = 250,
     start: str = "2020-01-01",
@@ -22,7 +22,7 @@ def load_range_bars(
     """Load range bars with microstructure features from ClickHouse.
 
     Tries local ClickHouse first (localhost:8123). If local has no data for the
-    requested symbol/threshold, falls back to SSH tunnel (set RANGEBAR_CH_HOST).
+    requested symbol/threshold, falls back to SSH tunnel (set OPENDEVIATIONBAR_CH_HOST).
 
     Args:
         extra_columns: Additional columns to SELECT beyond the default set.
@@ -30,7 +30,7 @@ def load_range_bars(
         end_ts_ms: Explicit end timestamp (milliseconds). Overrides ``end``.
             Use for oracle alignment with SQL queries that use a precise cutoff.
         bar_count: Trim to the last N bars after loading. Matches SQL's
-            ``ORDER BY timestamp_ms DESC LIMIT N`` alignment pattern.
+            ``ORDER BY close_time_ms DESC LIMIT N`` alignment pattern.
 
     Returns DataFrame with DatetimeIndex + OHLCV + trade_intensity + kyle_lambda_proxy.
     Compatible with backtesting.py (requires capitalized OHLCV columns).
@@ -49,14 +49,15 @@ def load_range_bars(
         extra_sql = ",\n               " + ", ".join(extra_columns)
 
     query = f"""
-        SELECT timestamp_ms, open, high, low, close, volume,
+        SELECT close_time_ms, open, high, low, close, volume,
                trade_intensity, kyle_lambda_proxy, duration_us{extra_sql}
-        FROM rangebar_cache.range_bars
+        FROM opendeviationbar_cache.open_deviation_bars
         WHERE symbol = '{symbol}'
           AND threshold_decimal_bps = {threshold}
-          AND timestamp_ms >= {start_ts}
-          AND timestamp_ms < {end_ts}
-        ORDER BY timestamp_ms
+          AND ouroboros_mode = 'month'
+          AND close_time_ms >= {start_ts}
+          AND close_time_ms < {end_ts}
+        ORDER BY close_time_ms
     """
 
     # Try local ClickHouse first
@@ -72,7 +73,7 @@ def load_range_bars(
     if df is None:
         import os
         if ssh_alias is None:
-            ssh_alias = os.environ.get("RANGEBAR_CH_HOST", "localhost")
+            ssh_alias = os.environ.get("OPENDEVIATIONBAR_CH_HOST", "localhost")
         print(f"  [tunnel] No local data, connecting via SSH tunnel to {ssh_alias}...")
         tunnel = SSHTunnel(ssh_alias)
         with tunnel as local_port:
@@ -93,7 +94,7 @@ def load_range_bars(
 def _to_backtest_df(arrow_table, pl, pd):
     """Convert Arrow table to backtesting.py-compatible DataFrame."""
     df = pl.from_arrow(arrow_table).to_pandas()
-    df.index = pd.to_datetime(df["timestamp_ms"], unit="ms")
+    df.index = pd.to_datetime(df["close_time_ms"], unit="ms")
     df.index.name = None
     df = df.rename(columns={
         "open": "Open",

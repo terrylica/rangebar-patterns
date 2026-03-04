@@ -24,10 +24,10 @@ tools: []
 
 # REQUIRED for Claude Code backtracking + context
 claude_code_uuid: d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b
-claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-rangebar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
+claude_code_project_path: "~/.claude/projects/-Users-terryli-eon-opendeviationbar-patterns/d6491c1c-9b1c-4296-ba8d-7fa27e83ea5b"
 
 # REQUIRED backlink metadata (filled after ensuring issue exists)
-github_issue_url: https://github.com/terrylica/rangebar-patterns/issues/12
+github_issue_url: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 ---
 
 # Beyond Kelly Criterion: State-of-the-Art Evaluation Metrics for Brute-Force Signal Discovery in Crypto Microstructure

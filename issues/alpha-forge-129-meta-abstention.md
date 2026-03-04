@@ -125,7 +125,7 @@ If validation is NOT predictive of test, we need a meta-level decision system th
 
 ### Database & Files
 
-- ClickHouse: `rangebar_cache.feature_combinations` (111 patterns across 8 generations)
+- ClickHouse: `opendeviationbar_cache.feature_combinations` (111 patterns across 8 generations)
 - Analysis: `examples/research/findings/2026-02-02-ood-robustness-research/brute_force_microstructure_analysis.md`
 - SQL files: `brute_force_gen1.sql` through `brute_force_gen8_divergence.sql`
 

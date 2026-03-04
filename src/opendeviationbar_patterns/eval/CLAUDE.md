@@ -1,6 +1,6 @@
 # eval/ — Evaluation Metrics Subpackage
 
-**Navigation**: [Root CLAUDE.md](/CLAUDE.md) | [Config](/src/rangebar_patterns/config.py) | [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12) | [Issue #16](https://github.com/terrylica/rangebar-patterns/issues/16)
+**Navigation**: [Root CLAUDE.md](/CLAUDE.md) | [Config](/src/opendeviationbar_patterns/config.py) | [Issue #12](https://github.com/terrylica/opendeviationbar-patterns/issues/12) | [Issue #16](https://github.com/terrylica/opendeviationbar-patterns/issues/16)
 
 ---
 
@@ -52,7 +52,7 @@ TAMRS (Tail-Adjusted Mean Reversion Score) replaces Kelly as primary ranker (Iss
 
 ## Configuration
 
-All research parameters come from `rangebar_patterns.config` (SSoT = `.mise.toml` `[env]`):
+All research parameters come from `opendeviationbar_patterns.config` (SSoT = `.mise.toml` `[env]`):
 
 | Config Var                 | Used By                       |
 | -------------------------- | ----------------------------- |
@@ -84,7 +84,7 @@ All research parameters come from `rangebar_patterns.config` (SSoT = `.mise.toml
 | `RANK_N_TRIALS`            | rank_optimize.py              |
 | `RANK_TARGET_N`            | rank_optimize.py              |
 
-Override via environment: `RBP_RACHEV_ALPHA=0.10 mise run eval:rachev`
+Override via environment: `OPENDEVIATIONBAR_RACHEV_ALPHA=0.10 mise run eval:rachev`
 
 ---
 
@@ -101,7 +101,7 @@ mise run eval:omega            # Reads trade_returns.jsonl
 mise run eval:rachev           # Reads trade_returns.jsonl
 mise run eval:cdar             # Reads trade_returns.jsonl
 mise run eval:tamrs            # Joins rachev + cdar + ou
-mise run eval:cscv             # Uses RBP_CSCV_RANKER
+mise run eval:cscv             # Uses OPENDEVIATIONBAR_CSCV_RANKER
 mise run eval:regularity       # KDE signal regularity
 mise run eval:evalues
 mise run eval:synthesize

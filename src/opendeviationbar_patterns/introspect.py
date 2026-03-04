@@ -4,12 +4,12 @@ Reconstructs individual trades from high-performing SQL configs to understand
 what the pattern captures at the microstructure level. Shows feature diagnostics,
 barrier progression, and per-bar P&L tracking.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/13
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/13
 
 Run with:
-    RBP_INSPECT_CONFIG_ID=price_impact_lt_p10__volume_per_trade_gt_p75 \
-    RBP_INSPECT_TRADE_N=1 \
-    python -m rangebar_patterns.introspect
+    OPENDEVIATIONBAR_INSPECT_CONFIG_ID=price_impact_lt_p10__volume_per_trade_gt_p75 \
+    OPENDEVIATIONBAR_INSPECT_TRADE_N=1 \
+    python -m opendeviationbar_patterns.introspect
 """
 
 from __future__ import annotations
@@ -19,8 +19,8 @@ import os
 import sys
 from datetime import UTC, datetime
 
-from rangebar_patterns.config import MAX_BARS, SL_MULT, SYMBOL, THRESHOLD_DBPS, TP_MULT
-from rangebar_patterns.eval.extraction import _CTE_TEMPLATE, FEATURES, GRID
+from opendeviationbar_patterns.config import MAX_BARS, SL_MULT, SYMBOL, THRESHOLD_DBPS, TP_MULT
+from opendeviationbar_patterns.eval.extraction import _CTE_TEMPLATE, FEATURES, GRID
 
 # Reverse lookup: suffix → (quantile_pct, direction)
 _SUFFIX_TO_GRID: dict[str, tuple[str, str]] = {
@@ -35,23 +35,23 @@ _SUFFIX_TO_GRID: dict[str, tuple[str, str]] = {
 # Query 1: Numbered list of all trades for this config
 _TRADE_LIST_SELECT = """
 SELECT
-    row_number() OVER (ORDER BY timestamp_ms) AS trade_n,
-    timestamp_ms,
+    row_number() OVER (ORDER BY close_time_ms) AS trade_n,
+    close_time_ms,
     entry_price,
     exit_type,
     exit_price,
     (exit_price - entry_price) / entry_price AS pnl_pct
 FROM trade_outcomes
 WHERE exit_type != 'INCOMPLETE'
-ORDER BY timestamp_ms
+ORDER BY close_time_ms
 """.strip()
 
 # Query 2: Single trade detail — bar-by-bar lifecycle with barrier distances.
-# Requires additional CTE to filter to one specific signal by timestamp_ms,
+# Requires additional CTE to filter to one specific signal by close_time_ms,
 # then expands forward arrays to rows via ARRAY JOIN.
 _TRADE_DETAIL_SELECT = """
 SELECT
-    s.timestamp_ms AS signal_ts,
+    s.close_time_ms AS signal_ts,
     s.entry_price AS entry_price,
     s.feature1_lag1 AS feature1_lag1,
     s.feature2_lag1 AS feature2_lag1,
@@ -74,11 +74,11 @@ SELECT
     p.fwd_lows[bar_idx] - p.sl_price AS sl_distance,
     (p.fwd_closes[bar_idx] - s.entry_price) / s.entry_price AS running_pnl
 FROM signals s
-INNER JOIN param_with_prices p ON p.timestamp_ms = s.timestamp_ms
-INNER JOIN trade_outcomes t ON t.timestamp_ms = s.timestamp_ms
+INNER JOIN param_with_prices p ON p.close_time_ms = s.close_time_ms
+INNER JOIN trade_outcomes t ON t.close_time_ms = s.close_time_ms
 INNER JOIN (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE
             WHEN raw_sl_bar > 0 AND raw_tp_bar > 0 AND raw_sl_bar <= raw_tp_bar THEN raw_sl_bar
             WHEN raw_sl_bar > 0 AND raw_tp_bar > 0 AND raw_tp_bar < raw_sl_bar THEN raw_tp_bar
@@ -87,9 +87,9 @@ INNER JOIN (
             ELSE max_bars
         END AS exit_bar
     FROM barrier_scan
-) b ON b.timestamp_ms = s.timestamp_ms
+) b ON b.close_time_ms = s.close_time_ms
 ARRAY JOIN arrayEnumerate(p.fwd_opens) AS bar_idx
-WHERE s.timestamp_ms = {signal_ts}
+WHERE s.close_time_ms = {signal_ts}
   AND bar_idx <= b.exit_bar
 ORDER BY bar_idx
 """.strip()
@@ -146,7 +146,7 @@ def build_inspect_sql(config: dict, mode: str, signal_ts: int | None = None) -> 
     Args:
         config: Dict from parse_config_id().
         mode: 'trade_list' or 'trade_detail'.
-        signal_ts: Required for 'trade_detail' — timestamp_ms of the signal.
+        signal_ts: Required for 'trade_detail' — close_time_ms of the signal.
     """
     if mode == "trade_list":
         final_select = _TRADE_LIST_SELECT
@@ -187,7 +187,7 @@ def fetch_trade_detail(client, config: dict, trade_meta: dict) -> dict:
 
     Returns dict with trade metadata + list of bar dicts.
     """
-    sql = build_inspect_sql(config, "trade_detail", signal_ts=trade_meta["timestamp_ms"])
+    sql = build_inspect_sql(config, "trade_detail", signal_ts=trade_meta["close_time_ms"])
     result = client.query(sql)
     cols = result.column_names
     rows = [dict(zip(cols, row, strict=True)) for row in result.result_rows]
@@ -354,13 +354,13 @@ def export_json(detail: dict) -> str:
 
 def main():
     """Inspect a single trade bar-by-bar."""
-    config_id = os.environ.get("RBP_INSPECT_CONFIG_ID")
-    trade_n = int(os.environ.get("RBP_INSPECT_TRADE_N", "1"))
+    config_id = os.environ.get("OPENDEVIATIONBAR_INSPECT_CONFIG_ID")
+    trade_n = int(os.environ.get("OPENDEVIATIONBAR_INSPECT_TRADE_N", "1"))
     json_mode = "--json" in sys.argv
 
     if not config_id:
-        print("Usage: RBP_INSPECT_CONFIG_ID=<config_id> python -m rangebar_patterns.introspect")
-        print("  env: RBP_INSPECT_TRADE_N=1 (default)")
+        print("Usage: OPENDEVIATIONBAR_INSPECT_CONFIG_ID=<config_id> python -m opendeviationbar_patterns.introspect")
+        print("  env: OPENDEVIATIONBAR_INSPECT_TRADE_N=1 (default)")
         print("  flag: --json for ML pipeline output")
         sys.exit(1)
 
@@ -370,7 +370,7 @@ def main():
 
     from backtest.backtesting_py.ssh_tunnel import SSHTunnel
 
-    ssh_host = os.environ.get("RANGEBAR_CH_HOST", "localhost")
+    ssh_host = os.environ.get("OPENDEVIATIONBAR_CH_HOST", "localhost")
     with SSHTunnel(ssh_host) as local_port:
         client = clickhouse_connect.get_client(host="localhost", port=local_port)
 

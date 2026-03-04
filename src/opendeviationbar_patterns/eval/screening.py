@@ -5,9 +5,9 @@ identify candidates for further investigation. Includes TAMRS gates
 (Rachev, CDaR, OU barrier ratio) from Issue #16 and signal regularity
 (KDE peak CV, temporal coverage) from Issue #17. Kelly removed as gate.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
 from __future__ import annotations
@@ -17,14 +17,14 @@ import math
 
 import numpy as np
 
-from rangebar_patterns.config import (
+from opendeviationbar_patterns.config import (
     SCREEN_COVERAGE_MIN,
     SCREEN_OU_RATIO_MIN,
     SCREEN_RACHEV_MIN,
     SCREEN_REGULARITY_CV_MAX,
     SCREEN_TAMRS_MIN,
 )
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 # --- Tier Thresholds ---
 # TAMRS gates from Issue #16, signal regularity from Issue #17.

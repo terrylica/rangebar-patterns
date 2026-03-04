@@ -1,6 +1,6 @@
 """Test 4-stage walk-forward barrier optimization engine.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 14 tests across 4 stages:
 - Stage 1 (WFO): fold count, purging, non-overlapping test, rolling train,
@@ -14,7 +14,7 @@ import numpy as np
 import polars as pl
 import pytest
 
-from rangebar_patterns.eval.walk_forward import (
+from opendeviationbar_patterns.eval.walk_forward import (
     BarrierParams,
     _omega_metric,
     build_cpcv_folds,
@@ -203,7 +203,7 @@ def test_nested_cpcv_inner_selection():
         300, n_folds=4, n_test_folds=2, purge_bars=5, embargo_bars=2,
     )
 
-    from rangebar_patterns.eval.walk_forward import run_nested_cpcv
+    from opendeviationbar_patterns.eval.walk_forward import run_nested_cpcv
 
     result = run_nested_cpcv(
         signal_data, cpcv_folds, barriers, inner_k=5,

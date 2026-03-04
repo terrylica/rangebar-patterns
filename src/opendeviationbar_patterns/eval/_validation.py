@@ -3,7 +3,7 @@
 Validates per-fold WFO results before writing to Parquet.
 Uses Pandera's Polars-native integration for zero-copy validation.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations

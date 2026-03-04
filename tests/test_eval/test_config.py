@@ -1,11 +1,11 @@
 """Test config.py typed env reader.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 
 def test_defaults():
-    from rangebar_patterns.config import (
+    from opendeviationbar_patterns.config import (
         ALPHA,
         BAR_RANGE,
         DSR_THRESHOLD,
@@ -29,19 +29,19 @@ def test_defaults():
 
 
 def test_bar_range_derived():
-    from rangebar_patterns.config import BAR_RANGE, THRESHOLD_DBPS
+    from opendeviationbar_patterns.config import BAR_RANGE, THRESHOLD_DBPS
 
     assert BAR_RANGE == THRESHOLD_DBPS / 100_000.0
 
 
 def test_env_override(monkeypatch):
-    monkeypatch.setenv("RBP_SYMBOL", "ETHUSDT")
-    monkeypatch.setenv("RBP_THRESHOLD_DBPS", "250")
+    monkeypatch.setenv("OPENDEVIATIONBAR_SYMBOL", "ETHUSDT")
+    monkeypatch.setenv("OPENDEVIATIONBAR_THRESHOLD_DBPS", "250")
 
     # Reimport to pick up env changes
     import importlib
 
-    import rangebar_patterns.config as cfg
+    import opendeviationbar_patterns.config as cfg
 
     importlib.reload(cfg)
 
@@ -50,6 +50,6 @@ def test_env_override(monkeypatch):
     assert cfg.BAR_RANGE == 0.0025
 
     # Restore defaults
-    monkeypatch.delenv("RBP_SYMBOL")
-    monkeypatch.delenv("RBP_THRESHOLD_DBPS")
+    monkeypatch.delenv("OPENDEVIATIONBAR_SYMBOL")
+    monkeypatch.delenv("OPENDEVIATIONBAR_THRESHOLD_DBPS")
     importlib.reload(cfg)

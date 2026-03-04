@@ -1,6 +1,6 @@
 """Pure-Python barrier simulator for programmatic sweep evaluation.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/27
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/27
 
 Implements Gen720 2-segment stop-loss semantics:
 - Phase 1 (bars 1..phase1_bars): wide SL protects against early noise

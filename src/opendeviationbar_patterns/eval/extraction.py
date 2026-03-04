@@ -4,9 +4,9 @@ Merges layer1_sql_moments.py and layer1_trade_returns.py into a single module.
 The CTE chain (base_bars through trade_outcomes) is shared; only the final
 SELECT differs between moments extraction and trade-return extraction.
 
-Requires SSH tunnel to remote ClickHouse (set RANGEBAR_CH_HOST).
+Requires SSH tunnel to remote ClickHouse (set OPENDEVIATIONBAR_CH_HOST).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from __future__ import annotations
@@ -17,14 +17,14 @@ import os
 import sys
 import time
 
-from rangebar_patterns.config import (
+from opendeviationbar_patterns.config import (
     MAX_BARS,
     SL_MULT,
     SYMBOL,
     THRESHOLD_DBPS,
     TP_MULT,
 )
-from rangebar_patterns.eval._io import results_dir
+from opendeviationbar_patterns.eval._io import results_dir
 
 # Same config space as gen500 (scripts/gen500/generate.sh)
 FEATURES = [
@@ -47,30 +47,31 @@ _CTE_TEMPLATE = """
 WITH
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         {feature_col_1},
         {feature_col_2},
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = '{symbol}' AND threshold_decimal_bps = {threshold}
-    ORDER BY timestamp_ms
+      AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 running_stats AS (
     SELECT
         *,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS ti_p95_rolling
     FROM base_bars
 ),
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         direction,
         rn,
@@ -82,11 +83,11 @@ signal_detection AS (
         lagInFrame({feature_col_1}, 1) OVER w AS feature1_lag1,
         lagInFrame({feature_col_2}, 1) OVER w AS feature2_lag1,
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 champion_signals AS (
     SELECT *
@@ -106,7 +107,7 @@ feature1_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive({quantile_pct_1})(feature1_lag1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature1_q
     FROM champion_signals
@@ -115,7 +116,7 @@ feature2_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive({quantile_pct_2})(feature2_lag1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature2_q
     FROM feature1_with_quantile
@@ -130,7 +131,7 @@ signals AS (
 ),
 forward_arrays AS (
     SELECT
-        s.timestamp_ms,
+        s.close_time_ms,
         s.entry_price,
         s.rn AS signal_rn,
         groupArray(b.high) AS fwd_highs,
@@ -140,7 +141,7 @@ forward_arrays AS (
     FROM signals s
     INNER JOIN base_bars b
         ON b.rn BETWEEN s.rn + 1 AND s.rn + {max_bars_plus1}
-    GROUP BY s.timestamp_ms, s.entry_price, s.rn
+    GROUP BY s.close_time_ms, s.entry_price, s.rn
 ),
 param_with_prices AS (
     SELECT
@@ -154,7 +155,7 @@ param_with_prices AS (
 ),
 barrier_scan AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_mult,
         sl_mult,
@@ -171,7 +172,7 @@ barrier_scan AS (
 ),
 trade_outcomes AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         CASE
             WHEN raw_sl_bar > 0 AND raw_tp_bar > 0 AND raw_sl_bar <= raw_tp_bar THEN 'SL'
@@ -235,7 +236,7 @@ SELECT
     '{config_id}' AS config_id,
     toUInt32(count(*)) AS n_trades,
     groupArray((exit_price - entry_price) / entry_price) AS returns,
-    groupArray(timestamp_ms) AS timestamps_ms
+    groupArray(close_time_ms) AS close_times_ms
 FROM trade_outcomes
 WHERE exit_type != 'INCOMPLETE'
 """.strip()
@@ -312,8 +313,8 @@ def run_query_returns(client, config: dict) -> dict | None:
         data = dict(zip(cols, row, strict=True))
         if "returns" in data and data["returns"] is not None:
             data["returns"] = [float(x) for x in data["returns"]]
-        if "timestamps_ms" in data and data["timestamps_ms"] is not None:
-            data["timestamps_ms"] = [int(x) for x in data["timestamps_ms"]]
+        if "close_times_ms" in data and data["close_times_ms"] is not None:
+            data["close_times_ms"] = [int(x) for x in data["close_times_ms"]]
         return data
     except (OSError, RuntimeError, ValueError) as e:
         print(f"  ERROR {config['config_id']}: {e}", file=sys.stderr)
@@ -327,9 +328,10 @@ def run_query_ou_prices(client, symbol: str, threshold: int) -> list[float]:
     falls back to standard query otherwise.
     """
     sql = (
-        f"SELECT close FROM rangebar_cache.range_bars "
+        f"SELECT close FROM opendeviationbar_cache.open_deviation_bars "
         f"WHERE symbol = '{symbol}' AND threshold_decimal_bps = {threshold} "
-        f"ORDER BY timestamp_ms"
+        f"AND ouroboros_mode = 'month' "
+        f"ORDER BY close_time_ms"
     )
     try:
         arrow_table = client.query_arrow(sql)
@@ -355,11 +357,11 @@ def _run_extraction(mode: str) -> None:
     null_result_fn = (
         (lambda cid: {"config_id": cid, "n_trades": 0, "error": True})
         if mode == "moments"
-        else (lambda cid: {"config_id": cid, "n_trades": 0, "returns": [], "timestamps_ms": [], "error": True})
+        else (lambda cid: {"config_id": cid, "n_trades": 0, "returns": [], "close_times_ms": [], "error": True})
     )
 
     t0 = time.time()
-    ssh_host = os.environ.get("RANGEBAR_CH_HOST", "localhost")
+    ssh_host = os.environ.get("OPENDEVIATIONBAR_CH_HOST", "localhost")
     with SSHTunnel(ssh_host) as local_port:
         client = clickhouse_connect.get_client(host="localhost", port=local_port)
         print(f"Connected via SSH tunnel on port {local_port}")

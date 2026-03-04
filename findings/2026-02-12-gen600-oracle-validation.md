@@ -2,7 +2,7 @@
 
 **Date**: 2026-02-12
 **Config**: `udd__volume_per_trade_lt_p50__lookback_price_range_lt_p50` (symmetric barrier)
-**GitHub Issue**: [#14](https://github.com/terrylica/rangebar-patterns/issues/14)
+**GitHub Issue**: [#14](https://github.com/terrylica/opendeviationbar-patterns/issues/14)
 **ADR**: [docs/adr/2026-02-06-repository-creation.md](/docs/adr/2026-02-06-repository-creation.md)
 
 ---
@@ -30,7 +30,7 @@ Trade-by-trade oracle validation confirms that SQL sweep results (ClickHouse) ar
 - **Feature 1**: `volume_per_trade < rolling_p50(signal_set)`
 - **Feature 2**: `lookback_price_range < rolling_p50(signal_set)`
 - **Barrier**: TP=0.50x, SL=0.50x, max_bars=50 (symmetric, @1000 dBps = 5%)
-- **Data cutoff**: `timestamp_ms <= 1738713600000` (2025-02-05 00:00 UTC)
+- **Data cutoff**: `close_time_ms <= 1738713600000` (2025-02-05 00:00 UTC)
 
 ## Backtesting.py Configuration for SQL Oracle Match
 
@@ -71,7 +71,7 @@ bt = Backtest(
 
 ### 3. Data Range Mismatch (MODERATE)
 
-**Problem**: `load_range_bars()` defaults to `start='2020-01-01'`, but SQL has no lower bound. BNB/XRP have pre-2020 data.
+**Problem**: `load_open_deviation_bars()` defaults to `start='2020-01-01'`, but SQL has no lower bound. BNB/XRP have pre-2020 data.
 
 **Fix**: Pass `start='2017-01-01'` to cover all available data.
 

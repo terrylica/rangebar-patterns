@@ -4,7 +4,7 @@ Schema version 1: Gen720 walk-forward barrier optimization.
 Breaking changes (required fields added/removed/renamed/retyped) bump version.
 Adding optional fields = same version (backward compatible).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations

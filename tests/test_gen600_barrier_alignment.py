@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from backtesting import Backtest
 
 from backtest.backtesting_py.champion_strategy import ChampionMeanRevLong
-from backtest.backtesting_py.data_loader import load_range_bars
+from backtest.backtesting_py.data_loader import load_open_deviation_bars
 
 # Gen600 uses @750 threshold with 3 barrier profiles
 THRESHOLD_DBPS = 750
@@ -36,7 +36,7 @@ BARRIER_PROFILES = {
 
 def run_backtesting_py(tp_mult, sl_mult, max_bars):
     """Run backtesting.py with specified barrier params."""
-    df = load_range_bars(symbol="SOLUSDT", threshold=THRESHOLD_DBPS)
+    df = load_open_deviation_bars(symbol="SOLUSDT", threshold=THRESHOLD_DBPS)
     bt = Backtest(
         df,
         ChampionMeanRevLong,

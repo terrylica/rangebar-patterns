@@ -18,7 +18,7 @@ The critical `lagInFrame` bug was fixed (Gen 111). Atomic verification test **PA
 | ----- | ------------- | -------------------------- | -------------------------------------------------------------------------------- |
 | 1     | 2026-02-05 AM | `lagInFrame` lookahead bug | **FIXED** (Gen 111)                                                              |
 | 2     | 2026-02-05 PM | Atomic verification        | **PASSED** ✅                                                                    |
-| 3     | 2026-02-05 PM | Data deduplication         | **FIXED** ([rangebar-py#77](https://github.com/terrylica/rangebar-py/issues/77)) |
+| 3     | 2026-02-05 PM | Data deduplication         | **FIXED** ([rangebar-py#77](https://github.com/terrylica/opendeviationbar-py/issues/77)) |
 
 ### Final Risk Assessment
 
@@ -64,7 +64,7 @@ Audited `rangebar-py/crates/rangebar-core/src/intrabar/features.rs`:
 | Symbol  | Threshold | Total Bars | Ties          | Risk                                                                   |
 | ------- | --------- | ---------- | ------------- | ---------------------------------------------------------------------- |
 | SOLUSDT | 1000      | 90,752     | **0**         | ✅ NONE                                                                |
-| BTCUSDT | 1000      | 31,403     | **0** (fixed) | ✅ CLEANED ([#77](https://github.com/terrylica/rangebar-py/issues/77)) |
+| BTCUSDT | 1000      | 31,403     | **0** (fixed) | ✅ CLEANED ([#77](https://github.com/terrylica/opendeviationbar-py/issues/77)) |
 | ETHUSDT | 1000      | 47,980     | 0             | ✅ NONE                                                                |
 | BNBUSDT | 1000      | 48,195     | 0             | ✅ NONE                                                                |
 
@@ -252,9 +252,9 @@ Pattern fires during **high trade_intensity** = volatile moments:
 
    ```sql
    -- CORRECT: Expanding window with strict PRECEDING
-   SELECT timestamp_ms,
+   SELECT close_time_ms,
           quantile(0.95)(trade_intensity) OVER (
-              ORDER BY timestamp_ms
+              ORDER BY close_time_ms
               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
           ) as ti_p95_expanding
    ```
@@ -453,7 +453,7 @@ lagInFrame(ti_p95, 1) OVER w  -- Still uses Y's full p95
 
 -- CORRECT: Expanding window with strict PRECEDING
 quantile(0.95)(trade_intensity) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
 )  -- Only uses data before current bar
 ```
@@ -482,7 +482,7 @@ Any pattern discovered on historical data is subject to:
 -- TRUE NO-LOOKAHEAD: Expanding window percentiles
 -- Gen 111: Corrected champion pattern
 
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -491,16 +491,16 @@ WITH
 -- Step 1: Compute running percentile using ONLY prior data
 bars_with_running_pct AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         trade_intensity as ti,
         kyle_lambda_proxy as kyle,
         -- TRUE expanding window: strictly prior bars only
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
         ) as ti_p95_prior
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
 ),
 -- Step 2: Lag direction and features
@@ -513,7 +513,7 @@ lagged AS (
         lagInFrame(direction, 2) OVER w as dir_2,
         ti_p95_prior  -- Already strictly prior
     FROM bars_with_running_pct
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT', 1000,

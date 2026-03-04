@@ -1,7 +1,7 @@
 """Gen600 Oracle: 5-gate trade-by-trade comparison of SQL vs backtesting.py.
 
 ADR: docs/adr/2026-02-06-repository-creation.md
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/14
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/14
 
 Usage:
     # Default (udd config):
@@ -21,7 +21,7 @@ Usage:
 
 Gates:
     1. Signal count: |N_SQL - N_PY| / max(N_SQL, N_PY) < 5%
-    2. Timestamp match: >95% of signals have identical timestamp_ms
+    2. Timestamp match: >95% of signals have identical close_time_ms
     3. Entry price match: >95% of matched signals have <0.01% price difference
     4. Exit type match: >90% of matched signals have same exit type (TP/SL/TIME)
     5. Kelly fraction: |Kelly_SQL - Kelly_PY| < 0.02 absolute
@@ -43,7 +43,7 @@ def load_sql_tsv(path):
     with open(path) as f:
         header_line = None
         for line in f:
-            if line.startswith("timestamp_ms"):
+            if line.startswith("close_time_ms"):
                 header_line = line
                 break
         if header_line is None:
@@ -67,12 +67,12 @@ def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
             feature1_quantile, feature2_name, feature2_direction, feature2_quantile,
             tp_mult, sl_mult, max_bars, extra_columns
 
-    Returns list of dicts with: timestamp_ms, entry_price, exit_type, exit_price, pnl_pct
+    Returns list of dicts with: close_time_ms, entry_price, exit_type, exit_price, pnl_pct
     """
     import pandas as pd
     from backtesting import Backtest
 
-    from backtest.backtesting_py.data_loader import load_range_bars
+    from backtest.backtesting_py.data_loader import load_open_deviation_bars
     from backtest.backtesting_py.gen600_strategy import Gen600Strategy
 
     end_date = pd.Timestamp(end_ts_ms, unit="ms").strftime("%Y-%m-%d")
@@ -90,7 +90,7 @@ def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
         align_msg += f" bar_count={bar_count}"
 
     print(f"Loading {symbol}@{threshold} range bars (start=2017-01-01, end={end_date})...{align_msg}")
-    df = load_range_bars(
+    df = load_open_deviation_bars(
         symbol=symbol,
         threshold=threshold,
         start="2017-01-01",
@@ -147,7 +147,7 @@ def run_backtesting_py(symbol, threshold, end_ts_ms, *, config):
             exit_type = "TIME"
 
         py_trades.append({
-            "timestamp_ms": signal_ts,
+            "close_time_ms": signal_ts,
             "entry_price": str(entry_price),
             "exit_type": exit_type,
             "exit_price": str(exit_price),
@@ -300,8 +300,8 @@ def main():
     # ================================================================
     # Gate 2: Timestamp match — bidirectional overlap
     # ================================================================
-    sql_by_ts = {row["timestamp_ms"]: row for row in sql_rows}
-    py_by_ts = {row["timestamp_ms"]: row for row in py_trades}
+    sql_by_ts = {row["close_time_ms"]: row for row in sql_rows}
+    py_by_ts = {row["close_time_ms"]: row for row in py_trades}
 
     sql_ts = set(sql_by_ts.keys())
     py_ts = set(py_by_ts.keys())

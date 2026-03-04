@@ -9,7 +9,7 @@ Discovered during Gen200-Gen600 Triple Barrier + Hybrid Feature Sweep framework 
 
 **Companion skills**: `quant-research:backtesting-py-oracle` (Python-side anti-patterns) | [sweep-methodology](../sweep-methodology/SKILL.md) (sweep design)
 
-**GitHub Issue**: [#8 - Anti-Pattern Registry](https://github.com/terrylica/rangebar-patterns/issues/8)
+**GitHub Issue**: [#8 - Anti-Pattern Registry](https://github.com/terrylica/opendeviationbar-patterns/issues/8)
 
 ## Quick Lookup
 
@@ -44,13 +44,13 @@ For infrastructure-specific issues, see [references/infrastructure.md](./referen
 base_bars AS (
     SELECT *,
         arraySlice(groupArray(high) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_highs,
         arraySlice(groupArray(low) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_lows,
         -- same for fwd_opens, fwd_closes
-    FROM range_bars WHERE ...
+    FROM open_deviation_bars WHERE ...
 )
 -- Then carry fwd_* arrays through CTEs, no self-join needed
 
@@ -107,12 +107,12 @@ CASE WHEN raw_tp_bar <= raw_sl_bar THEN 'TP' ELSE 'SL' END
 ```sql
 -- CORRECT: Explicit frame includes next row
 leadInFrame(open, 1) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
 ) AS entry_price
 
 -- WRONG: Default frame excludes next row, returns NULL
-leadInFrame(open, 1) OVER (ORDER BY timestamp_ms) AS entry_price
+leadInFrame(open, 1) OVER (ORDER BY close_time_ms) AS entry_price
 ```
 
 ### 5. Threshold-Relative Parameters
@@ -131,13 +131,13 @@ entry_price * (1.0 + 0.01) AS tp_price  -- Same 1% regardless of threshold
 ```sql
 -- CORRECT: Rolling 1000-bar window
 quantileExactExclusive(0.95)(trade_intensity) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
 ) AS ti_p95_rolling
 
 -- WRONG: Expanding window (inflates early-data quality, produces false-positive Kelly)
 quantileExactExclusive(0.95)(trade_intensity) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
 ) AS ti_p95_expanding
 ```

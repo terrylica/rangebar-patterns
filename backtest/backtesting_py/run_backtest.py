@@ -18,10 +18,10 @@ def main() -> None:
     from backtesting import Backtest
 
     from backtest.backtesting_py.champion_strategy import ChampionMeanRevLong
-    from backtest.backtesting_py.data_loader import load_range_bars
+    from backtest.backtesting_py.data_loader import load_open_deviation_bars
 
     print("Loading SOL@500dbps range bars from ClickHouse...")
-    df = load_range_bars(symbol="SOLUSDT", threshold=500)
+    df = load_open_deviation_bars(symbol="SOLUSDT", threshold=500)
     print(f"Loaded {len(df)} range bars ({df.index[0]} to {df.index[-1]})")
 
     bt = Backtest(

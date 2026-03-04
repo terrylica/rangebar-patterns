@@ -12,12 +12,12 @@ Environment and toolchain issues that can cause silent failures or misleading re
 
 **Symptom**: `data_loader.py` connects to wrong ClickHouse server. Queries return unexpected results or timeout. Local queries unexpectedly route to remote ClickHouse.
 
-**Root Cause**: SSH tunnel `-N -L 8123:localhost:8123 $RANGEBAR_CH_HOST` from a previous session remains open. New session connects to stale tunnel instead of local ClickHouse.
+**Root Cause**: SSH tunnel `-N -L 8123:localhost:8123 $OPENDEVIATIONBAR_CH_HOST` from a previous session remains open. New session connects to stale tunnel instead of local ClickHouse.
 
 **Resolution**:
 
 1. Kill stale tunnels before querying: `pkill -f "ssh.*8123"`
-2. Use dedicated tunnel port for remote ClickHouse: `ssh -N -L 19000:localhost:9000 $RANGEBAR_CH_HOST`
+2. Use dedicated tunnel port for remote ClickHouse: `ssh -N -L 19000:localhost:9000 $OPENDEVIATIONBAR_CH_HOST`
 3. Check `_is_port_open(localhost:8123)` before assuming local server
 4. Verify with: `clickhouse client --query "SELECT hostName()"`
 
@@ -45,17 +45,17 @@ Environment and toolchain issues that can cause silent failures or misleading re
 
 **Symptom**: `INSERT INTO ... SELECT FROM remote()` fails or inserts wrong columns. Column order differs between remote ClickHouse and local ClickHouse.
 
-**Root Cause**: remote ClickHouse's `range_bars` table was created with different column ordering than `schema.sql`. ClickHouse INSERT depends on column order, not names, when using `SELECT *`.
+**Root Cause**: remote ClickHouse's `open_deviation_bars` table was created with different column ordering than `schema.sql`. ClickHouse INSERT depends on column order, not names, when using `SELECT *`.
 
 **Resolution**: Always use explicit column lists. Before syncing, run `SHOW CREATE TABLE` on remote ClickHouse to verify order.
 
 ```sql
 -- CORRECT: Explicit column list
-INSERT INTO rangebar_cache.range_bars (timestamp_ms, symbol, threshold_decimal_bps, ...)
-SELECT timestamp_ms, symbol, threshold_decimal_bps, ...
-FROM remote('localhost:19000', 'rangebar_cache', 'range_bars', 'default', '')
+INSERT INTO opendeviationbar_cache.open_deviation_bars (close_time_ms, symbol, threshold_decimal_bps, ...)
+SELECT close_time_ms, symbol, threshold_decimal_bps, ...
+FROM remote('localhost:19000', 'opendeviationbar_cache', 'open_deviation_bars', 'default', '')
 
 -- WRONG: Implicit column order
-INSERT INTO rangebar_cache.range_bars
+INSERT INTO opendeviationbar_cache.open_deviation_bars
 SELECT * FROM remote(...)
 ```

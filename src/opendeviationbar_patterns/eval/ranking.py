@@ -6,7 +6,7 @@ percentile ranks per metric, applies per-metric cutoff filters, and reports the
 intersection of configs passing all cutoffs. Designed for evolutionary optimization
 of cutoff parameters via Optuna.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
 from __future__ import annotations
@@ -19,8 +19,8 @@ from pathlib import Path
 import numpy as np
 from scipy.stats import rankdata
 
-from rangebar_patterns import config
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns import config
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 @dataclass(frozen=True)
@@ -566,7 +566,7 @@ def build_report(
     # Env var format
     active = {k: v for k, v in cutoffs.items() if v < 100}
     if active:
-        env_str = " ".join(f"RBP_RANK_CUT_{k.upper()}={v}" for k, v in sorted(active.items()))
+        env_str = " ".join(f"OPENDEVIATIONBAR_RANK_CUT_{k.upper()}={v}" for k, v in sorted(active.items()))
     else:
         env_str = "(all cutoffs at 100% — no filtering)"
     lines.extend([

@@ -10,9 +10,9 @@
 
 ```
 clickhouse-client  # local
-# or: ssh $RANGEBAR_CH_HOST 'clickhouse-client'  # remote
--- Database: rangebar_cache
--- Table: range_bars
+# or: ssh $OPENDEVIATIONBAR_CH_HOST 'clickhouse-client'  # remote
+-- Database: opendeviationbar_cache
+-- Table: open_deviation_bars
 -- Column: threshold_decimal_bps (NOT threshold_dbps)
 ```
 

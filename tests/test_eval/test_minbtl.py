@@ -1,11 +1,11 @@
 """Test MinBTL gate computation.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 import math
 
-from rangebar_patterns.eval.minbtl import compute_minbtl
+from opendeviationbar_patterns.eval.minbtl import compute_minbtl
 
 
 def test_zero_sr_returns_inf():

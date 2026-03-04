@@ -6,7 +6,7 @@ are flagged as data-insufficient.
 
 Formula from Bailey & Lopez de Prado (2014).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from __future__ import annotations
@@ -14,8 +14,8 @@ from __future__ import annotations
 import json
 import math
 
-from rangebar_patterns.config import N_TRIALS
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import N_TRIALS
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 def compute_minbtl(sr: float, n_trials: int, skew: float, kurt: float) -> float:

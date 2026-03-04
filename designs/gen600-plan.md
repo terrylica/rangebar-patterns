@@ -2,7 +2,7 @@
 
 ## Context
 
-All prior sweep generations (Gen300-Gen520) tested only 8 bar-level features. The ClickHouse `range_bars` table has 47 features total — 16 lookback and 22 intra-bar features are completely untested. The champion pattern (2 consecutive DOWN bars) is DEAD as standalone strategy, but 56 dual-validated configs suggest real microstructure structure exists. Gen600 pairs each bar-level feature with each lookback/intra feature in hybrid pairs, tests 11 distinct base patterns (including wick patterns, high-coverage variants, and a SHORT signal), and adds a new computed `opposite_wick_pct` feature.
+All prior sweep generations (Gen300-Gen520) tested only 8 bar-level features. The ClickHouse `open_deviation_bars` table has 47 features total — 16 lookback and 22 intra-bar features are completely untested. The champion pattern (2 consecutive DOWN bars) is DEAD as standalone strategy, but 56 dual-validated configs suggest real microstructure structure exists. Gen600 pairs each bar-level feature with each lookback/intra feature in hybrid pairs, tests 11 distinct base patterns (including wick patterns, high-coverage variants, and a SHORT signal), and adds a new computed `opposite_wick_pct` feature.
 
 **User decisions**:
 - Feature space: Hybrid (bar-level x lookback+intra) — 342 pairs (9 bar-level incl. opposite_wick_pct x 38 lookback/intra)
@@ -10,7 +10,7 @@ All prior sweep generations (Gen300-Gen520) tested only 8 bar-level features. Th
 - Barriers: 3 profiles per config via inline CROSS JOIN (inverted, symmetric, momentum)
 - Assets: BTC, ETH, SOL, BNB, XRP (5 assets — SHIB dropped: dead features; DOGE dropped: @500 truncated 2021, poor lookback coverage)
 - Thresholds: @750, @1000 only (2 thresholds, 10 combos — @500 dropped due to rangebar-py pipeline gaps: SOL/XRP 2021 = 100% zero lookback, BTC 2024-25 = 12-15% zero)
-- Date cutoff: `timestamp_ms <= 1738713600000` (2026-02-05 00:00:00 UTC epoch ms) — ClickHouse can't multiply DateTime * Int
+- Date cutoff: `close_time_ms <= 1738713600000` (2026-02-05 00:00:00 UTC epoch ms) — ClickHouse can't multiply DateTime * Int
 - Warmup: `rn > 1000` rolling quantile warmup (100% lookback coverage at @750/@1000, no gaps)
 - Quantile grid: Phase 1 = p50 median split only (gt/lt per feature = 4 combos per pair)
 - Compute: Go big overnight (~301K SQL files, ~21 hours at 8 parallel pueue slots — may need 2 nights)
@@ -206,9 +206,9 @@ This becomes the 9th bar-level feature available for hybrid pairing (total: 9 ba
 Using 2-DOWN as canonical reference. Other patterns modify `signal_detection` → `champion_signals` only.
 
 ```
-base_bars                          SELECT from range_bars + bar-level + lookback/intra feature cols
+base_bars                          SELECT from open_deviation_bars + bar-level + lookback/intra feature cols
                                    + opposite_wick_pct (computed: CASE WHEN dir=0 THEN (high-open)/(high-low) ELSE (open-low)/(high-low) END)
-                                   WHERE timestamp_ms <= 1738713600000  (Feb 5 2026 cutoff)
+                                   WHERE close_time_ms <= 1738713600000  (Feb 5 2026 cutoff)
   → running_stats                  ti_p95_rolling (1000-bar window, ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING)
     → signal_detection             lagInFrame for directions, ti, kyle, features, entry_price
       → champion_signals           Base pattern WHERE clause (varies per template)
@@ -570,7 +570,7 @@ Audit against sweep-methodology skill checklist (all 22 templates):
 | Min signal count n >= 100 | Wrapper marks `skipped: true` for configs with < 100 signals. Pattern 9 (wl2d, ~1%) and Pattern 8 (SHORT, 0.19%) are sparse but not pre-filtered — they get feature-filtered first and the wrapper checks the resulting count. |
 | Cross-asset from the start | Compliant — 5 assets (BTC/ETH/SOL/BNB/XRP) in initial sweep. SHIB dropped: dead features. DOGE dropped: truncated data. Wick structural analysis confirmed universal across all 15 symbols (range bar construction artifact, not asset-specific). |
 | Cross-threshold from the start | Compliant — 2 thresholds (@750/@1000) tested for every config. @500 dropped (pipeline gaps). |
-| 5-metric evaluation stack | report.sh computes Kelly; full eval pipeline (`src/rangebar_patterns/eval/`) applicable post-collect |
+| 5-metric evaluation stack | report.sh computes Kelly; full eval pipeline (`src/opendeviationbar_patterns/eval/`) applicable post-collect |
 | Telemetry: NDJSON + brotli | Compliant — NDJSON with provenance, `signal_coverage` field, `barrier` nested object; brotli for >1MB after collect |
 | Infrastructure: Parallel SSH + dedup | Compliant — submit_all.sh orchestrates 220 units (22 patterns x 10 combos). Config-ID dedup handles SSH drops. 8 parallel pueue slots. |
 
@@ -645,7 +645,7 @@ Both feature columns are accessed via `lagInFrame(__FEATURE_COL__, 1)` = value f
 
 ### Date Cutoff and Warmup Strategy
 
-**Date cutoff**: `WHERE timestamp_ms <= 1738713600000` in `base_bars` CTE (2026-02-05 00:00:00 UTC as epoch milliseconds). ClickHouse cannot multiply `toDateTime() * 1000` — must use pre-computed constant. Excludes ~2 days of recent data (negligible: <0.2% of bars).
+**Date cutoff**: `WHERE close_time_ms <= 1738713600000` in `base_bars` CTE (2026-02-05 00:00:00 UTC as epoch milliseconds). ClickHouse cannot multiply `toDateTime() * 1000` — must use pre-computed constant. Excludes ~2 days of recent data (negligible: <0.2% of bars).
 
 **Warmup guards** (two layers):
 1. **`rn > 1000`** — Existing warmup for rolling 1000-bar quantile computation. First 1000 bars per asset/threshold excluded from signal detection. Ensures rolling p95 threshold is stable.
@@ -740,8 +740,8 @@ Gen600 must produce results that are **reproducible by backtesting.py** — the 
 | `verify_atomic_nolookahead.sql` | `sql/` | Manual p95 = window p95 (current bar excluded) |
 | `test_barrier_alignment.py` | `tests/` | SQL vs backtesting.py exit price match (>95% on shared signals) |
 | `test_gen300_barrier_alignment.py` | `tests/` | Feature-filtered SQL vs BT alignment |
-| `extraction.py` `_CTE_TEMPLATE` | `src/rangebar_patterns/eval/` | Shared 10-CTE chain (base_bars through trade_outcomes) |
-| `introspect.py` | `src/rangebar_patterns/` | Bar-by-bar trade reconstruction |
+| `extraction.py` `_CTE_TEMPLATE` | `src/opendeviationbar_patterns/eval/` | Shared 10-CTE chain (base_bars through trade_outcomes) |
+| `introspect.py` | `src/opendeviationbar_patterns/` | Bar-by-bar trade reconstruction |
 
 ### Gen600-Specific Alignment Steps
 

@@ -32,7 +32,7 @@ No SHORT signals (they lose on SOL).
 
 **Entry Timing Alignment (AP-15)**: backtesting.py is the authority for signal timing — it detects the pattern at the completion bar itself (e.g., `Close[-1] < Open[-1]` is the 2nd DOWN bar). SQL queries must match this by ensuring the current row IS the last pattern bar, not the bar after. See [AP-15](/.claude/skills/clickhouse-antipatterns/references/anti-patterns.md#ap-15-signal-timing-off-by-one-with-laginframe).
 
-**Verdict**: DEAD as standalone strategy. Use as ML/NN feature input only. No configs survive multiple testing (Bonferroni, e-BH, Romano-Wolf, DSR). See [Issue #12](https://github.com/terrylica/rangebar-patterns/issues/12).
+**Verdict**: DEAD as standalone strategy. Use as ML/NN feature input only. No configs survive multiple testing (Bonferroni, e-BH, Romano-Wolf, DSR). See [Issue #12](https://github.com/terrylica/opendeviationbar-patterns/issues/12).
 
 ## Triple Barrier Framework (Gen200-202)
 
@@ -63,7 +63,7 @@ Both frameworks load range bars from ClickHouse (local or remote via SSH tunnel)
 
 ```
 clickhouse-client
-SELECT * FROM rangebar_cache.range_bars
+SELECT * FROM opendeviationbar_cache.open_deviation_bars
 WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 250
 ```
 
@@ -71,7 +71,7 @@ WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 250
 
 | File                                                 | Framework      | Repo              |
 | ---------------------------------------------------- | -------------- | ----------------- |
-| rangebar-py/examples/backtesting_integration.py      | backtesting.py | rangebar-py       |
+| opendeviationbar-py/examples/backtesting_integration.py      | backtesting.py | opendeviationbar-py       |
 | KMeansTransformer/backtest/nautilus_strategy_fast.py | NautilusTrader | KMeansTransformer |
 
 ## backtesting.py Multi-Position Mode (SQL Oracle Match)

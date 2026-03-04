@@ -2,9 +2,9 @@
 
 Searches the 12-dimensional integer cutoff space to find optimal
 per-metric thresholds. 5 objective functions selectable via
-RBP_RANK_OBJECTIVE env var.
+OPENDEVIATIONBAR_RANK_OBJECTIVE env var.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/17
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/17
 """
 
 from __future__ import annotations
@@ -17,9 +17,9 @@ from pathlib import Path
 import numpy as np
 import optuna
 
-from rangebar_patterns import config
-from rangebar_patterns.eval._io import provenance_dict, results_dir
-from rangebar_patterns.eval.ranking import (
+from opendeviationbar_patterns import config
+from opendeviationbar_patterns.eval._io import provenance_dict, results_dir
+from opendeviationbar_patterns.eval.ranking import (
     DEFAULT_METRICS,
     filter_discriminating_metrics,
     get_all_metrics,
@@ -303,7 +303,7 @@ def _cutoffs_to_env(cutoffs: dict[str, int]) -> str:
     """Convert cutoffs dict to env var string for copy-paste."""
     parts = []
     for name, val in sorted(cutoffs.items()):
-        env_name = f"RBP_RANK_CUT_{name.upper()}"
+        env_name = f"OPENDEVIATIONBAR_RANK_CUT_{name.upper()}"
         parts.append(f"{env_name}={val}")
     return " ".join(parts)
 

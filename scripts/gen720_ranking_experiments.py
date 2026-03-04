@@ -5,7 +5,7 @@
 Each round produces self-contained JSON artifacts optimized for LLM post-forensic
 analysis. See results/eval/gen720/ranking/_manifest.json for the experiment index.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/37
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/37
 
 Usage:
     python scripts/gen720_ranking_experiments.py --direction long
@@ -28,7 +28,7 @@ from scipy import stats
 
 # Reuse existing TOPSIS implementation
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
-from rangebar_patterns.eval.ranking import topsis_rank  # noqa: E402
+from opendeviationbar_patterns.eval.ranking import topsis_rank  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Constants

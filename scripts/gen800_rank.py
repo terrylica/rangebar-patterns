@@ -1,6 +1,6 @@
 """Gen800: Stagnation-first ranking of sweep results.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 Ranking philosophy: lowest underwater ratio ranks #1.
   Primary sort: underwater_ratio ascending (least total time underwater)

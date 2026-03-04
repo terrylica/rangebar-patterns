@@ -13,7 +13,7 @@ set -euo pipefail
 #   submit.sh 2down SOLUSDT    # Submit 2down SOLUSDT at all thresholds (3)
 #   submit.sh 2down SOLUSDT 500 # Submit single combo
 #
-# GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+# GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 echo "=== Gen720: Submit WFO Barrier Queries ==="
 
@@ -25,7 +25,7 @@ LOCAL_SQL_DIR="/tmp/gen720_sql"
 REMOTE_SQL_DIR="/tmp/gen720_sql"
 REMOTE_TSV_DIR="/tmp/gen720_tsv"
 
-CH_HOST="${RANGEBAR_CH_HOST:?Set RANGEBAR_CH_HOST}"
+CH_HOST="${OPENDEVIATIONBAR_CH_HOST:?Set OPENDEVIATIONBAR_CH_HOST}"
 
 if [ ! -d "$LOCAL_SQL_DIR" ]; then
     echo "ERROR: SQL directory not found: ${LOCAL_SQL_DIR}"

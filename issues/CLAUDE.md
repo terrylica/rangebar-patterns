@@ -11,7 +11,7 @@
 GitHub Issues are the insight repository during active research. These snapshots preserve
 findings even if issues are edited, closed, or repos restructured.
 
-## rangebar-patterns Issues
+## opendeviationbar-patterns Issues
 
 | #   | Title                                                         | State  | Key Content                                             |
 | --- | ------------------------------------------------------------- | ------ | ------------------------------------------------------- |

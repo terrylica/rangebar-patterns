@@ -9,7 +9,7 @@ run = "bash scripts/gen400/generate.sh"
 
 ["gen400:upload"]
 description = "rsync generated SQL to remote host"
-run = "rsync -avz --delete /tmp/gen400_sql/ ${RANGEBAR_CH_HOST}:/tmp/gen400_sql/"
+run = "rsync -avz --delete /tmp/gen400_sql/ ${OPENDEVIATIONBAR_CH_HOST}:/tmp/gen400_sql/"
 
 ["gen400:submit-2f"]
 description = "Submit 2-feature jobs to remote host pueue (p1 group, 4 parallel)"

@@ -4,7 +4,7 @@ Computes Rachev(alpha) = CVaR(upper alpha) / CVaR(lower alpha) for each config
 using full per-trade return arrays. Measures tail asymmetry: healthy strategies
 have balanced tails (~1.0), penny-pickers have heavy left tails (~0.38).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ import json
 
 import numpy as np
 
-from rangebar_patterns.config import MIN_TRADES_RACHEV, RACHEV_ALPHA
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import MIN_TRADES_RACHEV, RACHEV_ALPHA
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 def compute_rachev(

@@ -1,4 +1,4 @@
-# rangebar-patterns
+# opendeviationbar-patterns
 
 Range bar pattern discovery via ClickHouse SQL brute-force analysis of microstructure features.
 
@@ -55,7 +55,7 @@ tests/        Validation tests
 
      ```toml
      [env]
-     RANGEBAR_CH_HOST = "your-clickhouse-host"
+     OPENDEVIATIONBAR_CH_HOST = "your-clickhouse-host"
      ```
 
 3. For GitHub releases, add tokens to `.mise.local.toml`:

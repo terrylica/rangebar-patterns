@@ -1,7 +1,7 @@
 # Feature Column Provenance Audit — lookback_* and intra_* Lookahead Verification
 
 **Date**: 2026-02-11
-**Scope**: All 16 `lookback_*` and 22 `intra_*` columns in `rangebar_cache.range_bars`
+**Scope**: All 16 `lookback_*` and 22 `intra_*` columns in `opendeviationbar_cache.open_deviation_bars`
 **Assets tested**: BTCUSDT @750, ETHUSDT @750, SOLUSDT @500
 
 ---
@@ -109,7 +109,7 @@ NaN count across symbols: ~2,000–3,000 NaN rows per symbol-threshold combo (wa
 ### Consecutive Bar Behavior (bars 1050–1080, BTCUSDT @750)
 
 ```
-timestamp_ms     ofi      lookback_ofi  delta_lb_ofi
+close_time_ms     ofi      lookback_ofi  delta_lb_ofi
 1516139334571    +0.1247  −0.0409       +0.000495
 1516139352634    +0.1540  −0.0405       +0.000405
 1516139379377    −0.2205  −0.0404       +0.000062

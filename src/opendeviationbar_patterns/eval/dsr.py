@@ -3,7 +3,7 @@
 Implements Bailey & Lopez de Prado (2014) formulas for multiple-testing
 correction of Sharpe Ratios. Uses moment statistics from extraction module.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ import math
 
 from scipy.stats import norm
 
-from rangebar_patterns.config import DSR_THRESHOLD, N_TRIALS
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import DSR_THRESHOLD, N_TRIALS
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 EULER_GAMMA = 0.5772156649  # Euler-Mascheroni constant
 

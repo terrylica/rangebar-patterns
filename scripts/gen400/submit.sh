@@ -16,15 +16,15 @@ LOG_FILE="/tmp/gen400_${N_FEATURES}feature.jsonl"
 TEMPLATE_FILE="sql/gen400_${N_FEATURES}feature_template.sql"
 
 # Read template SHA and git commit
-TEMPLATE_SHA=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/template_shas.json" | python3 -c "import sys,json; print(json.load(sys.stdin)['${SUBFOLDER}'])")
-GIT_COMMIT=$(ssh "${RANGEBAR_CH_HOST}" "cat ${REMOTE_DIR}/git_commit.txt")
+TEMPLATE_SHA=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "cat ${REMOTE_DIR}/template_shas.json" | python3 -c "import sys,json; print(json.load(sys.stdin)['${SUBFOLDER}'])")
+GIT_COMMIT=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "cat ${REMOTE_DIR}/git_commit.txt")
 
 # Count total files
-TOTAL=$(ssh "${RANGEBAR_CH_HOST}" "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
+TOTAL=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql 2>/dev/null | wc -l" | tr -d '[:space:]')
 echo "Total configs: ${TOTAL}"
 
 # Check for crash recovery
-DONE=$(ssh "${RANGEBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
+DONE=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "wc -l < ${LOG_FILE} 2>/dev/null || echo 0" | tr -d '[:space:]')
 echo "Already completed: ${DONE}"
 
 if [ "$DONE" -ge "$TOTAL" ]; then
@@ -33,7 +33,7 @@ if [ "$DONE" -ge "$TOTAL" ]; then
 fi
 
 # Create the wrapper script on remote host
-ssh "${RANGEBAR_CH_HOST}" 'cat > /tmp/gen400_run_job.sh' << 'WRAPPER'
+ssh "${OPENDEVIATIONBAR_CH_HOST}" 'cat > /tmp/gen400_run_job.sh' << 'WRAPPER'
 #!/bin/bash
 set -euo pipefail
 CONFIG_ID="$1"
@@ -111,15 +111,15 @@ LINE="{\"timestamp\":\"${QUERY_END}\",\"generation\":400,\"phase\":${PHASE},\"n_
 flock "${LOG_FILE}.lock" bash -c "echo '${LINE}' >> ${LOG_FILE}"
 WRAPPER
 
-ssh "${RANGEBAR_CH_HOST}" "chmod +x /tmp/gen400_run_job.sh"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "chmod +x /tmp/gen400_run_job.sh"
 
 # Ensure pueue group exists
-ssh "${RANGEBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
+ssh "${OPENDEVIATIONBAR_CH_HOST}" "pueue group add p1 2>/dev/null || true; pueue parallel 4 -g p1"
 
 # Get list of already-completed config IDs for crash recovery
 DONE_IDS=""
 if [ "$DONE" -gt 0 ]; then
-    DONE_IDS=$(ssh "${RANGEBAR_CH_HOST}" "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
+    DONE_IDS=$(ssh "${OPENDEVIATIONBAR_CH_HOST}" "jq -r '.config_id' ${LOG_FILE} 2>/dev/null" | sort)
 fi
 
 # Submit jobs
@@ -132,9 +132,9 @@ while read -r SQL_PATH; do
         continue
     fi
 
-    ssh -n "${RANGEBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen400_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${PHASE}' '${N_FEATURES}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
+    ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "pueue add -g p1 -- /tmp/gen400_run_job.sh '${FILENAME}' '${SQL_PATH}' '${LOG_FILE}' '${PHASE}' '${N_FEATURES}' '${TEMPLATE_FILE}' '${TEMPLATE_SHA}' '${GIT_COMMIT}'"
     SUBMITTED=$((SUBMITTED + 1))
-done < <(ssh -n "${RANGEBAR_CH_HOST}" "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql")
+done < <(ssh -n "${OPENDEVIATIONBAR_CH_HOST}" "ls ${REMOTE_DIR}/${SUBFOLDER}/*.sql")
 
 echo "Submitted ${SUBMITTED} new jobs to pueue group p1"
-echo "Monitor: ssh ${RANGEBAR_CH_HOST} 'pueue status -g p1'"
+echo "Monitor: ssh ${OPENDEVIATIONBAR_CH_HOST} 'pueue status -g p1'"

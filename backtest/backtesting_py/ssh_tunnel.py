@@ -2,7 +2,7 @@
 
 ADR: docs/adr/2026-02-06-repository-creation.md
 
-Copied from rangebar-py/python/rangebar/clickhouse/tunnel.py (canonical implementation).
+Copied from opendeviationbar-py/python/rangebar/clickhouse/tunnel.py (canonical implementation).
 Remote ClickHouse only listens on localhost:8123 — SSH tunnel is required.
 """
 

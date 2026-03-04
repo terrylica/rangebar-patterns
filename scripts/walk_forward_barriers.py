@@ -10,7 +10,7 @@ Usage:
     uv run -p 3.13 python scripts/walk_forward_barriers.py --direction long
     uv run -p 3.13 python scripts/walk_forward_barriers.py --direction short
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations
@@ -46,11 +46,11 @@ def _json_safe(obj: object) -> str:
     raw = json.dumps(obj, default=str)
     return _INF_NAN_RE.sub("null", raw)
 
-from rangebar_patterns import config  # noqa: E402
-from rangebar_patterns.eval._io import provenance_dict, results_dir  # noqa: E402
-from rangebar_patterns.eval._schemas import WFAggregationV1  # noqa: E402
-from rangebar_patterns.eval.ranking import knee_detect, topsis_rank  # noqa: E402
-from rangebar_patterns.eval.walk_forward import (  # noqa: E402
+from opendeviationbar_patterns import config  # noqa: E402
+from opendeviationbar_patterns.eval._io import provenance_dict, results_dir  # noqa: E402
+from opendeviationbar_patterns.eval._schemas import WFAggregationV1  # noqa: E402
+from opendeviationbar_patterns.eval.ranking import knee_detect, topsis_rank  # noqa: E402
+from opendeviationbar_patterns.eval.walk_forward import (  # noqa: E402
     build_cpcv_folds,
     build_fold_metadata,
     build_stability_matrix,
@@ -167,7 +167,7 @@ def run_combo_wfo(
         df.select("signal_ts_ms", "signal_idx")
         .unique(subset=["signal_ts_ms"])
         .sort("signal_idx")
-        .with_columns(pl.col("signal_ts_ms").alias("timestamp_ms"))
+        .with_columns(pl.col("signal_ts_ms").alias("close_time_ms"))
     )
 
     t_load = time.monotonic() - t0
@@ -299,7 +299,7 @@ def run_combo_wfo(
     if final_bids:
         from scipy.stats import kurtosis, skew
 
-        from rangebar_patterns.eval.dsr import compute_psr, expected_max_sr, sr_standard_error
+        from opendeviationbar_patterns.eval.dsr import compute_psr, expected_max_sr, sr_standard_error
 
         for bid in final_bids:
             bid_fold_df = fold_results.filter(pl.col("barrier_id") == bid)

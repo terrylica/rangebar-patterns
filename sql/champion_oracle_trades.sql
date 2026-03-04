@@ -2,49 +2,50 @@
 -- Inverted barrier (TP=0.25x, SL=0.50x, max_bars=100) — Gen510 optimal
 -- Pattern: 2down (2 consecutive DOWN bars) + TI>p95 + kyle>0
 -- Features: turnover_imbalance < p25_rolling, price_impact < p25_rolling (signal-relative)
--- GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/26
+-- GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/26
 -- Symbol/threshold substituted by caller via sed
 WITH
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         turnover_imbalance,
         price_impact,
         arraySlice(groupArray(high) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_highs,
         arraySlice(groupArray(low) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_lows,
         arraySlice(groupArray(open) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_opens,
         arraySlice(groupArray(close) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_closes,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = '__SYMBOL__'
       AND threshold_decimal_bps = __THRESHOLD__
-      AND timestamp_ms <= 1738713600000
-    ORDER BY timestamp_ms
+      AND close_time_ms <= 1738713600000
+      AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 running_stats AS (
     SELECT
         *,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS ti_p95_rolling
     FROM base_bars
 ),
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         direction,
         rn,
@@ -56,12 +57,12 @@ signal_detection AS (
         turnover_imbalance AS feature1_val,
         price_impact AS feature2_val,
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price,
         fwd_highs, fwd_lows, fwd_opens, fwd_closes
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 champion_signals AS (
     SELECT *
@@ -81,7 +82,7 @@ feature1_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive(0.25)(feature1_val) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature1_q
     FROM champion_signals
@@ -90,7 +91,7 @@ feature2_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive(0.25)(feature2_val) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature2_q
     FROM feature1_with_quantile
@@ -105,7 +106,7 @@ signals AS (
 ),
 barrier_params AS (
     SELECT
-        s.timestamp_ms,
+        s.close_time_ms,
         s.entry_price,
         s.entry_price * (1.0 + 2.5 * (__THRESHOLD__ / 100000.0)) AS tp_price,
         s.entry_price * (1.0 - 5.0 * (__THRESHOLD__ / 100000.0)) AS sl_price,
@@ -115,7 +116,7 @@ barrier_params AS (
 ),
 barrier_scan AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         max_bars,
         tp_price,
@@ -130,7 +131,7 @@ barrier_scan AS (
 ),
 trade_outcomes AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_price,
         sl_price,
@@ -162,12 +163,12 @@ trade_outcomes AS (
     FROM barrier_scan
 )
 SELECT
-    timestamp_ms,
+    close_time_ms,
     entry_price,
     exit_type,
     exit_price,
     exit_bar
 FROM trade_outcomes
 WHERE exit_type != 'INCOMPLETE'
-ORDER BY timestamp_ms
+ORDER BY close_time_ms
 FORMAT TabSeparatedWithNames;

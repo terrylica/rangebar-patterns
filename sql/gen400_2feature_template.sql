@@ -27,24 +27,25 @@ WITH
 -- CTE 1: Base bars — OHLCV + both feature columns + row numbering
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
         __FEATURE_COL_1__,
         __FEATURE_COL_2__,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 500
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 -- CTE 2: Running stats — rolling 1000-bar p95 for trade_intensity
 running_stats AS (
     SELECT
         *,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS ti_p95_rolling
     FROM base_bars
@@ -52,7 +53,7 @@ running_stats AS (
 -- CTE 3: Signal detection — lag both features + entry price
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         direction,
         rn,
@@ -64,11 +65,11 @@ signal_detection AS (
         lagInFrame(__FEATURE_COL_1__, 1) OVER w AS feature1_lag1,
         lagInFrame(__FEATURE_COL_2__, 1) OVER w AS feature2_lag1,
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 -- CTE 4: Champion signals (before feature filters)
 champion_signals AS (
@@ -90,7 +91,7 @@ feature1_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive(__QUANTILE_PCT_1__)(feature1_lag1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature1_q
     FROM champion_signals
@@ -100,7 +101,7 @@ feature2_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive(__QUANTILE_PCT_2__)(feature2_lag1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature2_q
     FROM feature1_with_quantile
@@ -117,7 +118,7 @@ signals AS (
 -- CTE 6: Forward array collection via self-join
 forward_arrays AS (
     SELECT
-        s.timestamp_ms,
+        s.close_time_ms,
         s.entry_price,
         s.rn AS signal_rn,
         groupArray(b.high) AS fwd_highs,
@@ -127,7 +128,7 @@ forward_arrays AS (
     FROM signals s
     INNER JOIN base_bars b
         ON b.rn BETWEEN s.rn + 1 AND s.rn + __MAX_BARS_PLUS1__
-    GROUP BY s.timestamp_ms, s.entry_price, s.rn
+    GROUP BY s.close_time_ms, s.entry_price, s.rn
 ),
 -- CTE 7: Fixed barrier parameters
 param_with_prices AS (
@@ -143,7 +144,7 @@ param_with_prices AS (
 -- CTE 8: Barrier scan
 barrier_scan AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_mult,
         sl_mult,
@@ -161,7 +162,7 @@ barrier_scan AS (
 -- CTE 9: Trade outcomes
 trade_outcomes AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_mult,
         sl_mult,

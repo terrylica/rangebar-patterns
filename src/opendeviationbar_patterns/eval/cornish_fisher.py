@@ -3,7 +3,7 @@
 Computes tail-risk-adjusted VaR and ES using the Cornish-Fisher expansion,
 which corrects Gaussian quantiles for skewness and kurtosis.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import json
 
 from scipy.stats import norm
 
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 def cornish_fisher_quantile(z_alpha: float, skew: float, kurt: float) -> float:

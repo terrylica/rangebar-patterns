@@ -26,16 +26,16 @@ Each entry documents: symptom, root cause, resolution, regression risk, and file
 -- HISTORICAL: Self-join approach (Gen200-Gen500, superseded by AP-14 window approach)
 signals AS (SELECT * FROM signal_detection WHERE <champion_conditions>),
 forward_arrays AS (
-    SELECT s.timestamp_ms, s.entry_price, s.rn AS signal_rn,
+    SELECT s.close_time_ms, s.entry_price, s.rn AS signal_rn,
         groupArray(b.high) AS fwd_highs, ...
     FROM signals s
     INNER JOIN base_bars b ON b.rn BETWEEN s.rn + 1 AND s.rn + 51
-    GROUP BY s.timestamp_ms, s.entry_price, s.rn
+    GROUP BY s.close_time_ms, s.entry_price, s.rn
 )
 
 -- WRONG (Gen200 original bug): Window over ALL bars with incorrect frame
 forward_arrays AS (
-    SELECT *, groupArray(high) OVER (ORDER BY timestamp_ms
+    SELECT *, groupArray(high) OVER (ORDER BY close_time_ms
         ROWS BETWEEN 1 FOLLOWING AND 51 FOLLOWING) AS fwd_highs
     FROM base_bars  -- 1.4M rows
 )
@@ -176,16 +176,16 @@ arrayMap(
 ```sql
 -- CORRECT: Explicit UNBOUNDED FOLLOWING
 leadInFrame(open, 1) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
 ) AS entry_price
 
 -- WRONG: Default frame (returns NULL)
-leadInFrame(open, 1) OVER (ORDER BY timestamp_ms) AS entry_price
+leadInFrame(open, 1) OVER (ORDER BY close_time_ms) AS entry_price
 
 -- WRONG: Named window (inherits default frame)
 leadInFrame(open, 1) OVER w AS entry_price
-WINDOW w AS (ORDER BY timestamp_ms)
+WINDOW w AS (ORDER BY close_time_ms)
 ```
 
 **Files**: gen200 lines 134-137, gen201 lines 87-90, gen202 lines 84-87.
@@ -228,7 +228,7 @@ arrayFirstIndex(x -> x >= tp_price, fwd_highs) AS raw_tp_bar
 **Root Cause**: Gen111 was calibrated at 1000dbps. Applying absolute percentages to 250/500dbps bars changes the economic meaning.
 
 **Resolution**: Express parameters as bar_range-relative multipliers (in bar-widths).
-`bar_range = threshold_dbps / 100,000` (aligned with rangebar-py SSoT).
+`bar_range = threshold_dbps / 100,000` (aligned with opendeviationbar-py SSoT).
 
 ```sql
 -- CORRECT: bar_range-relative (multipliers in bar-widths)
@@ -262,19 +262,19 @@ entry_price * 1.01 AS tp_price  -- 1% regardless of threshold
 ```sql
 -- CORRECT: Rolling 1000-bar window
 quantileExactExclusive(0.95)(trade_intensity) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
 ) AS ti_p95_rolling
 
 -- CORRECT: Rolling 1000-signal window (within signal set)
 quantileExactExclusive(0.50)(feature_lag1) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
 ) AS feature_p50_signal
 
 -- WRONG: Expanding window (inflates early-data quality)
 quantileExactExclusive(0.95)(trade_intensity) OVER (
-    ORDER BY timestamp_ms
+    ORDER BY close_time_ms
     ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
 ) AS ti_p95_expanding
 ```
@@ -408,18 +408,18 @@ WHEN window_bars >= max_bars
 base_bars AS (
     SELECT *,
         arraySlice(groupArray(high) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_highs,
         arraySlice(groupArray(low) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_lows,
         arraySlice(groupArray(open) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_opens,
         arraySlice(groupArray(close) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 101 FOLLOWING
         ), 2, 101) AS fwd_closes
-    FROM range_bars WHERE ...
+    FROM open_deviation_bars WHERE ...
 )
 -- Forward arrays flow through: running_stats → signal_detection → champion_signals
 -- → feature quantiles → signals → barrier_params → barrier_scan → trade_outcomes
@@ -430,7 +430,7 @@ forward_arrays AS (
     SELECT s.*, groupArray(b.high) AS fwd_highs, ...
     FROM signals s
     INNER JOIN base_bars b ON b.rn BETWEEN s.rn + 1 AND s.rn + 101
-    GROUP BY s.timestamp_ms, s.entry_price, s.rn, ...
+    GROUP BY s.close_time_ms, s.entry_price, s.rn, ...
 )
 ```
 

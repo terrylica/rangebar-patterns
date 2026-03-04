@@ -4,7 +4,7 @@
 --   - True expanding window (computationally expensive)
 --   - Full dataset (severe lookahead bias)
 
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -13,22 +13,24 @@ WITH
 -- Compute percentiles PER YEAR (no lookahead within year, mild lookahead across year)
 yearly_percentiles AS (
     SELECT
-        toYear(fromUnixTimestamp64Milli(timestamp_ms)) as year,
+        toYear(fromUnixTimestamp64Milli(close_time_ms)) as year,
         quantile(0.9)(trade_intensity) as ti_p90,
         quantile(0.95)(trade_intensity) as ti_p95
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
+    AND ouroboros_mode = 'month'
     GROUP BY year
 ),
 bars AS (
     SELECT
-        timestamp_ms,
-        toYear(fromUnixTimestamp64Milli(timestamp_ms)) as year,
+        close_time_ms,
+        toYear(fromUnixTimestamp64Milli(close_time_ms)) as year,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         trade_intensity as ti, kyle_lambda_proxy as kyle
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 bars_with_percentiles AS (
     SELECT
@@ -52,7 +54,7 @@ lagged AS (
         lagInFrame(ti_p90, 1) OVER w as ti_p90_prior,
         lagInFrame(ti_p95, 1) OVER w as ti_p95_prior
     FROM bars_with_percentiles
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT' as symbol,

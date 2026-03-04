@@ -32,7 +32,7 @@ project_root = str(Path(__file__).resolve().parent.parent)
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from rangebar_patterns.eval.ranking import topsis_rank  # noqa: E402
+from opendeviationbar_patterns.eval.ranking import topsis_rank  # noqa: E402
 
 # ---- Constants ----
 

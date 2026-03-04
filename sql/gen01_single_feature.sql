@@ -17,18 +17,20 @@ WITH percentiles AS (
         quantile(0.1)(turnover_imbalance) as ti_imb_p10, quantile(0.9)(turnover_imbalance) as ti_imb_p90,
         -- Aggression ratio percentiles
         quantile(0.1)(aggression_ratio) as agg_p10, quantile(0.9)(aggression_ratio) as agg_p90
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
+    AND ouroboros_mode = 'month'
 ),
 bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         ofi, trade_intensity, kyle_lambda_proxy as kyle, price_impact as pi,
         turnover_imbalance as ti_imb, aggression_ratio as agg
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 lagged AS (
     SELECT
@@ -40,9 +42,9 @@ lagged AS (
         lagInFrame(ti_imb, 1) OVER w as ti_imb_1,
         lagInFrame(agg, 1) OVER w as agg_1
     FROM bars
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,

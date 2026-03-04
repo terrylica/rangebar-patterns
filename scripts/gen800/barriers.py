@@ -3,7 +3,7 @@
 Selects diverse (phase1, sl_tight) combinations to cover the barrier
 space without the full 434-config grid. Used by gen800_sweep.py.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations

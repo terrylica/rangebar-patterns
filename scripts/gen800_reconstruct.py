@@ -1,6 +1,6 @@
 """Gen800: Reconstruct top config via backtesting.py with hedging.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 
 Runs the #1 ranked config through backtesting.py with hedging=True to produce:
 1. JSONL trade log (every trade with entry/exit times, prices, return, exit type)
@@ -39,13 +39,13 @@ bt_path = str(Path(__file__).resolve().parent.parent / "backtest" / "backtesting
 if bt_path not in sys.path:
     sys.path.insert(0, bt_path)
 
-from backtest.backtesting_py.data_loader import load_range_bars  # noqa: E402
+from backtest.backtesting_py.data_loader import load_open_deviation_bars  # noqa: E402
 from backtest.backtesting_py.gen600_strategy import (  # noqa: E402
     PURE_PRICEACTION_PATTERNS,
     WICKLESS_DETECTORS,
     _compute_opposite_wick_pct,
 )
-from rangebar_patterns.laguerre import LaguerreRegimeConfig, compute_laguerre_regimes  # noqa: E402
+from opendeviationbar_patterns.laguerre import LaguerreRegimeConfig, compute_laguerre_regimes  # noqa: E402
 
 RESULTS_DIR = Path("results/eval/gen800")
 SYMBOL = "SOLUSDT"
@@ -240,7 +240,7 @@ def main():
 
     # 1. Load data
     print(f"\nLoading {symbol} @{threshold}dbps...")
-    df = load_range_bars(symbol=symbol, threshold=threshold)
+    df = load_open_deviation_bars(symbol=symbol, threshold=threshold)
     print(f"  {len(df)} bars ({df.index[0]} to {df.index[-1]})")
 
     # 2. Compute Laguerre regimes (needs DatetimeIndex)

@@ -2,7 +2,7 @@
 
 ADR: docs/adr/2026-02-06-repository-creation.md
 
-Run with: uv run -p 3.13 python -m rangebar_patterns.validate --check-syntax
+Run with: uv run -p 3.13 python -m opendeviationbar_patterns.validate --check-syntax
 """
 
 from __future__ import annotations
@@ -53,5 +53,5 @@ if __name__ == "__main__":
         ok = check_sql_syntax()
         sys.exit(0 if ok else 1)
     else:
-        print("Usage: python -m rangebar_patterns.validate --check-syntax")
+        print("Usage: python -m opendeviationbar_patterns.validate --check-syntax")
         sys.exit(1)

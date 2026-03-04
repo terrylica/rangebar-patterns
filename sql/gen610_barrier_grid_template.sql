@@ -27,13 +27,13 @@
 --
 -- QUANTILE: Rolling 1000-signal windows (AP-10 compliant)
 -- TIMING: AP-15 compliant — current row IS the last pattern bar
--- DATE CUTOFF: timestamp_ms <= 1738713600000 (2026-02-05 00:00:00 UTC)
+-- DATE CUTOFF: close_time_ms <= 1738713600000 (2026-02-05 00:00:00 UTC)
 -- ============================================================================
 
 WITH
 base_bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         trade_intensity,
         kyle_lambda_proxy,
@@ -46,37 +46,38 @@ base_bars AS (
         -- Forward arrays (AP-14: window-based, NOT self-join)
         -- Window size: max_bars + 1 for arraySlice offset
         arraySlice(groupArray(high) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_highs,
         arraySlice(groupArray(low) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_lows,
         arraySlice(groupArray(open) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_opens,
         arraySlice(groupArray(close) OVER (
-            ORDER BY timestamp_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
+            ORDER BY close_time_ms ROWS BETWEEN CURRENT ROW AND 201 FOLLOWING
         ), 2, 200) AS fwd_closes,
         CASE WHEN close > open THEN 1 ELSE 0 END AS direction,
-        row_number() OVER (ORDER BY timestamp_ms) AS rn
-    FROM rangebar_cache.range_bars
+        row_number() OVER (ORDER BY close_time_ms) AS rn
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = '__SYMBOL__'
       AND threshold_decimal_bps = __THRESHOLD_DBPS__
-      AND timestamp_ms <= 1738713600000
-    ORDER BY timestamp_ms
+      AND close_time_ms <= 1738713600000
+      AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 running_stats AS (
     SELECT
         *,
         quantileExactExclusive(0.95)(trade_intensity) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS ti_p95_rolling
     FROM base_bars
 ),
 signal_detection AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         open, high, low, close,
         direction,
         rn,
@@ -88,7 +89,7 @@ signal_detection AS (
         __FEATURE_COL_1__ AS feature1_val,
         __FEATURE_COL_2__ AS feature2_val,
         leadInFrame(open, 1) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
         ) AS entry_price,
         fwd_highs,
@@ -96,7 +97,7 @@ signal_detection AS (
         fwd_opens,
         fwd_closes
     FROM running_stats
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 ),
 champion_signals AS (
     SELECT *
@@ -116,7 +117,7 @@ feature1_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive(__QUANTILE_PCT_1__)(feature1_val) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature1_q
     FROM champion_signals
@@ -125,7 +126,7 @@ feature2_with_quantile AS (
     SELECT
         *,
         quantileExactExclusive(__QUANTILE_PCT_2__)(feature2_val) OVER (
-            ORDER BY timestamp_ms
+            ORDER BY close_time_ms
             ROWS BETWEEN 999 PRECEDING AND 1 PRECEDING
         ) AS feature2_q
     FROM feature1_with_quantile
@@ -140,7 +141,7 @@ signals AS (
 ),
 barrier_params AS (
     SELECT
-        s.timestamp_ms,
+        s.close_time_ms,
         s.entry_price,
         s.fwd_highs, s.fwd_lows, s.fwd_opens, s.fwd_closes,
         s.entry_price * (1.0 + __TP_MULT__ * (__THRESHOLD_DBPS__ / 100000.0)) AS tp_price,
@@ -150,7 +151,7 @@ barrier_params AS (
 ),
 barrier_scan AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         max_bars,
         tp_price,
@@ -165,7 +166,7 @@ barrier_scan AS (
 ),
 trade_outcomes AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         entry_price,
         tp_price,
         sl_price,
@@ -233,8 +234,8 @@ SELECT
     -- Timing + temporal span
     avgIf(exit_bar, exit_type != 'INCOMPLETE') AS avg_bars_held,
     medianIf(exit_bar, exit_type != 'INCOMPLETE') AS median_exit_bar,
-    minIf(timestamp_ms, exit_type != 'INCOMPLETE') AS signal_min_ts_ms,
-    maxIf(timestamp_ms, exit_type != 'INCOMPLETE') AS signal_max_ts_ms,
+    minIf(close_time_ms, exit_type != 'INCOMPLETE') AS signal_min_ts_ms,
+    maxIf(close_time_ms, exit_type != 'INCOMPLETE') AS signal_max_ts_ms,
     -- Total return
     sumIf((exit_price - entry_price) / entry_price, exit_type != 'INCOMPLETE') AS total_return
 FROM trade_outcomes

@@ -6,14 +6,14 @@ Joins Rachev rankings, CDaR rankings, and OU calibration into a single
 composite score per config. Replaces Kelly Criterion as the primary ranker
 because Kelly selects penny-picker configs (high WR, asymmetric tails).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 from __future__ import annotations
 
 import json
 
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 def compute_tamrs(

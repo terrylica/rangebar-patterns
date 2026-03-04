@@ -18,7 +18,7 @@ Bar counting alignment (AP-17):
   Same logic for time barrier: SQL exits at fwd_bar[max_bars], so BT closes
   at bars_held >= max_bars - 1.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 import numpy as np

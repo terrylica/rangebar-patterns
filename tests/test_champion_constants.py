@@ -3,7 +3,7 @@
 ADR: docs/adr/2026-02-06-repository-creation.md
 """
 
-from rangebar_patterns.champion import CHAMPION, CROSS_ASSET, TEMPORAL_HIT_RATES
+from opendeviationbar_patterns.champion import CHAMPION, CROSS_ASSET, TEMPORAL_HIT_RATES
 
 
 def test_champion_name():

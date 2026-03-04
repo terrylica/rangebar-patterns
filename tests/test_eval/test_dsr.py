@@ -1,11 +1,11 @@
 """Test DSR and PSR computation.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 import math
 
-from rangebar_patterns.eval.dsr import compute_psr, expected_max_sr, sr_standard_error
+from opendeviationbar_patterns.eval.dsr import compute_psr, expected_max_sr, sr_standard_error
 
 
 def test_expected_max_sr_n1():

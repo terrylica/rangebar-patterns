@@ -8,11 +8,11 @@ run = "clickhouse client --multiquery < {{arg(name='file')}}"
 
 ["sql:run-remote"]
 description = "Run a SQL file on remote ClickHouse (via SSH)"
-run = "cat {{arg(name='file')}} | ssh ${RANGEBAR_CH_HOST:-localhost} 'clickhouse-client --multiquery'"
+run = "cat {{arg(name='file')}} | ssh ${OPENDEVIATIONBAR_CH_HOST:-localhost} 'clickhouse-client --multiquery'"
 
 ["sql:validate"]
 description = "Check all SQL files for syntax (dry run)"
-run = "uv run -p 3.13 python -m rangebar_patterns.validate --check-syntax"
+run = "uv run -p 3.13 python -m opendeviationbar_patterns.validate --check-syntax"
 
 ["sql:reproduce"]
 description = "Run Gen111 and verify champion pattern hit rate"

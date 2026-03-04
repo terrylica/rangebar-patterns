@@ -5,8 +5,8 @@
 (c) Cross-metric comparison: Spearman correlations, redundancy, verdict
 (d) TAMRS vs Kelly rank divergence analysis (Issue #16)
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -17,8 +17,8 @@ import math
 import numpy as np
 from scipy.stats import spearmanr
 
-from rangebar_patterns.config import ALPHA
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import ALPHA
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 N_BOOTSTRAP = 1000  # Standard bootstrap size
 

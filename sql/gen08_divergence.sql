@@ -2,7 +2,7 @@
 -- Novel patterns combining Gen2 champion + Gen7 mean reversion insights
 -- Also: OFI/Kyle divergence, intensity spikes without conviction
 
-INSERT INTO rangebar_cache.feature_combinations
+INSERT INTO opendeviationbar_cache.feature_combinations
     (symbol, threshold_decimal_bps, combo_name, combo_description, n_features,
      feature_conditions, signal_type, lookback_bars,
      total_bars, signal_count, hits, hit_rate, edge_pct, z_score, p_value, ci_low, ci_high,
@@ -13,17 +13,19 @@ WITH percentiles AS (
         quantile(0.95)(trade_intensity) as ti_p95,
         quantile(0.9)(ofi) as ofi_p90,
         quantile(0.1)(ofi) as ofi_p10
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
+    AND ouroboros_mode = 'month'
 ),
 bars AS (
     SELECT
-        timestamp_ms,
+        close_time_ms,
         CASE WHEN close > open THEN 1 ELSE 0 END as direction,
         trade_intensity as ti, kyle_lambda_proxy as kyle, ofi
-    FROM rangebar_cache.range_bars
+    FROM opendeviationbar_cache.open_deviation_bars
     WHERE symbol = 'SOLUSDT' AND threshold_decimal_bps = 1000
-    ORDER BY timestamp_ms
+    AND ouroboros_mode = 'month'
+    ORDER BY close_time_ms
 ),
 lagged AS (
     SELECT
@@ -34,7 +36,7 @@ lagged AS (
         lagInFrame(direction, 1) OVER w as dir_1,
         lagInFrame(direction, 2) OVER w as dir_2
     FROM bars
-    WINDOW w AS (ORDER BY timestamp_ms)
+    WINDOW w AS (ORDER BY close_time_ms)
 )
 SELECT
     'SOLUSDT' as symbol,

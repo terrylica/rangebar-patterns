@@ -6,7 +6,7 @@ GROW = mean(log(1 + f * r_t)). Identifies configs where E > 1/alpha.
 E-values are the proper hypothesis testing framework for Kelly -- they are
 mathematically isomorphic (GROW maximizes the same objective as Kelly).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/12
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/12
 """
 
 from __future__ import annotations
@@ -15,8 +15,8 @@ import json
 
 import numpy as np
 
-from rangebar_patterns.config import ALPHA
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import ALPHA
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 E_THRESHOLD = 1.0 / ALPHA  # = 20.0 at alpha=0.05
 MIN_BET = 0.001  # Minimum bet fraction for negative-Kelly configs

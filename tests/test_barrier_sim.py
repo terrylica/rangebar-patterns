@@ -1,6 +1,6 @@
 """Tests for barrier_sim.py — pure-Python barrier simulator.
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/27
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/27
 
 Validates Gen720 2-segment SL semantics, AP-12 (SL wins ties),
 AP-13 (gap-down execution), and barrier_id formatting.
@@ -9,7 +9,7 @@ AP-13 (gap-down execution), and barrier_id formatting.
 import numpy as np
 import pytest
 
-from rangebar_patterns.barrier_sim import BarrierConfig, simulate_barriers
+from opendeviationbar_patterns.barrier_sim import BarrierConfig, simulate_barriers
 
 # ---------------------------------------------------------------------------
 # Shared constants

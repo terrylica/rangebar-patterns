@@ -4,7 +4,7 @@ Computes CDaR(alpha) = mean of worst (1-alpha) fraction of the drawdown curve.
 Detects clustered loss sequences that SL alone misses. Used in TAMRS as the
 denominator of the SL/CDaR ratio: min(1, |SL_emp| / CDaR).
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/16
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/16
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ import json
 
 import numpy as np
 
-from rangebar_patterns.config import CDAR_ALPHA, MIN_TRADES_CDAR, SL_EMP
-from rangebar_patterns.eval._io import load_jsonl, results_dir
+from opendeviationbar_patterns.config import CDAR_ALPHA, MIN_TRADES_CDAR, SL_EMP
+from opendeviationbar_patterns.eval._io import load_jsonl, results_dir
 
 
 def compute_cdar(returns: list[float], alpha: float = CDAR_ALPHA) -> float | None:

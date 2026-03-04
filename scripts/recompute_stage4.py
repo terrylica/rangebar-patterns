@@ -12,7 +12,7 @@ Also normalizes Stage 3 field names to the canonical naming convention:
 Usage:
     python scripts/recompute_stage4.py [--dry-run]
 
-GitHub Issue: https://github.com/terrylica/rangebar-patterns/issues/28
+GitHub Issue: https://github.com/terrylica/opendeviationbar-patterns/issues/28
 """
 
 from __future__ import annotations
@@ -30,12 +30,12 @@ from scipy.stats import kurtosis, skew
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from rangebar_patterns.eval.dsr import (
+from opendeviationbar_patterns.eval.dsr import (
     compute_psr,
     expected_max_sr,
     sr_standard_error,
 )
-from rangebar_patterns.eval.walk_forward import compute_gt_composite
+from opendeviationbar_patterns.eval.walk_forward import compute_gt_composite
 
 COMBO_DIR = Path("results/eval/gen720/combos")
 FOLD_DIR = Path("results/eval/gen720/folds")

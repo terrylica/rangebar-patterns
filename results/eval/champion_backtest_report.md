@@ -5,7 +5,7 @@
 **Pattern**: 2 consecutive DOWN bars + trade intensity > p95 + kyle_lambda > 0
 **Features**: turnover_imbalance < rolling p25 AND price_impact < rolling p25
 **Barriers**: TP = 0.25x threshold (tight), SL = 0.50x threshold (wide), max_bars = 100
-**GitHub Issue**: [Issue 26](https://github.com/terrylica/rangebar-patterns/issues/26)
+**GitHub Issue**: [Issue 26](https://github.com/terrylica/opendeviationbar-patterns/issues/26)
 
 ---
 

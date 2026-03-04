@@ -3,9 +3,9 @@ requires = ["setuptools>=75.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rangebar-patterns"
+name = "opendeviationbar-patterns"
 version = "2.1.0"
-description = "Range bar pattern discovery: ClickHouse SQL brute-force analysis of microstructure features"
+description = "Open deviation bar pattern discovery: ClickHouse SQL brute-force analysis of microstructure features"
 readme = "README.md"
 requires-python = ">=3.13"
 license = { text = "MIT" }
@@ -25,7 +25,7 @@ backtesting = ["backtesting>=0.3"]
 nautilus = ["nautilus_trader>=1.200"]
 optimize = ["optuna>=4.7", "pymcdm>=1.2", "pymoo>=0.6"]
 wfo = ["arch>=7.0", "hmmlearn>=0.3", "skfolio>=0.5", "pandera[polars]>=0.20"]
-gen800 = ["atr-adaptive-laguerre>=2.0"]
+gen800 = ["atr-adaptive-laguerre>=2.4"]
 dev = ["pytest>=7.0", "ruff>=0.1", "duckdb>=1.0"]
 
 [tool.ruff]
